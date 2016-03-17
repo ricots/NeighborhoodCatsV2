@@ -62,7 +62,7 @@ If you have questions about whether or not your work adheres to these guidelines
 * **[DevPost](http://devpost.com)** _A hackathon resource that may spark inspiration_
 * **[HackDesign](https://hackdesign.org/lessons)** _(beginner's reference for thinking like a designer)_
 * **[Visual Design Hacking](https://generalassemb.ly/online/videos/visual-design-hacking)** _(a great tips-and-tricks focused video from Front Row)_
-* 
+
 ---
 
 ### Potential Project Ideas
@@ -78,5 +78,3 @@ Sometimes, using Stack Overflow is overwhelming. Using their API, develop an app
 
 ##### Apartment or Job Search App
 Create an app that makes finding an apartment or job easier. Maybe there is a way to rethink and improve how to match people with such resources!
-
-
