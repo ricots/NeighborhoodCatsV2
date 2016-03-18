@@ -1,18 +1,21 @@
  - What are your overall objectives for the project? What problem(s) are you solving? What user goals are you making possible?
-     My objectives are to build an app that allows the user to search through recipes from various sources, and add recipes to their own collection.
+     My objectives are to build an app that allows the user to create a database of cat sightings in their neighborhood so they can remember cats they've seen in the wild, and show friends how cute the cats were.
  - What is/are the main takeaways from your research findings? Briefly recap what you learned.
-     My research shows that of the few Android recipe apps that exist, they each lack something the target demographic wants from that type of app: either there are no saved recipes, the app is laggy/buggy, the number of recipes are limited, search is too limited, or they include frustrating UX/UI features.
+     My research shows that people who love animals also love taking photos of animals and sharing those photos and stories.
  - Who is your target audience?
-     People who cook fairly often and plan their meals on the go.
+     Animal lovers who enjoy making friends with animals in their neighborhood.
  - What features will you include? They should map to your user goals. Make sure you offer a coherent rationale for why they were chosen.
-     1. The ability to search the Yummly API database and filter by a variety of criteria.
-     2. The ability to add recipes to a user's collection.
-     3. The ability to search through the user's collection.
-     4. The ability to rate and comment on a recipe so other users know whether it's worth the effort or needs adjustments.
-     5. The ability to view a timeline that visually shows how each part of a recipe should be timed (this may not make v1,0).
+     1. Ability to take photos and store them, and the option to upload a photo instead (in case you are creating the entry after your sighting), along with the ability to add descriptions with photos.
+     2. Ability to store and retrieve the location of photo.
+     3. Ability to delete entries.
+     4. Ability to see the locations of your neighborhood cats on a map.
+     5. Ability to search through your local database of cats.
+     6. Ability to share your photo and description of cats to Instagram, Twitter, Facebook, messaging apps, and email.
+     7. Get a notification when you are near a previously saved cat location.
+     8. Identify the breed of cat in the photo using an image recognition API (if time allows).
  - How will this differentiate from your competitors? What pain points are being addressed?
-     Some competitors are buggy or laggy, some do not have a recipe box to save recipes to, some do not allow you to search your recipe box, and some have a frustrating UX.
+     Current competitors are general photo apps like Instagram, Photos, and general social networks like Twitter and Facebook, but none of them make it super easy to organize just photos of animals, and you can't filter in this way what you see on a map if a map view is available. The user can create albums in many competitor apps, but they often get buried if the user creates a lot of albums.
  - Are there any constraints you have to work with? (e.g. technological, timing, content, etc.)
-     I am working with a time constraint of ~2.5 weeks, the platform is limited to Android, and there are legal guidelines to the Yummly API that must be studied. A more open API may be necessary unless this app can be deemed as not a competitor to the core Yummly app.
+     I am working with a time constraint of ~2 weeks, and the platform is limited to Android.
  - Is there anything else you think might help us (your stakeholders) understand what you’re proposing?
-     A clean, intuitive recipe app on Android would be largely popular because there is a large gap in available products within that market.
+     Instagram integration may be key to getting people to use this app regularly.

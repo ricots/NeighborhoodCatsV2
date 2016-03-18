@@ -1,55 +1,58 @@
 # Project 4 Research
-## "Baking Mad" (Working title): A recipe app for Android
+## "Neighborhood Cats"
 
 
 ### Research Plan
- 1. Title - "Filling the gap in Android recipe apps"
+ 1. Title - "Meeting your neighbors of the feline persuation"
  2. Authors and stakeholders - Rob Errera (roberterrera@gmail.com)
- 3. Date - 3/17/16
- 4. Background - Recipe sites are a popular way that people find new recipes to cook, and while there are some recipe apps on Android, the few that are available do not sufficiently meet the needs of their target demographic, and are often buggy as well.
- 5. Goals - To provide a
+ 3. Date - 3/18/16
+ 4. Background - My wife and I used to live in Brooklyn and pass stray cats as well as domesticated cats sitting in windows. We would play a game in which we would count how many cats we spotted each day, and I would take photos. But I'd often forget on which block I spotted each cat, and for a while now I've thought it would be great to build an app that recorded these cat spottings and allow you to better remember them and where you saw them.
+ 5. Goals - To be able to view photos and descriptions of cats you've encountered, as well as the location for where you saw them.
  6. Research questions -
-  1. Where do you currently find new recipes?
-  2. Which recipe apps have you used on your phone or tablet?
-  3. Out of the apps you've used, what have you liked about them?
-  4. Out of the apps you've used, what have you disliked about them?
-  5. How often do you (or do you think you would) share a recipe from an app?
-  6. To where, specifically, would you share a recipe?
-  7. On a scale from 1-10, how useful (10 being the most useful) would the ability to search for a recipe based on ingredients in your fridge be?
- 7. Methodology - Potential users will be interviewed over the course of one week, and the results will shape the priority of features of the app.
- 8. Participants - The target persona is "Anna", a full-time editor who is married and has a long commute to and from work every day. She loves to cook, but finds it exhausting to come up with new recipes each week, and finds it boring to eat the same thing over and over again. She's tried many recipe apps but has not found one that contains all the features needed to make that recipe app truly useful.
- 9. Schedule - Participant recruiting starts: 3/14/16; the study begins 3/16/16; expected results: 3/19/16.
+  1. How do you react when you come across stray cats/other people's cats?
+  2. What app do you use/would you use to store photos of cats you've encountered?
+  3. How would you feel about the ability to see a map of the locations of cats other people have come across in your neighborhood?
+  4. Which journaling apps or photo apps do you use regularly?
+  5. How important is sharing photos of cute animals to you?
+  6. To where, specifically, would you share photo of a cute animal?
+  7. How useful or fun would it be to have the ability to search for nearby cats sightings in your neighborhood?
+ 7. Methodology - Potential users will be interviewed over the course of a few days, and the results will shape the priority of features of the app.
+ 8. Participants - The target persona is "Anna", a full-time editor who is married and has a long commute to and from work every day. She loves cats, but is allergic, so she gets very excited when she sees cats outdoors or sitting at windows. Seeing cute animals on her way to work really improves her mood, but she can't always remember the details about cats and other animals she's spotted in the past, and that makes her sad.
+ 9. Schedule - Participant recruiting started: 3/14/16; the study began 3/16/16; expected results will be on 3/20/16.
  10. Script -
      1. Priority features
-     - What are the most requested features for a recipe app?
+     - What are the most requested features for an app that stores photos of animals you've encountered?
      2. Sharing
-     - How important is the ability to share a recipe?
-     3. Timeline
-     - Would re-envisioning a recipe on a timeline be useful to most users? How could it work in code?
+     - How important is the ability to share your sighting?
+     3. Social aspect
+     - Is it worth the effort to make available a map of cat sightings from all users? Are there any animal-related moral or ethical risks to this?
      4. Focus
-     - Would the app be most affective if focused on only baking? Or is a broader range of topics better?
+     - Would the app be most affective if focused on only on cats? Or would tailoring to a broader range of animals be better?
      5. UX
      - What base level of gestures and visual style is expected by the user?
 
 
 ### User Stories
- 1. The user can access a database of recipes sourced from more than one reputable site.
- 2. The user has the ability to search through recipes and filter them.
- 3. The user can save recipes (with offline access).
- 4. The user can rate recipes and comment on them.
- 5. The user can speak aloud and ask the app to read a specific step back.
- 6. The user can see a timeline for each recipe that shows the timing of each portion of the recipe.
+ 1. The user can photograph a cat they encounter and save the photo to their phone.
+ 2. The user can add a name and description to the photo they took.
+ 3. The user can store the location of their cat sighting.
+ 4. The user can see their cat sightings on a single map view.
+ 5. The user can share their photo, name, and description.
 
 ### Problem Statement
-Anna needs a way to find new recipes via her phone because she likes to plan meals ahead of being home, and current Android recipe apps are not sufficient.
-
+Anna needs an organized way to remember the stray cats and domesticated cats she encounters throughout her week and easily refer back to them.
 
 ### Prioritized Features
- 1. Ability to search through and filter recipes from a database of recipes from a variety of reputable sources.
- 2. A way to save recipes in an organized way and make them available for offline viewing (often called a "recipe box").
- 3. Allows the user to rate a recipe.
- 4. Allows the user to search for recipes based on ingredients they currently have.
- 5. Allows the user to comment on a recipe.
+ 1. Ability to take photos and store them.
+ 2. Ability to upload a photo instead of taking a photo.
+ 3. Ability to add descriptions with photos.
+ 4. Ability to store and retrieve location of photo. 
+ 5. Ability to delete entries.
+ 6. Ability to see locations of cats on a map.
+ 7. Ability to search through local database of cats.
+ 8. Ability to share photo and description of cats.
+ 9. Get a notification when you are near a previously saved cat location.
+
 
 ### Wireframe
-![POP wireframe](https://popapp.in/projects/56ebfe8f36404757458f1a19/preview)
+[Neighborhood Cats wireframe PDF)](https://github.com/roberrera/Project-4/blob/master/10-Design-and-Proposal/NeighborhoodCats_wireframe.pdf)
