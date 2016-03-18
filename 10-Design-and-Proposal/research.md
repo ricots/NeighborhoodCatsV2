@@ -48,9 +48,8 @@ Anna needs a way to find new recipes via her phone because she likes to plan mea
  1. Ability to search through and filter recipes from a database of recipes from a variety of reputable sources.
  2. A way to save recipes in an organized way and make them available for offline viewing (often called a "recipe box").
  3. Allows the user to rate a recipe.
- 4. The app runs smoothly and does not lock up when browsing recipes.
- 5. Allows the user to search for recipes based on ingredients they currently have.
- 6. Allows the user to comment on a recipe.
+ 4. Allows the user to search for recipes based on ingredients they currently have.
+ 5. Allows the user to comment on a recipe.
 
 ### Wireframe
 ![]()
