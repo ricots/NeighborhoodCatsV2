@@ -6,7 +6,7 @@
  1. Title - "Meeting your neighbors of the feline persuation"
  2. Authors and stakeholders - Rob Errera (roberterrera@gmail.com)
  3. Date - 3/18/16
- 4. Background - My wife and I used to live in Brooklyn and pass stray cats as well as domesticated cats sitting in windows. We would play a game in which we would count how many cats we spotted each day, and I would take photos. But I'd often forget on which block I spotted each cat, and for a while now I've thought it would be great to build an app that recorded these cat spottings and allow you to better remember them and where you saw them.
+ 4. Background - My wife and I used to live in Brooklyn and pass stray cats as well as domesticated cats sitting in windows. We would play a game in which we would count how many cats we spotted each day, and I would take photos. But I'd often forget on which block I spotted each cat, and for a while now I've thought it would be great to build an app that recorded these cat sightings and allow you to better remember them and where you saw them.
  5. Goals - To be able to view photos and descriptions of cats you've encountered, as well as the location for where you saw them.
  6. Research questions -
   1. How do you react when you come across stray cats/other people's cats?
@@ -62,7 +62,6 @@ Anna needs an organized way to remember the stray cats and domesticated cats she
  - Twitter API (for sharing)
  - Notifications
  - An image recognition API (to identify cat breed, if time allows)
- - Firebase database (if time allows)
 
 ### Wireframe
 [Neighborhood Cats wireframe PDF)](https://github.com/roberrera/Project-4/blob/master/10-Design-and-Proposal/NeighborhoodCats_wireframe.pdf)
