@@ -46,13 +46,23 @@ Anna needs an organized way to remember the stray cats and domesticated cats she
  1. Ability to take photos and store them.
  2. Ability to upload a photo instead of taking a photo.
  3. Ability to add descriptions with photos.
- 4. Ability to store and retrieve location of photo. 
+ 4. Ability to store and retrieve location of photo.
  5. Ability to delete entries.
  6. Ability to see locations of cats on a map.
  7. Ability to search through local database of cats.
  8. Ability to share photo and description of cats.
  9. Get a notification when you are near a previously saved cat location.
 
+### Inventory
+ - Camera API
+ - Picasso library
+ - Instagram API (for sharing and maybe editing)
+ - Google Maps API (with placemarks)
+ - Facebook API (for sharing)
+ - Twitter API (for sharing)
+ - Notifications
+ - An image recognition API (to identify cat breed, if time allows)
+ - Firebase database (if time allows)
 
 ### Wireframe
 [Neighborhood Cats wireframe PDF)](https://github.com/roberrera/Project-4/blob/master/10-Design-and-Proposal/NeighborhoodCats_wireframe.pdf)
