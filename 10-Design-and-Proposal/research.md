@@ -26,10 +26,10 @@
      - How important is the ability to share a recipe?
      3. Timeline
      - Would re-envisioning a recipe on a timeline be useful to most users? How could it work in code?
-     4. 
-     -
-     5.
-     -  
+     4. Focus
+     - Would the app be most affective if focused on only baking? Or is a broader range of topics better?
+     5. UX
+     - What base level of gestures and visual style is expected by the user?
 
 
 ### User Stories
