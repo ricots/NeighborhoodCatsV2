@@ -21,12 +21,12 @@
  9. Schedule - Participant recruiting starts: 3/14/16; the study begins 3/16/16; expected results: 3/19/16.
  10. Script -
      1. Priority features
-      - What are the most requested features for a recipe app?
+     - What are the most requested features for a recipe app?
      2. Sharing
      - How important is the ability to share a recipe?
      3. Timeline
-      - Would re-envisioning a recipe on a timeline be useful to most users? How could it work in code?
-     4.
+     - Would re-envisioning a recipe on a timeline be useful to most users? How could it work in code?
+     4. 
      -
      5.
      -  
@@ -52,4 +52,4 @@ Anna needs a way to find new recipes via her phone because she likes to plan mea
  5. Allows the user to comment on a recipe.
 
 ### Wireframe
-![]()
+![POP wireframe](https://popapp.in/projects/56ebfe8f36404757458f1a19/preview)
