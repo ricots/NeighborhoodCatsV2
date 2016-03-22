@@ -2,6 +2,7 @@ package com.roberterrera.neighborhoodcats;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -18,11 +19,14 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.roberterrera.neighborhoodcats.Classes.Cat;
 import com.roberterrera.neighborhoodcats.Database.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.Database.DBAssetHelper;
+import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -30,6 +34,8 @@ public class MainActivity extends AppCompatActivity
     Cursor mCursor;
     CursorAdapter mCursorAdapter;
     ListView mListView;
+    TextView mCatName;
+    ImageView mCatThumbnail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +47,11 @@ public class MainActivity extends AppCompatActivity
         setTitle(getString(R.string.mainactivity_title));
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        assert fab != null;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //TODO: Launch AddCat intent.
             }
         });
 
@@ -62,12 +68,11 @@ public class MainActivity extends AppCompatActivity
 
         /* Connect databae */
         DBAssetHelper dbSetup = new DBAssetHelper(MainActivity.this);
-        dbSetup.getReadableDatabase();
+        dbSetup.getWritableDatabase();
 
         final CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(MainActivity.this);
         mCursor = helper.getCatsList();
 
-        DBAssetHelper
         mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
             @Override
             public View newView(Context context, Cursor cursor, ViewGroup parent) {
@@ -77,13 +82,14 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void bindView(View view, Context context, Cursor cursor) {
 
-                mItemTextView = (TextView)view.findViewById(R.id.item_text_view);
-                String itemName = cursor.getString(cursor.getColumnIndex(ShoppingListSQLiteOpenHelper.COL_ITEM_NAME));
-                mPriceTextView = (TextView)view.findViewById(R.id.price_text_view);
-                String itemPrice = cursor.getString(cursor.getColumnIndex(ShoppingListSQLiteOpenHelper.COL_PRICE));
-
-                mItemTextView.setText(itemName);
-                mPriceTextView.setText("$" + itemPrice);
+                mCatName = (TextView)view.findViewById(R.id.textview_catname_list);
+                String catName = cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME));
+                // Set name of cat to list item.
+                mCatName.setText(catName);
+                // Set thumbnail of cat to list
+                Picasso.with(MainActivity.this).load(CatsSQLiteOpenHelper.COL_IMG).into(mCatThumbnail);
+//                resizePhoto();
+//                mCatThumbnail.getResources(cursor.getString((cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_THUMB))));
 
             }
         };
@@ -161,4 +167,14 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    public void resizePhoto() {
+        // Create a thumbnail using Picasso.
+        Picasso.with(this)
+                .load(CatsSQLiteOpenHelper.COL_IMG)
+                .resize(50, 50)
+                .centerCrop()
+                .into(mCatThumbnail);
+    }
+
 }
