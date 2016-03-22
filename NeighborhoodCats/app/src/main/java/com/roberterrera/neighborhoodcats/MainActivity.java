@@ -1,8 +1,11 @@
 package com.roberterrera.neighborhoodcats;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,9 +15,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.CursorAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    Cursor mCursor;
+    CursorAdapter mCursorAdapter;
+    ListView mListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +46,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        /* Drawer setup */
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -42,6 +55,50 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+
+        /* Connect databae */
+        DBAssetHelper dbSetup = new DBAssetHelper(MainActivity.this);
+        dbSetup.getReadableDatabase();
+
+        final CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(MainActivity.this);
+        mCursor = helper.getCatsList();
+
+        DBAssetHelper
+        mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
+            @Override
+            public View newView(Context context, Cursor cursor, ViewGroup parent) {
+                return LayoutInflater.from(context).inflate(R.layout.list_item_layout, parent, false);
+            }
+
+            @Override
+            public void bindView(View view, Context context, Cursor cursor) {
+
+//                mItemTextView = (TextView)view.findViewById(R.id.item_text_view);
+//                String itemName = cursor.getString(cursor.getColumnIndex(ShoppingListSQLiteOpenHelper.COL_ITEM_NAME));
+//                mPriceTextView = (TextView)view.findViewById(R.id.price_text_view);
+//                String itemPrice = cursor.getString(cursor.getColumnIndex(ShoppingListSQLiteOpenHelper.COL_PRICE));
+//
+//                mItemTextView.setText(itemName);
+//                mPriceTextView.setText("$" + itemPrice);
+
+            }
+        };
+
+        mListView = (ListView) findViewById(R.id.listview_cats);
+        mListView.setAdapter(mCursorAdapter);
+
+        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                helper.deleteCatByID(Integer.parseInt(CatsSQLiteOpenHelper.COL_ID));
+                mCursorAdapter.swapCursor(mCursor); // To update the cursor.
+
+                return true;
+            }
+        });
+
     }
 
     @Override
