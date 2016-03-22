@@ -18,7 +18,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
     private static final String TAG = CatsSQLiteOpenHelper.class.getCanonicalName();
 
     private static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "CATS_DB";
+    public static final String DATABASE_NAME = "NEIGHBORHOODCATS.db";
     public static final String CAT_LIST_TABLE_NAME = "YOUR_CATS";
 
     public static final String COL_ID = "_id";
@@ -106,6 +106,22 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
 
     }
 
+    public String getLocationByID(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(CAT_LIST_TABLE_NAME,
+                new String[]{COL_LOCATION},
+                COL_ID + " = ?",
+                new String[]{String.valueOf(id)},
+                null,
+                null,
+                null,
+                null );
+
+        cursor.moveToFirst();
+        return cursor.getString(cursor.getColumnIndex(COL_LOCATION));
+    }
+
     public Cat getCatByID(int id, String name, String desc, String photo, String location){
         SQLiteDatabase db = getReadableDatabase();
 
@@ -128,34 +144,87 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
 
     }
 
-    // To get full list of cats.
+    public void updatePhotoByID (int id, int newValue){
 
-    public ArrayList<Cat> getCatList(){
-        SQLiteDatabase db = getReadableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
 
-        String[] columns = CATS_COLUMNS;
+        ContentValues values = new ContentValues();
+        values.put(COL_IMG, newValue);
 
-        Cursor cursor = db.query(CAT_LIST_TABLE_NAME, columns, null, null, null, null, null, null); // "null" is equivalent of * here.
+        // Which row to update, based on the ID
+        String selection = COL_ID + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(id) };
 
-        cursor.moveToFirst();
+        int count = db.update(
+                CAT_LIST_TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
 
-        ArrayList<Cat> cats = new ArrayList<>();
+        db.update(CAT_LIST_TABLE_NAME, values, selection, selectionArgs);
+        db.close();
+    }
+    public void updateNameByID (int id, int newValue){
 
-        while (!cursor.isAfterLast()){
-            int id = cursor.getInt( cursor.getColumnIndex("id"));
-            String name = cursor.getString( cursor.getColumnIndex(COL_NAME) );
-            String desc = cursor.getString( cursor.getColumnIndex(COL_DESC) );
-            String photo = cursor.getString( cursor.getColumnIndex(COL_IMG) );
-            String location = cursor.getString(cursor.getColumnIndex(COL_LOCATION));
+        SQLiteDatabase db = this.getWritableDatabase();
 
-            cats.add( new Cat(id, name, desc, photo, location));
-            cursor.moveToNext();
-        }
-        cursor.close();
-        return cats;
+        ContentValues values = new ContentValues();
+        values.put(COL_NAME, newValue);
+
+        // Which row to update, based on the ID
+        String selection = COL_ID + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(id) };
+
+        int count = db.update(
+                CAT_LIST_TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
+
+        db.update(CAT_LIST_TABLE_NAME, values, selection, selectionArgs);
+        db.close();
     }
 
-    // TODO: Add method to edit cat entries.
+    public void updateDescByID (int id, int newValue){
 
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_DESC, newValue);
+
+        // Which row to update, based on the ID
+        String selection = COL_ID + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(id) };
+
+        int count = db.update(
+                CAT_LIST_TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
+
+        db.update(CAT_LIST_TABLE_NAME, values, selection, selectionArgs);
+        db.close();
+    }
+
+    public void updateLocationByID (int id, int newValue){
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_LOCATION, newValue);
+
+        // Which row to update, based on the ID
+        String selection = COL_ID + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(id) };
+
+        int count = db.update(
+                CAT_LIST_TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
+
+        db.update(CAT_LIST_TABLE_NAME, values, selection, selectionArgs);
+        db.close();
+    }
 
 }
