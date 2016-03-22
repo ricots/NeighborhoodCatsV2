@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats;
+package com.roberterrera.neighborhoodcats.Database;
 
 import android.content.Context;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;

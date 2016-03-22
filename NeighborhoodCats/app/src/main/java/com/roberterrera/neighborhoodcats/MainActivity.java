@@ -21,6 +21,9 @@ import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.roberterrera.neighborhoodcats.Database.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.Database.DBAssetHelper;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -74,13 +77,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void bindView(View view, Context context, Cursor cursor) {
 
-//                mItemTextView = (TextView)view.findViewById(R.id.item_text_view);
-//                String itemName = cursor.getString(cursor.getColumnIndex(ShoppingListSQLiteOpenHelper.COL_ITEM_NAME));
-//                mPriceTextView = (TextView)view.findViewById(R.id.price_text_view);
-//                String itemPrice = cursor.getString(cursor.getColumnIndex(ShoppingListSQLiteOpenHelper.COL_PRICE));
-//
-//                mItemTextView.setText(itemName);
-//                mPriceTextView.setText("$" + itemPrice);
+                mItemTextView = (TextView)view.findViewById(R.id.item_text_view);
+                String itemName = cursor.getString(cursor.getColumnIndex(ShoppingListSQLiteOpenHelper.COL_ITEM_NAME));
+                mPriceTextView = (TextView)view.findViewById(R.id.price_text_view);
+                String itemPrice = cursor.getString(cursor.getColumnIndex(ShoppingListSQLiteOpenHelper.COL_PRICE));
+
+                mItemTextView.setText(itemName);
+                mPriceTextView.setText("$" + itemPrice);
 
             }
         };
