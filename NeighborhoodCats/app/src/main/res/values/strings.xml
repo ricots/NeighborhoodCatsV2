@@ -6,9 +6,14 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
+    <string name="action_save">Save</string>
 
     <string name="mainactivity_title">Your Neighborhood Cats</string>
 
     <string name="sample_catname">Summit Cat</string>
+    <string name="title_activity_details">DetailsActivity</string>
+    <string name="title_activity_new_cat">NewCatActivity</string>
+    <string name="edittext_sample_desc">Bond Cat always waits by the window...</string>
+    <string name="edittext_sample_name">Bond Cat</string>
 
 </resources>

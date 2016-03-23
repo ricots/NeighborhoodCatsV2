@@ -75,7 +75,25 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
                 null,
                 null );
 
+//        cursor.close();
         return cursor;
+    }
+
+    public String getCatNameByID(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(CAT_LIST_TABLE_NAME,
+                new String[]{COL_NAME},
+                COL_ID + " = ?",
+                new String[]{String.valueOf(id)},
+                null,
+                null,
+                null,
+                null );
+
+        cursor.moveToFirst();
+//        cursor.close();
+        return cursor.getString(cursor.getColumnIndex(COL_LOCATION));
     }
 
 
@@ -117,6 +135,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
                 null );
 
         cursor.moveToFirst();
+//        cursor.close();
         return cursor.getString(cursor.getColumnIndex(COL_LOCATION));
     }
 
@@ -131,12 +150,12 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(CAT_LIST_TABLE_NAME, columns, selection, selectionArgs, null, null, null, null);
         cursor.moveToFirst();
 
-         name = cursor.getString( cursor.getColumnIndex(COL_NAME) );
-         desc = cursor.getString( cursor.getColumnIndex(COL_DESC) );
-         photo = cursor.getString( cursor.getColumnIndex(COL_IMG) );
-         location = cursor.getString(cursor.getColumnIndex(COL_LOCATION));
+        name = cursor.getString( cursor.getColumnIndex(COL_NAME) );
+        desc = cursor.getString( cursor.getColumnIndex(COL_DESC) );
+        photo = cursor.getString( cursor.getColumnIndex(COL_IMG) );
+        location = cursor.getString(cursor.getColumnIndex(COL_LOCATION));
 
-        cursor.close(); // Not mandatory, but is good a practice.
+        cursor.close();
 
         return new Cat(id, name, desc, photo, location);
 

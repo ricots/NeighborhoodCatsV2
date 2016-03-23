@@ -1,6 +1,7 @@
 package com.roberterrera.neighborhoodcats;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
@@ -82,14 +83,17 @@ public class MainActivity extends AppCompatActivity
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                Cursor cursor = mCursorAdapter.getCursor();
+                Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+                cursor.moveToPosition(position);
+                intent.putExtra("id", cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
+                startActivity(intent);
             }
         });
 
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-
                 helper.deleteCatByID(Integer.parseInt(CatsSQLiteOpenHelper.COL_ID));
                 mCursorAdapter.swapCursor(mCursor);
 
@@ -103,7 +107,6 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected Void doInBackground(Void... params) {
-
             DBAssetHelper dbSetup = new DBAssetHelper(MainActivity.this);
             dbSetup.getWritableDatabase();
 
