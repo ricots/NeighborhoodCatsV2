@@ -61,7 +61,8 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO: Launch AddCat intent.
+                Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
+                startActivity(newCatIntent);
             }
         });
 
