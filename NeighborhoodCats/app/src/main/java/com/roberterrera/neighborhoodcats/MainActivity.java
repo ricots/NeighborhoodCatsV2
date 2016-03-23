@@ -3,9 +3,11 @@ package com.roberterrera.neighborhoodcats;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -28,6 +30,12 @@ import com.roberterrera.neighborhoodcats.Database.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.Database.DBAssetHelper;
 import com.squareup.picasso.Picasso;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -36,6 +44,7 @@ public class MainActivity extends AppCompatActivity
     ListView mListView;
     TextView mCatName;
     ImageView mCatThumbnail;
+    CatsSQLiteOpenHelper helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,49 +74,76 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-
-        /* Connect databae */
-        DBAssetHelper dbSetup = new DBAssetHelper(MainActivity.this);
-        dbSetup.getWritableDatabase();
-
-        final CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(MainActivity.this);
-        mCursor = helper.getCatsList();
-
-        mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
-            @Override
-            public View newView(Context context, Cursor cursor, ViewGroup parent) {
-                return LayoutInflater.from(context).inflate(R.layout.list_item_layout, parent, false);
-            }
-
-            @Override
-            public void bindView(View view, Context context, Cursor cursor) {
-
-                mCatName = (TextView)view.findViewById(R.id.textview_catname_list);
-                String catName = cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME));
-                // Set name of cat to list item.
-                mCatName.setText(catName);
-                // Set thumbnail of cat to list
-                Picasso.with(MainActivity.this).load(CatsSQLiteOpenHelper.COL_IMG).into(mCatThumbnail);
-//                resizePhoto();
-//                mCatThumbnail.getResources(cursor.getString((cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_THUMB))));
-
-            }
-        };
-
         mListView = (ListView) findViewById(R.id.listview_cats);
-        mListView.setAdapter(mCursorAdapter);
+
+        GetCatsListAsyncTask getCatsListAsyncTask = new GetCatsListAsyncTask();
+        getCatsListAsyncTask.execute();
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
 
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
                 helper.deleteCatByID(Integer.parseInt(CatsSQLiteOpenHelper.COL_ID));
-                mCursorAdapter.swapCursor(mCursor); // To update the cursor.
+                mCursorAdapter.swapCursor(mCursor);
 
                 return true;
             }
         });
 
+    }
+
+    private class GetCatsListAsyncTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            DBAssetHelper dbSetup = new DBAssetHelper(MainActivity.this);
+            dbSetup.getWritableDatabase();
+
+            helper = CatsSQLiteOpenHelper.getInstance(MainActivity.this);
+            mCursor = helper.getCatsList();
+
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            //TODO: Set up progress bar
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
+                @Override
+                public View newView(Context context, Cursor cursor, ViewGroup parent) {
+                    return LayoutInflater.from(context).inflate(R.layout.list_item_layout, parent, false);
+                }
+
+                @Override
+                public void bindView(View view, Context context, Cursor cursor) {
+
+                    mCatName = (TextView) view.findViewById(R.id.textview_catname_list);
+                    String catName = cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME));
+                    // Set name of cat to list item.
+                    mCatName.setText(catName);
+                    // Set thumbnail of cat to list
+                    Picasso.with(MainActivity.this).load(CatsSQLiteOpenHelper.COL_IMG).into(mCatThumbnail);
+                }
+            };
+
+            if (mListView != null) {
+                mListView.setAdapter(mCursorAdapter);
+            }
+        }
     }
 
     @Override

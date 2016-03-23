@@ -8,8 +8,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.roberterrera.neighborhoodcats.Classes.Cat;
 
-import java.util.ArrayList;
-
 /**
  * Created by Rob on 3/21/16.
  */
