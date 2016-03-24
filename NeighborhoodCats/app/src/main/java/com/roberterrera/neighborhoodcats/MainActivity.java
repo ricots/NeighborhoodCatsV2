@@ -37,8 +37,6 @@ public class MainActivity extends AppCompatActivity
     TextView mCatName;
     ImageView mCatThumbnail;
     CatsSQLiteOpenHelper helper;
-    DBAssetHelper dbSetup;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +46,6 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.mainactivity_title));
-
-        dbSetup = new DBAssetHelper(MainActivity.this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
@@ -104,7 +100,9 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected Void doInBackground(Void... params) {
 // TODO: E/SQLiteDatabase: Failed to open database '/data/user/0/com.roberterrera.neighborhoodcats/databases/CATS_DB'. \n android.database.sqlite.SQLiteCantOpenDatabaseException: unknown error (code 14): Could not open database
+            DBAssetHelper dbSetup = new DBAssetHelper(MainActivity.this);
             dbSetup.getReadableDatabase();
+
             helper = CatsSQLiteOpenHelper.getInstance(MainActivity.this);
             mCursor = helper.getCatsList();
 

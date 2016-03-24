@@ -2,11 +2,13 @@ package com.roberterrera.neighborhoodcats.Classes;
 
 import android.widget.ImageView;
 
+import io.realm.RealmObject;
+
 
 /**
  * Created by Rob on 3/22/16.
  */
-public class Cat {
+public class Cat extends RealmObject {
     private int id;
     private String mName;
     private String mDesc;
