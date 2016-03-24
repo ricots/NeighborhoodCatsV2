@@ -16,7 +16,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
     private static final String TAG = CatsSQLiteOpenHelper.class.getCanonicalName();
 
     private static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "NEIGHBORHOODCATS.db";
+    public static final String DATABASE_NAME = "CATS_DB";
     public static final String CAT_LIST_TABLE_NAME = "YOUR_CATS";
 
     public static final String COL_ID = "_id";

@@ -7,18 +7,16 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
@@ -26,16 +24,9 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.roberterrera.neighborhoodcats.Classes.Cat;
 import com.roberterrera.neighborhoodcats.Database.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.Database.DBAssetHelper;
 import com.squareup.picasso.Picasso;
-
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -46,6 +37,8 @@ public class MainActivity extends AppCompatActivity
     TextView mCatName;
     ImageView mCatThumbnail;
     CatsSQLiteOpenHelper helper;
+    DBAssetHelper dbSetup;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +48,8 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.mainactivity_title));
+
+        dbSetup = new DBAssetHelper(MainActivity.this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
@@ -108,9 +103,8 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected Void doInBackground(Void... params) {
-            DBAssetHelper dbSetup = new DBAssetHelper(MainActivity.this);
-            dbSetup.getWritableDatabase();
-
+// TODO: E/SQLiteDatabase: Failed to open database '/data/user/0/com.roberterrera.neighborhoodcats/databases/CATS_DB'. \n android.database.sqlite.SQLiteCantOpenDatabaseException: unknown error (code 14): Could not open database
+            dbSetup.getReadableDatabase();
             helper = CatsSQLiteOpenHelper.getInstance(MainActivity.this);
             mCursor = helper.getCatsList();
 

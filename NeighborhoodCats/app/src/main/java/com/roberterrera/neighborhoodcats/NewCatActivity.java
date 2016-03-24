@@ -1,9 +1,7 @@
 package com.roberterrera.neighborhoodcats;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,10 +10,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -29,24 +23,30 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.desmond.squarecamera.CameraActivity;
-import com.roberterrera.neighborhoodcats.Classes.Cat;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.drive.Drive;
+import com.roberterrera.neighborhoodcats.Classes.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.Database.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.Database.DBAssetHelper;
-import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class NewCatActivity extends AppCompatActivity {
+public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     private TextView mCatName, mCatDesc, mFoundAt, mCatLocation;
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
+    private Tracker mTracker;
+//    public abstract boolean hasSystemFeature (String name);
 
-    //    private static final int REQUEST_CAMERA = 0;
+
+
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_TAKE_PHOTO = 1;
     private static final int RESULT_LOAD_IMG = 2;
@@ -72,7 +72,9 @@ public class NewCatActivity extends AppCompatActivity {
         mEditCatDesc = (EditText) findViewById(R.id.editText_newdesc);
         mEditCatName = (EditText) findViewById(R.id.editText_newname);
 
+
         dispatchTakePictureIntent();
+//        getLocation();
 
         mPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,12 +110,22 @@ public class NewCatActivity extends AppCompatActivity {
                             // Save cat to database.
                             // Cat newCat = new Cat(Integer.parseInt(CatsSQLiteOpenHelper.COL_ID), CatsSQLiteOpenHelper.COL_NAME, CatsSQLiteOpenHelper.COL_DESC, CatsSQLiteOpenHelper.COL_IMG, CatsSQLiteOpenHelper.COL_LOCATION);
                             CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
-                            helper.insert(
-                                    Integer.parseInt(CatsSQLiteOpenHelper.COL_ID),
-                                    CatsSQLiteOpenHelper.COL_NAME,
-                                    CatsSQLiteOpenHelper.COL_DESC,
-                                    CatsSQLiteOpenHelper.COL_IMG,
-                                    CatsSQLiteOpenHelper.COL_LOCATION);
+                            try {
+                                helper.insert(
+                                        Integer.parseInt(CatsSQLiteOpenHelper.COL_ID),
+                                        mEditCatName.getText().toString(),
+                                        mEditCatDesc.getText().toString(),
+                                        String.valueOf(mPhoto),
+                                        String.valueOf(mTracker));
+                                Log.d("INSERT", mEditCatName.getText().toString()+", "+
+                                        mEditCatDesc.getText().toString()+", "+
+                                        String.valueOf(mPhoto)+", "+
+                                        String.valueOf(mTracker) );
+                            } catch (Exception e){
+                                Toast.makeText(NewCatActivity.this,
+                                        "There was a problem saving your cat data :(",
+                                        Toast.LENGTH_SHORT).show();
+                            }
                         }
                     };
 
@@ -125,7 +137,26 @@ public class NewCatActivity extends AppCompatActivity {
 
     }
 
-        // Go to the camera.
+    private void getLocation() {
+        GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* AppCompatActivity */,
+                        this /* OnConnectionFailedListener */)
+                .addApi(Drive.API)
+                .addScope(Drive.SCOPE_FILE)
+                .build();
+
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
+        // Build and send an Event.
+        mTracker.send(new HitBuilders.EventBuilder()
+                .setCategory("category")
+                .setAction("clicked button")
+                .setLabel("clicker")
+                .build());
+//        mCatLocation.setText(String.valueOf(mTracker));
+    }
+
+    // Go to the camera.
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
@@ -179,6 +210,7 @@ public class NewCatActivity extends AppCompatActivity {
                         .decodeFile(imgDecodableString));
 
                 //TODO: Get GPS location from photo and save to COL_IMG.
+                // If the photo has GPS EXIF data, store that in the COL_IMG column. Else use current location of device.
 
             } else {
                 Toast.makeText(this, "You haven't picked Image",
@@ -231,7 +263,7 @@ public class NewCatActivity extends AppCompatActivity {
         int photoH = bmOptions.outHeight;
 
         // Determine how much to scale down the image
-        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+        int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
 
         // Decode the image file into a Bitmap sized to fill the View
         bmOptions.inJustDecodeBounds = false;
@@ -242,43 +274,13 @@ public class NewCatActivity extends AppCompatActivity {
         mPhoto.setImageBitmap(bitmap);
     }
 
-/*
-        // Check for camera permission in Marshmallow
-        public void requestForCameraPermission(View view) {
-            final String permission = Manifest.permission.CAMERA;
-            if (ContextCompat.checkSelfPermission(NewCatActivity.this, permission)
-                    != PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(NewCatActivity.this, permission)) {
-                    // Show permission rationale
-                } else {
-                    // Handle the result in Activity#onRequestPermissionResult(int, String[], int[])
-                    ActivityCompat.requestPermissions(NewCatActivity.this, new String[]{permission}, REQUEST_CAMERA);
-                }
-            } else {
-                // Start CameraActivity
-            }
-        }
 
-        // Start CameraActivity
-        Intent startCustomCameraIntent = new Intent(this, CameraActivity.class);
-        startActivityForResult(startCustomCameraIntent, REQUEST_CAMERA);
-
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
     }
 
     @Override
-    public void startActivityForResult(Intent intent, int requestCode, Bundle options) {
-        super.startActivityForResult(intent, requestCode, options);
+    protected void onResume() {
+        super.onResume();
     }
-
-    // Receive Uri of saved square photo
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode != RESULT_OK) return;
-
-        if (requestCode == REQUEST_CAMERA) {
-            Uri photoUri = data.getData();
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-    */
 }

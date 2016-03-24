@@ -15,5 +15,6 @@
     <string name="title_activity_new_cat">NewCatActivity</string>
     <string name="edittext_sample_desc">Bond Cat always waits by the window...</string>
     <string name="edittext_sample_name">Bond Cat</string>
+    <string name="title_activity_maps">Map</string>
 
 </resources>
