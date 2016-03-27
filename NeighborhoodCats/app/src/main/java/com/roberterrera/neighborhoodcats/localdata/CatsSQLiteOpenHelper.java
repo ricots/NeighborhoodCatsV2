@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.Database;
+package com.roberterrera.neighborhoodcats.localdata;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.roberterrera.neighborhoodcats.Classes.Cat;
+import com.roberterrera.neighborhoodcats.models.Cat;
 
 /**
  * Created by Rob on 3/21/16.
@@ -16,13 +16,13 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
     private static final String TAG = CatsSQLiteOpenHelper.class.getCanonicalName();
 
     private static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "CATS_DB";
+    public static final String DATABASE_NAME = "CATS_DB.db";
     public static final String CAT_LIST_TABLE_NAME = "YOUR_CATS";
 
     public static final String COL_ID = "_id";
     public static final String COL_NAME = "CAT_NAME";
-    public static final String COL_DESC = "DESCRIPTION";
-    public static final String COL_LOCATION = "LOCATION";
+    public static final String COL_DESC = "CAT_DESC";
+    public static final String COL_LOCATION = "CAT_LOC";
     public static final String COL_IMG = "IMAGE_PATH";
 //    public static final String COL_THUMB = "THUMBNAIL_PATH";
     public static final String[] CATS_COLUMNS = {COL_ID,COL_NAME,COL_DESC, COL_LOCATION, COL_IMG};

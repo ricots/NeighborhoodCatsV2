@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.Classes;
+package com.roberterrera.neighborhoodcats.models;
 
 /**
  * Created by Rob on 3/23/16.

@@ -3,7 +3,6 @@ package com.roberterrera.neighborhoodcats;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -24,9 +23,15 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.roberterrera.neighborhoodcats.Database.CatsSQLiteOpenHelper;
-import com.roberterrera.neighborhoodcats.Database.DBAssetHelper;
+import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.localdata.DBAssetHelper;
+import com.roberterrera.neighborhoodcats.models.Cat;
+import com.roberterrera.neighborhoodcats.models.CatAdapter;
 import com.squareup.picasso.Picasso;
+
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -37,6 +42,11 @@ public class MainActivity extends AppCompatActivity
     TextView mCatName;
     ImageView mCatThumbnail;
     CatsSQLiteOpenHelper helper;
+    CatAdapter mAdapter;
+
+    private Realm realm;
+    private RealmConfiguration realmConfig;
+    RealmResults<Cat> results;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +56,13 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.mainactivity_title));
+
+        // Create the Realm configuration
+        realmConfig = new RealmConfiguration.Builder(this).build();
+        // Open the Realm for the UI thread.
+        realm = Realm.getInstance(realmConfig);
+        // All writes must be wrapped in a transaction to facilitate safe multi threading
+        realm.beginTransaction();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
@@ -99,12 +116,12 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected Void doInBackground(Void... params) {
-// TODO: E/SQLiteDatabase: Failed to open database '/data/user/0/com.roberterrera.neighborhoodcats/databases/CATS_DB'. \n android.database.sqlite.SQLiteCantOpenDatabaseException: unknown error (code 14): Could not open database
-            DBAssetHelper dbSetup = new DBAssetHelper(MainActivity.this);
-            dbSetup.getReadableDatabase();
 
-            helper = CatsSQLiteOpenHelper.getInstance(MainActivity.this);
-            mCursor = helper.getCatsList();
+            results = realm.where(Cat.class).findAll();
+            mAdapter = new CatAdapter(MainActivity.this, R.id.listview_cats, results, true);
+
+//            DBAssetHelper dbAssetHelper = new DBAssetHelper(MainActivity.this);
+//            dbAssetHelper.getReadableDatabase();
 
             return null;
         }
@@ -112,12 +129,16 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            //TODO: Set up progress bar
+            //TODO: Set up progress bar?
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+
+
+/*
+            mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
             mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
                 @Override
                 public View newView(Context context, Cursor cursor, ViewGroup parent) {
@@ -131,14 +152,14 @@ public class MainActivity extends AppCompatActivity
                     String catName = cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME));
                     // Set name of cat to list item.
                     mCatName.setText(catName);
-                    // Set thumbnail of cat to list
+                    // Load image file path into thumbnail
                     Picasso.with(MainActivity.this).load(CatsSQLiteOpenHelper.COL_IMG).into(mCatThumbnail);
                 }
             };
-
-            if (mListView != null) {
-                mListView.setAdapter(mCursorAdapter);
-            }
+*/
+//            if (mListView != null) {
+                mListView.setAdapter(mAdapter);
+//            }
         }
     }
 
@@ -209,4 +230,11 @@ public class MainActivity extends AppCompatActivity
                 .into(mCatThumbnail);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mCursor != null) {
+            mCursorAdapter.swapCursor(mCursor);
+        }
+    }
 }

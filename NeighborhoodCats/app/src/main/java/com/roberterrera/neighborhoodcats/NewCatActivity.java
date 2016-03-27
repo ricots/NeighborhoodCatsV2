@@ -1,23 +1,23 @@
 package com.roberterrera.neighborhoodcats;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -28,14 +28,19 @@ import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
-import com.roberterrera.neighborhoodcats.Classes.AnalyticsApplication;
-import com.roberterrera.neighborhoodcats.Database.CatsSQLiteOpenHelper;
-import com.roberterrera.neighborhoodcats.Database.DBAssetHelper;
+import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
+import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.localdata.DBAssetHelper;
+import com.roberterrera.neighborhoodcats.models.Cat;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
@@ -45,11 +50,14 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private Tracker mTracker;
 //    public abstract boolean hasSystemFeature (String name);
 
-
-
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_TAKE_PHOTO = 1;
     private static final int RESULT_LOAD_IMG = 2;
+    String[] perms = {"android.permission.CAMERA"};
+    int permsRequestCode = 200;
+
+    private Realm realm;
+    private RealmConfiguration realmConfig;
 
     private String mCurrentPhotoPath;
     private String imgDecodableString;
@@ -72,6 +80,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         mEditCatDesc = (EditText) findViewById(R.id.editText_newdesc);
         mEditCatName = (EditText) findViewById(R.id.editText_newname);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(perms, permsRequestCode);
+        }
 
         dispatchTakePictureIntent();
 //        getLocation();
@@ -88,7 +99,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             public boolean onLongClick(View v) {
                 // Create intent to Open Image applications like Gallery, Google Photos
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 // Start the Intent
                 startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
 
@@ -101,40 +112,74 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             saveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    // Create the Realm configuration
+                    realmConfig = new RealmConfiguration.Builder(NewCatActivity.this).build();
+                    // Open the Realm for the UI thread.
+                    realm = Realm.getInstance(realmConfig);
+
+                    // All writes must be wrapped in a transaction to facilitate safe multi threading
+                    realm.beginTransaction();
+
+                    // Add a person
+                    Cat cat = realm.createObject(Cat.class);
+                    cat.setId(1);
+                    cat.setName(mEditCatName.getText().toString());
+                    cat.setDesc(mEditCatDesc.getText().toString());
+                    cat.setPhoto(String.valueOf(mPhoto));
+                    cat.setLocation("*Location feature is to come!*");
+
+                    // When the transaction is committed, all changes a synced to disk.
+                    realm.commitTransaction();
+
+                     /*
                     Runnable saveCatToDB = new Runnable() {
                         @Override
                         public void run() {
+
                             DBAssetHelper dbSetup = new DBAssetHelper(NewCatActivity.this);
+
                             dbSetup.getWritableDatabase();
 
                             // Save cat to database.
-                            // Cat newCat = new Cat(Integer.parseInt(CatsSQLiteOpenHelper.COL_ID), CatsSQLiteOpenHelper.COL_NAME, CatsSQLiteOpenHelper.COL_DESC, CatsSQLiteOpenHelper.COL_IMG, CatsSQLiteOpenHelper.COL_LOCATION);
                             CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
                             try {
                                 helper.insert(
                                         Integer.parseInt(CatsSQLiteOpenHelper.COL_ID),
                                         mEditCatName.getText().toString(),
                                         mEditCatDesc.getText().toString(),
+                                        //TODO: Get photo file path.
                                         String.valueOf(mPhoto),
+                                        //TODO: Get location.
+//                                        String.valueOf(mTracker));
+                                        "*Your location here*");
+                                Log.d("INSERT", mEditCatName.getText().toString() + ", " +
+                                        mEditCatDesc.getText().toString() + ", " +
+                                        String.valueOf(mPhoto) + ", " +
                                         String.valueOf(mTracker));
-                                Log.d("INSERT", mEditCatName.getText().toString()+", "+
-                                        mEditCatDesc.getText().toString()+", "+
-                                        String.valueOf(mPhoto)+", "+
-                                        String.valueOf(mTracker) );
+                                Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
                             } catch (Exception e){
                                 Toast.makeText(NewCatActivity.this,
                                         "There was a problem saving your cat data :(",
                                         Toast.LENGTH_SHORT).show();
                             }
-                        }
-                    };
 
+                        }
+                    };*/
                     Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
                     startActivity(backToMainIntent);
                 }
             });
         }
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
+        switch(permsRequestCode){
+            case 200:
+                boolean cameraAccepted = grantResults[1]== PackageManager.PERMISSION_GRANTED;
+                break;
+        }
     }
 
     private void getLocation() {
@@ -158,23 +203,30 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     // Go to the camera.
     private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-                Log.d("NEWCATACTIVITY", "Error: " + String.valueOf(ex));
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                        Uri.fromFile(photoFile));
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
+        if (hasCamera() && hasPermissionInManifest(this, CAMERA_SERVICE)) {
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//            // Ensure that there's a camera activity to handle the intent
+//            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+
+                // Create the File where the photo should go
+                File photoFile = null;
+                try {
+                    photoFile = createImageFile();
+                } catch (IOException ex) {
+                    Toast.makeText(NewCatActivity.this, "Unable to launch the camera :(", Toast.LENGTH_SHORT).show();
+                    Log.d("NEWCATACTIVITY", "Error: " + String.valueOf(ex));
+                }
+
+                // Continue only if the File was successfully created
+                if (photoFile != null) {
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                            Uri.fromFile(photoFile));
+                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+                } else {
+                    Toast.makeText(NewCatActivity.this, "Could not save photo :(", Toast.LENGTH_SHORT).show();
+                    Log.d("NEWCATACTIVITY", "photoFile == null");
+                }
+//            }
         }
     }
 
@@ -221,6 +273,27 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .show();
         }
     }
+
+    // Check permissions
+    public boolean hasPermissionInManifest(Context context, String permissionName) {
+        final String packageName = context.getPackageName();
+        try {
+            final PackageInfo packageInfo = context.getPackageManager()
+                    .getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
+            final String[] declaredPermissisons = packageInfo.requestedPermissions;
+            if (declaredPermissisons != null && declaredPermissisons.length > 0) {
+                for (String p : declaredPermissisons) {
+                    if (p.equals(permissionName)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+
+        }
+        return false;
+    }
+
 
     // Save image to a file in the public pictures dir.
     private File createImageFile() throws IOException {
@@ -274,6 +347,10 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         mPhoto.setImageBitmap(bitmap);
     }
 
+    private boolean hasCamera(){
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
+    }
+
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -282,5 +359,11 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     protected void onResume() {
         super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.
     }
 }
