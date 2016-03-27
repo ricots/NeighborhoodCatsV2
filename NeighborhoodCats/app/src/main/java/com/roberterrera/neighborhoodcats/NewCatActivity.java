@@ -38,8 +38,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.realm.Realm;
+import io.realm.RealmAsyncTask;
 import io.realm.RealmConfiguration;
 
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
@@ -48,16 +50,20 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
     private Tracker mTracker;
+    RealmAsyncTask transaction;
 //    public abstract boolean hasSystemFeature (String name);
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int REQUEST_TAKE_PHOTO = 1;
-    private static final int RESULT_LOAD_IMG = 2;
+    private static final int REQUEST_TAKE_PHOTO = 2;
+    private static final int RESULT_LOAD_IMG = 3;
     String[] perms = {"android.permission.CAMERA"};
     int permsRequestCode = 200;
 
     private Realm realm;
     private RealmConfiguration realmConfig;
+    private long nextKey;
+    public static AtomicLong primaryKeyValue;
+
 
     private String mCurrentPhotoPath;
     private String imgDecodableString;
@@ -71,6 +77,12 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         setTitle("New Cat!");
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        RealmConfiguration config = new RealmConfiguration.Builder(this).build();
+        realm = Realm.getInstance(config);
+        //TODO: Fix error: java.lang.NullPointerException: Attempt to invoke virtual method 'long java.lang.Number.longValue()' on a null object reference
+        primaryKeyValue = new AtomicLong(realm.where(Cat.class).max("id").longValue());
+        realm.close();
 
         mCatName = (TextView) findViewById(R.id.textView_newname);
         mCatDesc = (TextView) findViewById(R.id.textView_newdesc);
@@ -112,24 +124,39 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             saveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Toast.makeText(NewCatActivity.this, "Save button tapped", Toast.LENGTH_SHORT).show();
                     // Create the Realm configuration
+                    nextKey = NewCatActivity.primaryKeyValue.incrementAndGet();
                     realmConfig = new RealmConfiguration.Builder(NewCatActivity.this).build();
                     // Open the Realm for the UI thread.
                     realm = Realm.getInstance(realmConfig);
 
                     // All writes must be wrapped in a transaction to facilitate safe multi threading
+                    try {
                     realm.beginTransaction();
+//
+//                    transaction = realm.executeTransaction(new Realm.Transaction(){
+//                        @Override
+//                        public void execute(Realm bgRealm) {
+//                            // Add a Cat
 
-                    // Add a person
-                    Cat cat = realm.createObject(Cat.class);
-                    cat.setId(1);
-                    cat.setName(mEditCatName.getText().toString());
-                    cat.setDesc(mEditCatDesc.getText().toString());
-                    cat.setPhoto(String.valueOf(mPhoto));
-                    cat.setLocation("*Location feature is to come!*");
+                    Cat newCat = realm.createObject(Cat.class);
+                    newCat.setId(nextKey);
+                    newCat.setName(mEditCatName.getText().toString());
+//                            newCat.setDesc(mEditCatDesc.getText().toString());
+                    newCat.setPhoto(mCurrentPhotoPath);
+                    newCat.setLocation("*Location feature is to come!*");
+//                        }
+//                    }, null);
 
-                    // When the transaction is committed, all changes a synced to disk.
+                    // When the transaction is committed, all changes are synced to disk.
+                }catch (Exception e){
+                    Log.e("Realm Error", "error" + e);
+                } finally {
                     realm.commitTransaction();
+                        realm.close();
+                    Cat cat = new Cat();
+                    Log.d("SAVEBUTTON", "ID: "+cat.getId()+" Name: "+cat.getName()+" Desc: "+cat.getDesc()+" Loc: "+cat.getLocation()+"Photo path: "+cat.getPhoto());
 
                      /*
                     Runnable saveCatToDB = new Runnable() {
@@ -163,14 +190,13 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                                         Toast.LENGTH_SHORT).show();
                             }
 
-                        }
-                    };*/
+                        }*/
+                    };
                     Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
                     startActivity(backToMainIntent);
                 }
             });
         }
-
     }
 
     @Override
@@ -265,7 +291,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 // If the photo has GPS EXIF data, store that in the COL_IMG column. Else use current location of device.
 
             } else {
-                Toast.makeText(this, "You haven't picked Image",
+                Toast.makeText(this, "You haven't picked an image",
                         Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
@@ -311,7 +337,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = "file:" + image.getAbsolutePath();
         galleryAddPic(); // Add image to device gallery.
-
         return image;
     }
 
@@ -359,6 +384,14 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     protected void onResume() {
         super.onResume();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (transaction != null && !transaction.isCancelled()){
+            transaction.cancel();
+        }
     }
 
     @Override

@@ -1,13 +1,16 @@
 package com.roberterrera.neighborhoodcats.models;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import com.roberterrera.neighborhoodcats.NewCatActivity;
 import com.roberterrera.neighborhoodcats.R;
+import com.squareup.picasso.Picasso;
 
 import io.realm.RealmBaseAdapter;
 import io.realm.RealmResults;
@@ -26,6 +29,7 @@ public class CatAdapter extends RealmBaseAdapter<Cat> implements ListAdapter {
         super(context, realmResults, automaticUpdate);
     }
 
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
@@ -41,6 +45,10 @@ public class CatAdapter extends RealmBaseAdapter<Cat> implements ListAdapter {
 
         Cat cat = realmResults.get(position);
         viewHolder.catName.setText(cat.getName());
+        Log.d("MAINACTIVITY", cat.getName());
+        Picasso.with(this.context).load(cat.getPhoto()).into(viewHolder.catPhoto);
+//        Log.d("MAINACTIVITY", String.valueOf(cat.getPhoto()));
+
         return convertView;
     }
 

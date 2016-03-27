@@ -1,18 +1,21 @@
 package com.roberterrera.neighborhoodcats.models;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by Rob on 3/22/16.
  */
 public class Cat extends RealmObject{
-    private int id;
+    @PrimaryKey
+    private long id;
+
     private String mName;
     private String mDesc;
     private String mPhoto; // file location of image
     private String mLocation;
 
-    public Cat(int id, String name, String desc, String photo, String location) {
+    public Cat(long id, String name, String desc, String photo, String location) {
         this.id = id;
         this.mName = name;
         this.mDesc = desc;
@@ -20,11 +23,13 @@ public class Cat extends RealmObject{
         this.mLocation = location;
     }
 
-    public int getId() {
+    public Cat() {}
+
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
