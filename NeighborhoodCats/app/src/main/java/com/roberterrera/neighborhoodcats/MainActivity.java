@@ -11,6 +11,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -107,39 +108,41 @@ public class MainActivity extends AppCompatActivity
                 // Load image file path into thumbnail
                 mCatThumbnail = (ImageView) view.findViewById(R.id.imageview_catthumbnail);
                 Picasso.with(MainActivity.this).load(CatsSQLiteOpenHelper.COL_IMG).into(mCatThumbnail);
+              Log.d("CURSORADAPTER","COL_IMG: "+CatsSQLiteOpenHelper.COL_IMG);
             }
         };
 
         mListView = (ListView) findViewById(R.id.listview_cats);
-        if (mListView != null) {
-            mListView.setAdapter(mCursorAdapter);
-        }
+        mListView.setAdapter(mCursorAdapter);
 
+        // Get item details and display them in DetailsActivity.
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Cursor cursor = mCursorAdapter.getCursor();
-                Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
-                cursor.moveToPosition(position);
-                intent.putExtra("id", cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
-                startActivity(intent);
-            }
+          @Override
+          public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
+//            mCursor = mCursorAdapter.getCursor();
+            Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+            mCursor.moveToPosition(position);
+            intent.putExtra("id", mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
+            startActivity(intent);
+          }
         });
 
+
         //TODO: Figure out why deleteCatByID is coming up as a null object ref.
-/*
         // Delete a list item.
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                helper.deleteCatByID(CatsSQLiteOpenHelper.COL_ID);
-                mCursorAdapter.swapCursor(mCursor);
+              Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
+// TODO: Run a getCatID to get the id and pass that into deleteCatByID.
+//              helper.deleteCatByID(CatsSQLiteOpenHelper.COL_ID); // App crashes at this point with a null pointer reference.
+//              mCursorAdapter.swapCursor(mCursor);
 
-                return true;
+              return true;
             }
         });
-*/
+
         handleIntent(getIntent());
     }
 

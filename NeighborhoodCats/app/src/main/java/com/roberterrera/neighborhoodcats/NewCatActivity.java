@@ -1,5 +1,6 @@
 package com.roberterrera.neighborhoodcats;
 
+import android.Manifest;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -142,7 +144,18 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 }
             });
         }
+//      int permissionCheck = ContextCompat.checkSelfPermission(NewCatActivity.this,
+//          Manifest.permission.CAMERA);
+
     }
+
+//  public static int checkSelfPermission(Context context, String permission){
+//    if () {
+//      return int PERMISSION_GRANTED;
+//    } else {
+//      return PERMISSION_DENIED;
+//    }
+//  }
 
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
@@ -151,6 +164,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 boolean cameraAccepted = grantResults[0]== PackageManager.PERMISSION_GRANTED;
                 break;
         }
+
     }
 
     private void getLocation() {
