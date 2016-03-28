@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
               Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
-// TODO: Run a getCatID to get the id and pass that into deleteCatByID.
+                // TODO: Run a getCatID to get the id and pass that into deleteCatByID.
 //              helper.deleteCatByID(CatsSQLiteOpenHelper.COL_ID); // App crashes at this point with a null pointer reference.
 //              mCursorAdapter.swapCursor(mCursor);
 

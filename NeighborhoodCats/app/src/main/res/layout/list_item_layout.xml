@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="80dp"
     android:descendantFocusability="blocksDescendants">
 
@@ -22,7 +22,7 @@
         android:layout_marginTop="20dp"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:src="@drawable/summit_cat"
+        android:adjustViewBounds="true"
         android:layout_toRightOf="@id/textview_catname_list"
         android:layout_toEndOf="@id/textview_catname_list"/>
 

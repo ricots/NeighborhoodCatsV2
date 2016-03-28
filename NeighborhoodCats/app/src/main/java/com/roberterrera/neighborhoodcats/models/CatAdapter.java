@@ -37,7 +37,7 @@ public class CatAdapter extends RealmBaseAdapter<Cat> implements ListAdapter {
             convertView = inflater.inflate(R.layout.list_item_layout, parent, false);
             viewHolder = new ViewHolder();
             viewHolder.catName = (TextView) convertView.findViewById(R.id.textview_catname_list);
-            viewHolder.catPhoto = (ImageView) convertView.findViewById(R.id.imageview_catthumbnail);
+//            viewHolder.catPhoto = (ImageView) convertView.findViewById(R.id.imageview_catthumbnail);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
