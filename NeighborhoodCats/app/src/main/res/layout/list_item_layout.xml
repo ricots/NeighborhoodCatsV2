@@ -7,7 +7,7 @@
         android:layout_marginStart="50dp"
         android:layout_marginLeft="50dp"
         android:layout_marginTop="45dp"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textColor="#000000"
         android:id="@+id/textview_catname_list"
         android:layout_width="wrap_content"

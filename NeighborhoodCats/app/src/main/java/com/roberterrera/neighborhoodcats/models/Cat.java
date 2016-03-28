@@ -7,15 +7,13 @@ import io.realm.annotations.PrimaryKey;
  * Created by Rob on 3/22/16.
  */
 public class Cat extends RealmObject{
-    @PrimaryKey
-    private long id;
-
+    private int id;
     private String mName;
     private String mDesc;
     private String mPhoto; // file location of image
     private String mLocation;
 
-    public Cat(long id, String name, String desc, String photo, String location) {
+    public Cat(int id, String name, String desc, String photo, String location) {
         this.id = id;
         this.mName = name;
         this.mDesc = desc;
@@ -25,11 +23,11 @@ public class Cat extends RealmObject{
 
     public Cat() {}
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 

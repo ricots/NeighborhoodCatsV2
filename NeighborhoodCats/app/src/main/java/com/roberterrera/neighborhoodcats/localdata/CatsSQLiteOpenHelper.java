@@ -38,7 +38,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
                     COL_NAME + " TEXT, " +
                     COL_DESC + " TEXT, " +
                     COL_LOCATION + " TEXT, " +
-                    COL_IMG + " TEXT )";
+                    COL_IMG + " TEXT)";
 
     private static CatsSQLiteOpenHelper instance;
     public static CatsSQLiteOpenHelper getInstance(Context context) {
@@ -75,7 +75,9 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
                 null,
                 null );
 
-//        cursor.close();
+        if (cursor != null) {
+            cursor.moveToFirst();
+        }
         return cursor;
     }
 
@@ -91,38 +93,62 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
                 null,
                 null );
 
-        cursor.moveToFirst();
-//        cursor.close();
-        return cursor.getString(cursor.getColumnIndex(COL_LOCATION));
+        if (cursor != null) {
+            cursor.moveToFirst();
+        }
+        return cursor.getString(cursor.getColumnIndex(COL_NAME));
     }
 
+    public Cursor searchCats(String query){
+        SQLiteDatabase db = this.getReadableDatabase();
 
-    public void deleteCatByID(int id){
-        SQLiteDatabase db = getWritableDatabase();
+        Cursor cursor = db.query(CAT_LIST_TABLE_NAME, // a. table
+                CATS_COLUMNS, // b. column names
+                // To search across name, desc, and location.
+                COL_NAME + " LIKE ?" + " OR " + COL_DESC + " LIKE ?" + " OR " + COL_LOCATION + " LIKE ?", // c. selections
+                new String[]{"%" + query + "%", "%" + query + "%", "%" + query + "%"}, // d. selections args
+                null, // e. group by
+                null, // f. having
+                null, // g. order by
+                null); // h. limit
 
-        String selection = "_id = ?";
-        String[] selectionArgs = { String.valueOf(COL_ID) };
-
-        db.delete(CAT_LIST_TABLE_NAME,
-                selection,
-                selectionArgs);
+        while (!cursor.isAfterLast()){
+            cursor.moveToNext();
+        }
+        return cursor;
     }
 
-    public void insert(int id, String name, String desc, String location, String photo){
+    public void deleteCatByID(String id){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(CAT_LIST_TABLE_NAME, COL_ID + "=" + id, null);
+    }
+
+//    public void deleteCatByID(int id){
+//        SQLiteDatabase db = getWritableDatabase();
+//
+//        String selection = "_id = ?";
+//        String[] selectionArgs = { String.valueOf(COL_ID) };
+//
+//        db.delete(CAT_LIST_TABLE_NAME,
+//                selection,
+//                selectionArgs);
+//    }
+
+    public void insert(String name, String desc, String location, String photo){
         SQLiteDatabase db = getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(COL_ID, id);
         values.put(COL_NAME, name);
         values.put(COL_DESC, desc);
         values.put(COL_LOCATION, location);
         values.put(COL_IMG, photo);
 
         db.insert(CAT_LIST_TABLE_NAME, null, values);
+        db.close();
 
     }
 
-    public String getLocationByID(int id) {
+    public String getCatLocByID(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(CAT_LIST_TABLE_NAME,
@@ -134,9 +160,46 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
                 null,
                 null );
 
-        cursor.moveToFirst();
-//        cursor.close();
+        while (!cursor.isAfterLast()){
+            cursor.moveToNext();
+        }
         return cursor.getString(cursor.getColumnIndex(COL_LOCATION));
+    }
+
+    public String getCatDescByID(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(CAT_LIST_TABLE_NAME,
+                new String[]{COL_DESC},
+                COL_ID + " = ?",
+                new String[]{String.valueOf(id)},
+                null,
+                null,
+                null,
+                null );
+
+        while (!cursor.isAfterLast()){
+            cursor.moveToNext();
+        }
+        return cursor.getString(cursor.getColumnIndex(COL_DESC));
+    }
+
+    public String getCatPhotoByID(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(CAT_LIST_TABLE_NAME,
+                new String[]{COL_IMG},
+                COL_ID + " = ?",
+                new String[]{String.valueOf(id)},
+                null,
+                null,
+                null,
+                null );
+
+        while (!cursor.isAfterLast()){
+            cursor.moveToNext();
+        }
+        return cursor.getString(cursor.getColumnIndex(COL_IMG));
     }
 
     public Cat getCatByID(int id, String name, String desc, String photo, String location){

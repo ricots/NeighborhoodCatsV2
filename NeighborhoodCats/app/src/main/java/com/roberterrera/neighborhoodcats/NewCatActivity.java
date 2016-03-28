@@ -32,6 +32,7 @@ import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.localdata.DBAssetHelper;
 import com.roberterrera.neighborhoodcats.models.Cat;
+import com.squareup.picasso.Transformation;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,12 +47,8 @@ import io.realm.RealmConfiguration;
 
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
-    private TextView mCatName, mCatDesc, mFoundAt, mCatLocation;
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
-    private Tracker mTracker;
-    RealmAsyncTask transaction;
-//    public abstract boolean hasSystemFeature (String name);
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_TAKE_PHOTO = 2;
@@ -78,16 +75,10 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        RealmConfiguration config = new RealmConfiguration.Builder(this).build();
-        realm = Realm.getInstance(config);
-        //TODO: Fix error: java.lang.NullPointerException: Attempt to invoke virtual method 'long java.lang.Number.longValue()' on a null object reference
-        primaryKeyValue = new AtomicLong(realm.where(Cat.class).max("id").longValue());
-        realm.close();
-
-        mCatName = (TextView) findViewById(R.id.textView_newname);
-        mCatDesc = (TextView) findViewById(R.id.textView_newdesc);
-        mFoundAt = (TextView) findViewById(R.id.textView_found);
-        mCatLocation = (TextView) findViewById(R.id.textView_newlocation);
+        TextView catName = (TextView) findViewById(R.id.textView_newname);
+        TextView catDesc = (TextView) findViewById(R.id.textView_newdesc);
+        TextView foundAt = (TextView) findViewById(R.id.textView_found);
+        TextView catLocation = (TextView) findViewById(R.id.textView_newlocation);
         mPhoto = (ImageView) findViewById(R.id.imageView_newimage);
         mEditCatDesc = (EditText) findViewById(R.id.editText_newdesc);
         mEditCatName = (EditText) findViewById(R.id.editText_newname);
@@ -125,64 +116,20 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(NewCatActivity.this, "Save button tapped", Toast.LENGTH_SHORT).show();
-                    // Create the Realm configuration
-                    nextKey = NewCatActivity.primaryKeyValue.incrementAndGet();
-                    realmConfig = new RealmConfiguration.Builder(NewCatActivity.this).build();
-                    // Open the Realm for the UI thread.
-                    realm = Realm.getInstance(realmConfig);
-
-                    // All writes must be wrapped in a transaction to facilitate safe multi threading
-                    try {
-                    realm.beginTransaction();
-//
-//                    transaction = realm.executeTransaction(new Realm.Transaction(){
-//                        @Override
-//                        public void execute(Realm bgRealm) {
-//                            // Add a Cat
-
-                    Cat newCat = realm.createObject(Cat.class);
-                    newCat.setId(nextKey);
-                    newCat.setName(mEditCatName.getText().toString());
-//                            newCat.setDesc(mEditCatDesc.getText().toString());
-                    newCat.setPhoto(mCurrentPhotoPath);
-                    newCat.setLocation("*Location feature is to come!*");
-//                        }
-//                    }, null);
-
-                    // When the transaction is committed, all changes are synced to disk.
-                }catch (Exception e){
-                    Log.e("Realm Error", "error" + e);
-                } finally {
-                    realm.commitTransaction();
-                        realm.close();
-                    Cat cat = new Cat();
-                    Log.d("SAVEBUTTON", "ID: "+cat.getId()+" Name: "+cat.getName()+" Desc: "+cat.getDesc()+" Loc: "+cat.getLocation()+"Photo path: "+cat.getPhoto());
-
-                     /*
-                    Runnable saveCatToDB = new Runnable() {
-                        @Override
-                        public void run() {
 
                             DBAssetHelper dbSetup = new DBAssetHelper(NewCatActivity.this);
-
                             dbSetup.getWritableDatabase();
 
                             // Save cat to database.
                             CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
                             try {
                                 helper.insert(
-                                        Integer.parseInt(CatsSQLiteOpenHelper.COL_ID),
                                         mEditCatName.getText().toString(),
                                         mEditCatDesc.getText().toString(),
-                                        //TODO: Get photo file path.
-                                        String.valueOf(mPhoto),
                                         //TODO: Get location.
 //                                        String.valueOf(mTracker));
-                                        "*Your location here*");
-                                Log.d("INSERT", mEditCatName.getText().toString() + ", " +
-                                        mEditCatDesc.getText().toString() + ", " +
-                                        String.valueOf(mPhoto) + ", " +
-                                        String.valueOf(mTracker));
+                                        "*Your location here*",
+                                        mCurrentPhotoPath);
                                 Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
                             } catch (Exception e){
                                 Toast.makeText(NewCatActivity.this,
@@ -190,8 +137,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                                         Toast.LENGTH_SHORT).show();
                             }
 
-                        }*/
-                    };
                     Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
                     startActivity(backToMainIntent);
                 }
@@ -203,7 +148,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
         switch(permsRequestCode){
             case 200:
-                boolean cameraAccepted = grantResults[1]== PackageManager.PERMISSION_GRANTED;
+                boolean cameraAccepted = grantResults[0]== PackageManager.PERMISSION_GRANTED;
                 break;
         }
     }
@@ -217,7 +162,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 .build();
 
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
+        Tracker mTracker = application.getDefaultTracker();
         // Build and send an Event.
         mTracker.send(new HitBuilders.EventBuilder()
                 .setCategory("category")
@@ -232,12 +177,14 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         if (hasCamera() && hasPermissionInManifest(this, CAMERA_SERVICE)) {
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 //            // Ensure that there's a camera activity to handle the intent
-//            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
 
                 // Create the File where the photo should go
                 File photoFile = null;
                 try {
                     photoFile = createImageFile();
+                    Log.d("NEWCATACTIVITY", "Photo file created");
+
                 } catch (IOException ex) {
                     Toast.makeText(NewCatActivity.this, "Unable to launch the camera :(", Toast.LENGTH_SHORT).show();
                     Log.d("NEWCATACTIVITY", "Error: " + String.valueOf(ex));
@@ -252,7 +199,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     Toast.makeText(NewCatActivity.this, "Could not save photo :(", Toast.LENGTH_SHORT).show();
                     Log.d("NEWCATACTIVITY", "photoFile == null");
                 }
-//            }
+            }
         }
     }
 
@@ -262,6 +209,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             setPic(); // Manage memory by adjusting the photo.
+            CropSquareTransformation cropSquareTransformation = new CropSquareTransformation();
+//            mPhoto.setImageBitmap(cropSquareTransformation.transform(imageBitmap));
             mPhoto.setImageBitmap(imageBitmap);
         }
         try {
@@ -269,7 +218,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
                     && null != data) {
                 // Get the Image from data
-
                 Uri selectedImage = data.getData();
                 String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
@@ -277,15 +225,18 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 Cursor cursor = getContentResolver().query(selectedImage,
                         filePathColumn, null, null, null);
                 // Move to first row
-                cursor.moveToFirst();
-
-                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                imgDecodableString = cursor.getString(columnIndex);
-                cursor.close();
+                if (cursor != null) {
+                    cursor.moveToFirst();
+                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                    imgDecodableString = cursor.getString(columnIndex);
+                    cursor.close();
+                }
                 ImageView imgView = (ImageView) findViewById(R.id.imageView_newimage);
                 // Set the Image in ImageView after decoding the String
-                imgView.setImageBitmap(BitmapFactory
-                        .decodeFile(imgDecodableString));
+                if (imgView != null) {
+                    imgView.setImageBitmap(BitmapFactory
+                            .decodeFile(imgDecodableString));
+                }
 
                 //TODO: Get GPS location from photo and save to COL_IMG.
                 // If the photo has GPS EXIF data, store that in the COL_IMG column. Else use current location of device.
@@ -346,6 +297,22 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         Uri contentUri = Uri.fromFile(f);
         mediaScanIntent.setData(contentUri);
         this.sendBroadcast(mediaScanIntent);
+        Log.d("GALLERYADDPIC", "File path: "+mCurrentPhotoPath);
+    }
+
+    public class CropSquareTransformation implements Transformation {
+        @Override public Bitmap transform(Bitmap source) {
+            int size = Math.min(source.getWidth(), source.getHeight());
+            int x = (source.getWidth() - size) / 2;
+            int y = (source.getHeight() - size) / 2;
+            Bitmap result = Bitmap.createBitmap(source, x, y, size, size);
+            if (result != source) {
+                source.recycle();
+            }
+            return result;
+        }
+
+        @Override public String key() { return "square()"; }
     }
 
     private void setPic() {
@@ -386,17 +353,4 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         super.onResume();
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (transaction != null && !transaction.isCancelled()){
-            transaction.cancel();
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        realm.close(); // Remember to close Realm when done.
-    }
 }
