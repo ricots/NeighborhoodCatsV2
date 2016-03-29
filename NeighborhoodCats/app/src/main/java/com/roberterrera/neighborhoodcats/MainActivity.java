@@ -4,14 +4,12 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -29,18 +27,7 @@ import android.widget.Toast;
 
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.localdata.DBAssetHelper;
-import com.roberterrera.neighborhoodcats.models.Cat;
-import com.roberterrera.neighborhoodcats.models.CatAdapter;
 import com.squareup.picasso.Picasso;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import io.realm.Realm;
-import io.realm.RealmAsyncTask;
-import io.realm.RealmConfiguration;
-import io.realm.RealmQuery;
-import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -107,8 +94,9 @@ public class MainActivity extends AppCompatActivity
                 mCatName.setText( cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME)) );
                 // Load image file path into thumbnail
                 mCatThumbnail = (ImageView) view.findViewById(R.id.imageview_catthumbnail);
-                Picasso.with(MainActivity.this).load(CatsSQLiteOpenHelper.COL_IMG).into(mCatThumbnail);
-              Log.d("CURSORADAPTER","COL_IMG: "+CatsSQLiteOpenHelper.COL_IMG);
+                Picasso.with(MainActivity.this).load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG))).into(mCatThumbnail);
+                // Log the filepath //TODO: Why is this logging twice?
+                Log.d("CURSORADAPTER", "Name: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME))+", COL_IMG: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)));
             }
         };
 
@@ -128,16 +116,14 @@ public class MainActivity extends AppCompatActivity
           }
         });
 
-
-        //TODO: Figure out why deleteCatByID is coming up as a null object ref.
         // Delete a list item.
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
               Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
                 // TODO: Run a getCatID to get the id and pass that into deleteCatByID.
-//              helper.deleteCatByID(CatsSQLiteOpenHelper.COL_ID); // App crashes at this point with a null pointer reference.
-//              mCursorAdapter.swapCursor(mCursor);
+              helper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
+              mCursorAdapter.swapCursor(mCursor);
 
               return true;
             }

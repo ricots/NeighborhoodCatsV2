@@ -42,6 +42,7 @@ public class DetailsActivity extends AppCompatActivity {
         final int id = getIntent().getIntExtra("id", -1);
         final CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
 
+        // TODO: Set up layout with text that is editable instead of EditTexts.
         mCatName = (TextView) findViewById(R.id.textView_details_newname);
         mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
         mFoundAt = (TextView) findViewById(R.id.textView_details_found);

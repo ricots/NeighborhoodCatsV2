@@ -101,7 +101,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         return cursor;
     }
 
-    public void deleteCatByID(String id){
+    public void deleteCatByID(int id){
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(CAT_LIST_TABLE_NAME, COL_ID + "=" + id, null);
     }

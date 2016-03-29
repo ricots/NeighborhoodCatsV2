@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -92,6 +93,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         dispatchTakePictureIntent();
 //        getLocation();
 
+      //TODO: Ask for storage permission and check that the permission is granted (check if anything Marshmallow-specific needs to be done).
         mPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -107,7 +109,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 // Start the Intent
                 startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
-
+        //TODO: Get the URI from after onActivityResult and do uri.getPath.
                 return true;
             }
         });
@@ -125,7 +127,10 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                             // Save cat to database.
                             CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
                             try {
-                                helper.insert(
+//                              if (mCurrentPhotoPath == null) {
+//                                mCurrentPhotoPath.;
+//                              }
+                              helper.insert(
                                         mEditCatName.getText().toString(),
                                         mEditCatDesc.getText().toString(),
                                         //TODO: Get location.
@@ -143,12 +148,12 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     startActivity(backToMainIntent);
                 }
             });
+
         }
 //      int permissionCheck = ContextCompat.checkSelfPermission(NewCatActivity.this,
 //          Manifest.permission.CAMERA);
-
     }
-
+//
 //  public static int checkSelfPermission(Context context, String permission){
 //    if () {
 //      return int PERMISSION_GRANTED;
@@ -156,7 +161,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 //      return PERMISSION_DENIED;
 //    }
 //  }
-
+//
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
         switch(permsRequestCode){
@@ -164,8 +169,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 boolean cameraAccepted = grantResults[0]== PackageManager.PERMISSION_GRANTED;
                 break;
         }
-
     }
+
 
     private void getLocation() {
         GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -185,7 +190,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 .build());
 //        mCatLocation.setText(String.valueOf(mTracker));
     }
-
+/*
     // Go to the camera.
     private void dispatchTakePictureIntent() {
         if (hasCamera() && hasPermissionInManifest(this, CAMERA_SERVICE)) {
@@ -216,14 +221,37 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             }
         }
     }
+  */
 
+  private void dispatchTakePictureIntent() {
+    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    // Ensure that there's a camera activity to handle the intent
+    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+      // Create the File where the photo should go
+      File photoFile = null;
+      try {
+        photoFile = createImageFile();
+      } catch (IOException ex) {
+        // Error occurred while creating the File
+        Log.d("DISPATCHTAKEPICTURE...", "Error: "+ex);
+      }
+      // Continue only if the File was successfully created
+      if (photoFile != null) {
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+            Uri.fromFile(photoFile));
+        startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+      }
+    }
+  }
+
+  /*
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             setPic(); // Manage memory by adjusting the photo.
-            CropSquareTransformation cropSquareTransformation = new CropSquareTransformation();
+//            CropSquareTransformation cropSquareTransformation = new CropSquareTransformation();
 //            mPhoto.setImageBitmap(cropSquareTransformation.transform(imageBitmap));
             mPhoto.setImageBitmap(imageBitmap);
         }
@@ -264,7 +292,16 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .show();
         }
     }
+*/
 
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+      Bundle extras = data.getExtras();
+      Bitmap imageBitmap = (Bitmap) extras.get("data");
+      mPhoto.setImageBitmap(imageBitmap);
+    }
+  }
     // Check permissions
     public boolean hasPermissionInManifest(Context context, String permissionName) {
         final String packageName = context.getPackageName();
@@ -298,21 +335,46 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
+      Log.d("CREATEIMAGEFILE", String.valueOf(image));
 
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        Log.d("CREATEIMAGEFILE", mCurrentPhotoPath);
         galleryAddPic(); // Add image to device gallery.
         return image;
     }
 
-    private void galleryAddPic() {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        File f = new File(mCurrentPhotoPath);
-        Uri contentUri = Uri.fromFile(f);
-        mediaScanIntent.setData(contentUri);
-        this.sendBroadcast(mediaScanIntent);
-        Log.d("GALLERYADDPIC", "File path: "+mCurrentPhotoPath);
-    }
+  private File getGalleryImagePath() throws IOException {
+    // Create an image file name
+    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+    String imageFileName = "JPEG_" + timeStamp + "_";
+    File storageDir = Environment.getExternalStoragePublicDirectory(
+        Environment.DIRECTORY_PICTURES);
+    File image = File.createTempFile(
+        imageFileName,  /* prefix */
+        ".jpg",         /* suffix */
+        storageDir      /* directory */
+    );
+
+//        File image = new File(storageDir, imageFileName+".jpg");
+    Log.d("CREATEIMAGEFILE", String.valueOf(image));
+
+    // Save a file: path for use with ACTION_VIEW intents
+    mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+//        mCurrentPhotoPath = image.getPath();
+    //TODO: E/BitmapFactory: Unable to decode stream: java.lang.NullPointerException: Attempt to invoke virtual method 'char[] java.lang.String.toCharArray()' on a null object reference
+    Log.d("CREATEIMAGEFILE", mCurrentPhotoPath);
+    galleryAddPic(); // Add image to device gallery.
+    return image;
+  }
+
+  private void galleryAddPic() {
+    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+    File f = new File(mCurrentPhotoPath);
+    Uri contentUri = Uri.fromFile(f);
+    mediaScanIntent.setData(contentUri);
+    this.sendBroadcast(mediaScanIntent);
+  }
 
     public class CropSquareTransformation implements Transformation {
         @Override public Bitmap transform(Bitmap source) {
