@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -44,8 +45,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_TAKE_PHOTO = 2;
     private static final int RESULT_LOAD_IMG = 3;
-    String[] perms = {"android.permission.CAMERA"};
-    int permsRequestCode = 200;
+    private String[] perms = {"android.permission.CAMERA"};
+    private int permsRequestCode = 200;
 
     private String mCurrentPhotoPath;
     private String imgDecodableString;
@@ -60,10 +61,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-//        TextView catName = (TextView) findViewById(R.id.textView_newname);
-//        TextView catDesc = (TextView) findViewById(R.id.textView_newdesc);
-//        TextView foundAt = (TextView) findViewById(R.id.textView_found);
-//        TextView catLocation = (TextView) findViewById(R.id.textView_newlocation);
         mPhoto = (ImageView) findViewById(R.id.imageView_newimage);
         mEditCatDesc = (EditText) findViewById(R.id.editText_newdesc);
         mEditCatName = (EditText) findViewById(R.id.editText_newname);
@@ -86,13 +83,11 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         mPhoto.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                // Create intent to Open Image applications like Gallery, Google Photos
-                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                // Start the Intent
-                startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
-        //TODO: Get the URI from after onActivityResult and do uri.getPath.
-              Picasso.with(NewCatActivity.this).load(mCurrentPhotoPath).into(mPhoto);
+              // Create intent to Open Image applications like Gallery, Google Photos
+              Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                  MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+              // Start the Intent
+              startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
               return true;
             }
         });
@@ -102,49 +97,39 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             saveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(NewCatActivity.this, "Save button tapped", Toast.LENGTH_SHORT).show();
-
-                            DBAssetHelper dbSetup = new DBAssetHelper(NewCatActivity.this);
-                            dbSetup.getWritableDatabase();
+                  Toast.makeText(NewCatActivity.this, "Save button tapped", Toast.LENGTH_SHORT).show();
+//                    DBAssetHelper dbSetup = new DBAssetHelper(NewCatActivity.this);
+//                            dbSetup.getWritableDatabase();
 
                             // Save cat to database.
-                            CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
-                            try {
-//                              if (mCurrentPhotoPath == null) {
+                    CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
+                    helper.getWritableDatabase();
+
+                    try {
+//                             if (mCurrentPhotoPath == null) {
 //                                mCurrentPhotoPath.;
 //                              }
-                              helper.insert(
-                                        mEditCatName.getText().toString(),
-                                        mEditCatDesc.getText().toString(),
-                                        //TODO: Get location.
-//                                        String.valueOf(mTracker));
-                                        "*Your location here*",
-                                        mCurrentPhotoPath);
-                                Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
-                            } catch (Exception e){
-                                Toast.makeText(NewCatActivity.this,
-                                        "There was a problem saving your cat data :(",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-
+                        helper.insert(
+                                mEditCatName.getText().toString(),
+                                mEditCatDesc.getText().toString(),
+                                //TODO: Get location.
+//                               String.valueOf(mTracker));
+                                "*Your location here*",
+                                "file:"+mCurrentPhotoPath);
+                        Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e){
+                        Toast.makeText(NewCatActivity.this,
+                                "There was a problem saving your cat data :(",
+                                Toast.LENGTH_SHORT).show();
+                    }
                     Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
                     startActivity(backToMainIntent);
                 }
             });
 
         }
-//      int permissionCheck = ContextCompat.checkSelfPermission(NewCatActivity.this,
-//          Manifest.permission.CAMERA);
     }
-//
-//  public static int checkSelfPermission(Context context, String permission){
-//    if () {
-//      return int PERMISSION_GRANTED;
-//    } else {
-//      return PERMISSION_DENIED;
-//    }
-//  }
-//
+
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
         switch(permsRequestCode){
@@ -152,6 +137,26 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 boolean cameraAccepted = grantResults[0]== PackageManager.PERMISSION_GRANTED;
                 break;
         }
+    }
+
+    // Check permissions
+    public boolean hasPermissionInManifest(Context context, String permissionName) {
+        final String packageName = context.getPackageName();
+        try {
+            final PackageInfo packageInfo = context.getPackageManager()
+                    .getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
+            final String[] declaredPermissisons = packageInfo.requestedPermissions;
+            if (declaredPermissisons != null && declaredPermissisons.length > 0) {
+                for (String p : declaredPermissisons) {
+                    if (p.equals(permissionName)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.d("HAS_PERMISSION", "Catch: "+String.valueOf(e));
+        }
+        return false;
     }
 
     private void getLocation() {
@@ -173,56 +178,27 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 //        mCatLocation.setText(String.valueOf(mTracker));
     }
 
-  private void dispatchTakePictureIntent() {
-    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-    //TODO: Fix database leak.
-    // Ensure that there's a camera activity to handle the intent
-    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-      // Create the File where the photo should go
-      File photoFile = null;
-      try {
-        photoFile = createImageFile();
-      } catch (IOException ex) {
-        // Error occurred while creating the File
-        Log.d("DISPATCHTAKEPICTURE...", "Error: "+ex);
-      }
-      // Continue only if the File was successfully created
-      if (photoFile != null) {
-        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-            Uri.fromFile(photoFile));
-        //TODO: Get GPS location from photo and save to COL_IMG via EXIF data.
-        startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-      }
-    }
-  }
-
-  @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-      Bundle extras = data.getExtras();
-      setPic();
-      Bitmap imageBitmap = (Bitmap) extras.get("data");
-      mPhoto.setImageBitmap(imageBitmap);
-    }
-  }
-    // Check permissions
-    public boolean hasPermissionInManifest(Context context, String permissionName) {
-        final String packageName = context.getPackageName();
-        try {
-            final PackageInfo packageInfo = context.getPackageManager()
-                    .getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
-            final String[] declaredPermissisons = packageInfo.requestedPermissions;
-            if (declaredPermissisons != null && declaredPermissisons.length > 0) {
-                for (String p : declaredPermissisons) {
-                    if (p.equals(permissionName)) {
-                        return true;
-                    }
-                }
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        //TODO: Fix database leak.
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                Log.d("DISPATCHTAKEPICTURE...", "Error: "+ex);
             }
-        } catch (PackageManager.NameNotFoundException e) {
-
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(photoFile));
+                //TODO: Get GPS location from photo and save to COL_IMG via EXIF data.
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            }
         }
-        return false;
     }
 
 
@@ -239,21 +215,70 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 storageDir      /* directory */
         );
         // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        mCurrentPhotoPath = image.getAbsolutePath();
         Log.d("CREATEIMAGEFILE", mCurrentPhotoPath);
-//      Picasso.with(NewCatActivity.this).load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG))).into(mPhoto);
-      Picasso.with(NewCatActivity.this).load(mCurrentPhotoPath).into(mPhoto);
-      galleryAddPic(); // Add image to device gallery.
+//        Picasso.with(NewCatActivity.this).load("file:"+mCurrentPhotoPath).into(mPhoto);
+        galleryAddPic(); // Add image to device gallery.
         return image;
     }
 
   private void galleryAddPic() {
-    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-    File f = new File(mCurrentPhotoPath);
-    Uri contentUri = Uri.fromFile(f);
-    mediaScanIntent.setData(contentUri);
-    this.sendBroadcast(mediaScanIntent);
+      Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+      File f = new File(mCurrentPhotoPath);
+      Uri contentUri = Uri.fromFile(f);
+      mediaScanIntent.setData(contentUri);
+      this.sendBroadcast(mediaScanIntent);
   }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+//            setPic();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+//            mPhoto.setImageBitmap(imageBitmap);
+            Uri imageUri = data.getData();
+//            Picasso.with(NewCatActivity.this).load(imageUri).into(mPhoto);
+            Picasso.with(NewCatActivity.this).load("file:"+mCurrentPhotoPath).into(mPhoto);
+        }
+        try {
+            // When an Image is picked
+            if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
+                    && null != data) {
+                // Get the Image from data
+                Uri selectedImage = data.getData();
+                String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+                // Get the cursor
+                Cursor cursor = getContentResolver().query(selectedImage,
+                        filePathColumn, null, null, null);
+                // Move to first row
+                if (cursor != null) {
+                    cursor.moveToFirst();
+                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                    imgDecodableString = cursor.getString(columnIndex);
+//                    mCurrentPhotoPath = imgDecodableString;
+                    Log.d("RESULT_LOAD_IMG", "Gallery path: "+mCurrentPhotoPath);
+                    cursor.close();
+                }
+                // Set the Image in ImageView after decoding the String
+                if (mPhoto != null) {
+                    mPhoto.setImageBitmap(BitmapFactory
+                            .decodeFile(imgDecodableString));
+                }
+
+                //TODO: Get GPS location from photo and save to COL_IMG.
+                // If the photo has GPS EXIF data, store that in the COL_IMG column. Else use current location of device.
+
+            } else {
+                Toast.makeText(this, "You haven't picked an image",
+                        Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
+                    .show();
+        }
+    }
 
     public class CropSquareTransformation implements Transformation {
         @Override public Bitmap transform(Bitmap source) {
@@ -294,8 +319,32 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         mPhoto.setImageBitmap(bitmap);
     }
 
+    private void resizeWithPicasso(Bitmap imageBitmap){
+//        Bundle extras = data.getExtras();
+//            Bitmap imageBitmap = (Bitmap) extras.get("data");
+
+        // Get the dimensions of the View
+        int targetW = mPhoto.getWidth();
+        int targetH = mPhoto.getHeight();
+
+        Picasso.with(NewCatActivity.this)
+                .load(mCurrentPhotoPath)
+                .resize(targetW, targetH)
+                .centerCrop()
+                .into(mPhoto);
+    }
+
     private boolean hasCamera(){
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
+    }
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
     }
 
 

@@ -25,6 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
+        android:padding="8dp"
         android:background="#607d8b"
         android:textColor="#FFFFFF"
         android:text="Update Cat"/>
@@ -39,24 +40,21 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_below="@id/textView_details_found"
+        android:layout_toLeftOf="@id/button_update"
         android:layout_marginBottom="15dp" />
 
-
-    <!--<FrameLayout-->
-        <!--android:id="@+id/frameLayout_details"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="300dp"-->
-        <!--tools:background="#000000"-->
-        <!--android:layout_below="@id/textView_details_newlocation">-->
+    <!--Set this imageview to not be a square, or for the camera to only take a square photo.-->
 
         <ImageView
             android:id="@+id/imageView_details_newimage"
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:maxWidth="@dimen/activity_horizontal_margin"
+            android:scaleType="centerCrop"
+            android:layout_centerInParent="true"
             tools:src="@drawable/bond_cat"
             android:layout_below="@id/textView_details_newlocation"/>
 
-    <!--</FrameLayout>-->
 
         <TextView
             android:id="@+id/textView_details_newname"
@@ -93,6 +91,5 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/textView_details_newdesc"/>
-
 
 </RelativeLayout>
