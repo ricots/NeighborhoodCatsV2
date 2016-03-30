@@ -1,12 +1,9 @@
 package com.roberterrera.neighborhoodcats;
 
-import android.Manifest;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -14,8 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -23,7 +18,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
@@ -31,22 +25,16 @@ import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
-import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.localdata.DBAssetHelper;
-import com.roberterrera.neighborhoodcats.models.Cat;
+import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
+import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicLong;
-
-import io.realm.Realm;
-import io.realm.RealmAsyncTask;
-import io.realm.RealmConfiguration;
 
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
@@ -58,12 +46,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private static final int RESULT_LOAD_IMG = 3;
     String[] perms = {"android.permission.CAMERA"};
     int permsRequestCode = 200;
-
-    private Realm realm;
-    private RealmConfiguration realmConfig;
-    private long nextKey;
-    public static AtomicLong primaryKeyValue;
-
 
     private String mCurrentPhotoPath;
     private String imgDecodableString;
@@ -78,10 +60,10 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        TextView catName = (TextView) findViewById(R.id.textView_newname);
-        TextView catDesc = (TextView) findViewById(R.id.textView_newdesc);
-        TextView foundAt = (TextView) findViewById(R.id.textView_found);
-        TextView catLocation = (TextView) findViewById(R.id.textView_newlocation);
+//        TextView catName = (TextView) findViewById(R.id.textView_newname);
+//        TextView catDesc = (TextView) findViewById(R.id.textView_newdesc);
+//        TextView foundAt = (TextView) findViewById(R.id.textView_found);
+//        TextView catLocation = (TextView) findViewById(R.id.textView_newlocation);
         mPhoto = (ImageView) findViewById(R.id.imageView_newimage);
         mEditCatDesc = (EditText) findViewById(R.id.editText_newdesc);
         mEditCatName = (EditText) findViewById(R.id.editText_newname);
@@ -110,7 +92,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 // Start the Intent
                 startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
         //TODO: Get the URI from after onActivityResult and do uri.getPath.
-                return true;
+              Picasso.with(NewCatActivity.this).load(mCurrentPhotoPath).into(mPhoto);
+              return true;
             }
         });
 
@@ -171,7 +154,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
     }
 
-
     private void getLocation() {
         GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this /* AppCompatActivity */,
@@ -190,41 +172,10 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 .build());
 //        mCatLocation.setText(String.valueOf(mTracker));
     }
-/*
-    // Go to the camera.
-    private void dispatchTakePictureIntent() {
-        if (hasCamera() && hasPermissionInManifest(this, CAMERA_SERVICE)) {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//            // Ensure that there's a camera activity to handle the intent
-            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-
-                // Create the File where the photo should go
-                File photoFile = null;
-                try {
-                    photoFile = createImageFile();
-                    Log.d("NEWCATACTIVITY", "Photo file created");
-
-                } catch (IOException ex) {
-                    Toast.makeText(NewCatActivity.this, "Unable to launch the camera :(", Toast.LENGTH_SHORT).show();
-                    Log.d("NEWCATACTIVITY", "Error: " + String.valueOf(ex));
-                }
-
-                // Continue only if the File was successfully created
-                if (photoFile != null) {
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                            Uri.fromFile(photoFile));
-                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-                } else {
-                    Toast.makeText(NewCatActivity.this, "Could not save photo :(", Toast.LENGTH_SHORT).show();
-                    Log.d("NEWCATACTIVITY", "photoFile == null");
-                }
-            }
-        }
-    }
-  */
 
   private void dispatchTakePictureIntent() {
     Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    //TODO: Fix database leak.
     // Ensure that there's a camera activity to handle the intent
     if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
       // Create the File where the photo should go
@@ -239,65 +190,17 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
       if (photoFile != null) {
         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
             Uri.fromFile(photoFile));
+        //TODO: Get GPS location from photo and save to COL_IMG via EXIF data.
         startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
       }
     }
   }
 
-  /*
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            setPic(); // Manage memory by adjusting the photo.
-//            CropSquareTransformation cropSquareTransformation = new CropSquareTransformation();
-//            mPhoto.setImageBitmap(cropSquareTransformation.transform(imageBitmap));
-            mPhoto.setImageBitmap(imageBitmap);
-        }
-        try {
-            // When an Image is picked
-            if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
-                    && null != data) {
-                // Get the Image from data
-                Uri selectedImage = data.getData();
-                String[] filePathColumn = { MediaStore.Images.Media.DATA };
-
-                // Get the cursor
-                Cursor cursor = getContentResolver().query(selectedImage,
-                        filePathColumn, null, null, null);
-                // Move to first row
-                if (cursor != null) {
-                    cursor.moveToFirst();
-                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                    imgDecodableString = cursor.getString(columnIndex);
-                    cursor.close();
-                }
-                ImageView imgView = (ImageView) findViewById(R.id.imageView_newimage);
-                // Set the Image in ImageView after decoding the String
-                if (imgView != null) {
-                    imgView.setImageBitmap(BitmapFactory
-                            .decodeFile(imgDecodableString));
-                }
-
-                //TODO: Get GPS location from photo and save to COL_IMG.
-                // If the photo has GPS EXIF data, store that in the COL_IMG column. Else use current location of device.
-
-            } else {
-                Toast.makeText(this, "You haven't picked an image",
-                        Toast.LENGTH_LONG).show();
-            }
-        } catch (Exception e) {
-            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
-                    .show();
-        }
-    }
-*/
-
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
       Bundle extras = data.getExtras();
+      setPic();
       Bitmap imageBitmap = (Bitmap) extras.get("data");
       mPhoto.setImageBitmap(imageBitmap);
     }
@@ -327,7 +230,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
+        String imageFileName = "CAT_" + timeStamp + "_";
         File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
@@ -335,38 +238,14 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-      Log.d("CREATEIMAGEFILE", String.valueOf(image));
-
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = "file:" + image.getAbsolutePath();
         Log.d("CREATEIMAGEFILE", mCurrentPhotoPath);
-        galleryAddPic(); // Add image to device gallery.
+//      Picasso.with(NewCatActivity.this).load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG))).into(mPhoto);
+      Picasso.with(NewCatActivity.this).load(mCurrentPhotoPath).into(mPhoto);
+      galleryAddPic(); // Add image to device gallery.
         return image;
     }
-
-  private File getGalleryImagePath() throws IOException {
-    // Create an image file name
-    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-    String imageFileName = "JPEG_" + timeStamp + "_";
-    File storageDir = Environment.getExternalStoragePublicDirectory(
-        Environment.DIRECTORY_PICTURES);
-    File image = File.createTempFile(
-        imageFileName,  /* prefix */
-        ".jpg",         /* suffix */
-        storageDir      /* directory */
-    );
-
-//        File image = new File(storageDir, imageFileName+".jpg");
-    Log.d("CREATEIMAGEFILE", String.valueOf(image));
-
-    // Save a file: path for use with ACTION_VIEW intents
-    mCurrentPhotoPath = "file:" + image.getAbsolutePath();
-//        mCurrentPhotoPath = image.getPath();
-    //TODO: E/BitmapFactory: Unable to decode stream: java.lang.NullPointerException: Attempt to invoke virtual method 'char[] java.lang.String.toCharArray()' on a null object reference
-    Log.d("CREATEIMAGEFILE", mCurrentPhotoPath);
-    galleryAddPic(); // Add image to device gallery.
-    return image;
-  }
 
   private void galleryAddPic() {
     Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);

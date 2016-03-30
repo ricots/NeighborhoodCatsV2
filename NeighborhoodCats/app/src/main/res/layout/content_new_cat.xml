@@ -41,7 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:hint="Bond Street, Brooklyn, NY 11231"
+        android:text="@string/sample_address"
         android:autoLink = "map"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"

@@ -1,8 +1,11 @@
 package com.roberterrera.neighborhoodcats;
 
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,10 +26,6 @@ public class DetailsActivity extends AppCompatActivity {
     private TextView mCatName, mCatDesc, mFoundAt, mCatLocation;
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
-    private Tracker mTracker;
-    private Realm realm;
-    private RealmConfiguration realmConfig;
-    RealmAsyncTask transaction;
 
 
     @Override
@@ -58,10 +57,21 @@ public class DetailsActivity extends AppCompatActivity {
             setTitle("Cat Details");
         }
 
+//      Display display = getWindowManager().getDefaultDisplay();
+//      Point size = new Point();
+//      display.getSize(size);
+//      int width = size.x;
+//      int height = size.y;
+
         mEditCatName.setText(helper.getCatNameByID(id));
         mEditCatDesc.setText(helper.getCatDescByID(id));
         mCatLocation.setText(helper.getCatLocByID(id));
         Picasso.with(DetailsActivity.this).load(helper.getCatPhotoByID(id)).into(mPhoto);
+//      Picasso.with(DetailsActivity.this)
+//          .load(helper.getCatPhotoByID(id))
+//          .resize(width, height)
+//          .centerCrop()
+//          .into(mPhoto);
 
         Button updateButton = (Button) findViewById(R.id.button_update);
 

@@ -32,12 +32,12 @@ import com.squareup.picasso.Picasso;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    Cursor mCursor;
-    CursorAdapter mCursorAdapter;
-    ListView mListView;
-    TextView mCatName;
-    ImageView mCatThumbnail;
-    CatsSQLiteOpenHelper helper;
+    public Cursor mCursor;
+    private CursorAdapter mCursorAdapter;
+    private ListView mListView;
+    private TextView mCatName;
+    private ImageView mCatThumbnail;
+    private CatsSQLiteOpenHelper mHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,13 +68,13 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Toast.makeText(MainActivity.this, "Cats set to listview", Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, "Cats loaded", Toast.LENGTH_SHORT).show();
 
 //        GetCatsListAsyncTask getCatsListAsyncTask = new GetCatsListAsyncTask();
 //        getCatsListAsyncTask.execute();
-
-        DBAssetHelper dbAssetHelper = new DBAssetHelper(MainActivity.this);
-        dbAssetHelper.getReadableDatabase();
+//
+//        DBAssetHelper dbAssetHelper = new DBAssetHelper(MainActivity.this);
+//        dbAssetHelper.getReadableDatabase();
 
         mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
         mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
@@ -87,15 +87,20 @@ public class MainActivity extends AppCompatActivity
             public void bindView(View view, Context context, Cursor cursor) {
 
                 // Create helper object and make the database available to be read.
-                CatsSQLiteOpenHelper helper = new CatsSQLiteOpenHelper(MainActivity.this);
-                helper.getReadableDatabase();
+                mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
+                mHelper.getReadableDatabase();
 
                 mCatName = (TextView) view.findViewById(R.id.textview_catname_list);
                 mCatName.setText( cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME)) );
                 // Load image file path into thumbnail
                 mCatThumbnail = (ImageView) view.findViewById(R.id.imageview_catthumbnail);
-                Picasso.with(MainActivity.this).load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG))).into(mCatThumbnail);
-                // Log the filepath //TODO: Why is this logging twice?
+//                Picasso.with(MainActivity.this).load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG))).into(mCatThumbnail);
+                Picasso.with(MainActivity.this)
+                    .load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)))
+                    .resize(50, 50)
+                    .centerCrop()
+                    .into(mCatThumbnail);
+                // Log the filepath
                 Log.d("CURSORADAPTER", "Name: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME))+", COL_IMG: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)));
             }
         };
@@ -107,10 +112,11 @@ public class MainActivity extends AppCompatActivity
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
           @Override
           public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
 //            mCursor = mCursorAdapter.getCursor();
             Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
             mCursor.moveToPosition(position);
+              mHelper.getReadableDatabase();
             intent.putExtra("id", mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
             startActivity(intent);
           }
@@ -120,11 +126,11 @@ public class MainActivity extends AppCompatActivity
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-              Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
+              Toast.makeText(MainActivity.this, position+" long clicked", Toast.LENGTH_SHORT).show();
                 // TODO: Run a getCatID to get the id and pass that into deleteCatByID.
-              helper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
-              mCursorAdapter.swapCursor(mCursor);
-
+                mHelper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
+                mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
+                mCursorAdapter.swapCursor(mCursor);
               return true;
             }
         });
