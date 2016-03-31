@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'realm-android'
 
 
 android {
@@ -27,4 +28,5 @@ dependencies {
     compile 'com.android.support:design:23.2.1'
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:+'
     compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.google.android.gms:play-services:8.4.0'
 }

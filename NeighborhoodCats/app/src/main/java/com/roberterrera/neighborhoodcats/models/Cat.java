@@ -1,12 +1,12 @@
-package com.roberterrera.neighborhoodcats.Classes;
+package com.roberterrera.neighborhoodcats.models;
 
-import android.widget.ImageView;
-
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by Rob on 3/22/16.
  */
-public class Cat {
+public class Cat extends RealmObject{
     private int id;
     private String mName;
     private String mDesc;
@@ -20,6 +20,8 @@ public class Cat {
         this.mPhoto = photo;
         this.mLocation = location;
     }
+
+    public Cat() {}
 
     public int getId() {
         return id;

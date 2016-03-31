@@ -1,50 +1,43 @@
 package com.roberterrera.neighborhoodcats;
 
+import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.roberterrera.neighborhoodcats.Classes.Cat;
-import com.roberterrera.neighborhoodcats.Database.CatsSQLiteOpenHelper;
-import com.roberterrera.neighborhoodcats.Database.DBAssetHelper;
+import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.localdata.DBAssetHelper;
 import com.squareup.picasso.Picasso;
-
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    Cursor mCursor;
-    CursorAdapter mCursorAdapter;
-    ListView mListView;
-    TextView mCatName;
-    ImageView mCatThumbnail;
-    CatsSQLiteOpenHelper helper;
+    public Cursor mCursor;
+    private CursorAdapter mCursorAdapter;
+    private ListView mListView;
+    private TextView mCatName;
+    private ImageView mCatThumbnail;
+    private CatsSQLiteOpenHelper mHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +53,8 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO: Launch AddCat intent.
+                Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
+                startActivity(newCatIntent);
             }
         });
 
@@ -74,41 +68,101 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        mListView = (ListView) findViewById(R.id.listview_cats);
+        Toast.makeText(MainActivity.this, "Cats loaded", Toast.LENGTH_SHORT).show();
 
-        GetCatsListAsyncTask getCatsListAsyncTask = new GetCatsListAsyncTask();
-        getCatsListAsyncTask.execute();
+//        GetCatsListAsyncTask getCatsListAsyncTask = new GetCatsListAsyncTask();
+//        getCatsListAsyncTask.execute();
+//
+//        DBAssetHelper dbAssetHelper = new DBAssetHelper(MainActivity.this);
+//        dbAssetHelper.getReadableDatabase();
 
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
+        mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+            public View newView(Context context, Cursor cursor, ViewGroup parent) {
+                return LayoutInflater.from(context).inflate(R.layout.list_item_layout, parent, false);
             }
+
+            @Override
+            public void bindView(View view, Context context, Cursor cursor) {
+
+                // Create helper object and make the database available to be read.
+                mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
+                mHelper.getReadableDatabase();
+
+                mCatName = (TextView) view.findViewById(R.id.textview_catname_list);
+                mCatName.setText( cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME)) );
+                // Load image file path into thumbnail
+                mCatThumbnail = (ImageView) view.findViewById(R.id.imageview_catthumbnail);
+//                Picasso.with(MainActivity.this).load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG))).into(mCatThumbnail);
+                Picasso.with(MainActivity.this)
+                    .load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)))
+                    .resize(50, 50)
+                    .centerCrop()
+                    .into(mCatThumbnail);
+                // Log the filepath
+                Log.d("CURSORADAPTER", "Name: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME))+", COL_IMG: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)));
+            }
+        };
+
+        mListView = (ListView) findViewById(R.id.listview_cats);
+        mListView.setAdapter(mCursorAdapter);
+
+        // Get item details and display them in DetailsActivity.
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+          @Override
+          public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//            Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
+//            mCursor = mCursorAdapter.getCursor();
+            Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+            mCursor.moveToPosition(position);
+              mHelper.getReadableDatabase();
+            intent.putExtra("id", mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
+            startActivity(intent);
+          }
         });
 
+        // Delete a list item.
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-
-                helper.deleteCatByID(Integer.parseInt(CatsSQLiteOpenHelper.COL_ID));
+              Toast.makeText(MainActivity.this, position+" long clicked", Toast.LENGTH_SHORT).show();
+                // TODO: Run a getCatID to get the id and pass that into deleteCatByID.
+                mHelper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
+                mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
                 mCursorAdapter.swapCursor(mCursor);
-
-                return true;
+              return true;
             }
         });
 
+        handleIntent(getIntent());
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+//        super.onNewIntent(intent);
+        handleIntent(intent);
+    }
+
+    public void handleIntent(Intent intent){
+//        Toast.makeText(MainActivity.this, "Toast from outside if statement", Toast.LENGTH_SHORT).show();
+
+        if (Intent.ACTION_SEARCH.equals( intent.getAction() )){
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            Cursor cursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
+            mCursorAdapter.swapCursor(cursor);
+        }
+    }
+
+    /*
     private class GetCatsListAsyncTask extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... params) {
 
-            DBAssetHelper dbSetup = new DBAssetHelper(MainActivity.this);
-            dbSetup.getWritableDatabase();
-
-            helper = CatsSQLiteOpenHelper.getInstance(MainActivity.this);
-            mCursor = helper.getCatsList();
+            DBAssetHelper dbAssetHelper = new DBAssetHelper(MainActivity.this);
+            dbAssetHelper.getReadableDatabase();
+            mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
 
             return null;
         }
@@ -116,12 +170,13 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            //TODO: Set up progress bar
+            //TODO: Set up progress bar?
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+
             mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
                 @Override
                 public View newView(Context context, Cursor cursor, ViewGroup parent) {
@@ -131,20 +186,22 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void bindView(View view, Context context, Cursor cursor) {
 
+                    // Create helper object and make the database available to be read.
+                    CatsSQLiteOpenHelper helper = new CatsSQLiteOpenHelper(MainActivity.this);
+                    helper.getReadableDatabase();
+
                     mCatName = (TextView) view.findViewById(R.id.textview_catname_list);
-                    String catName = cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME));
-                    // Set name of cat to list item.
-                    mCatName.setText(catName);
-                    // Set thumbnail of cat to list
+                    mCatName.setText( cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME)) );
+                    // Load image file path into thumbnail
+                    mCatThumbnail = (ImageView) view.findViewById(R.id.imageview_catthumbnail);
                     Picasso.with(MainActivity.this).load(CatsSQLiteOpenHelper.COL_IMG).into(mCatThumbnail);
                 }
             };
 
-            if (mListView != null) {
                 mListView.setAdapter(mCursorAdapter);
             }
         }
-    }
+*/
 
     @Override
     public void onBackPressed() {
@@ -204,13 +261,25 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public void resizePhoto() {
-        // Create a thumbnail using Picasso.
-        Picasso.with(this)
-                .load(CatsSQLiteOpenHelper.COL_IMG)
-                .resize(50, 50)
-                .centerCrop()
-                .into(mCatThumbnail);
+//    public void resizePhoto() {
+//        // Create a thumbnail using Picasso.
+//        Picasso.with(this)
+//                .load(CatsSQLiteOpenHelper.COL_IMG)
+//                .resize(50, 50)
+//                .centerCrop()
+//                .into(mCatThumbnail);
+//    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mCursor != null) {
+            mCursorAdapter.swapCursor(mCursor);
+        }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }

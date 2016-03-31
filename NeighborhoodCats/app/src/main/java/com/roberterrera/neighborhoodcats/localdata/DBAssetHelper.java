@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.Database;
+package com.roberterrera.neighborhoodcats.localdata;
 
 import android.content.Context;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
@@ -8,7 +8,7 @@ import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
  */
 public class DBAssetHelper extends SQLiteAssetHelper {
 
-    private static final String DATABASE_NAME = "CATS_DB";
+    private static final String DATABASE_NAME = "CATS_DB.db";
     private static final int DATABASE_VERSION = 1;
 
     public DBAssetHelper(Context context) {
