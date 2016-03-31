@@ -86,7 +86,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
               // Create intent to Open Image applications like Gallery, Google Photos
               Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                   MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-              // Start the Intent
+                setResult(RESULT_OK, galleryIntent);
+
+                // Start the Intent
               startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
               return true;
             }
@@ -180,17 +182,21 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        setResult(RESULT_OK, takePictureIntent);
+
         //TODO: Fix database leak.
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
             File photoFile = null;
+
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
                 // Error occurred while creating the File
                 Log.d("DISPATCHTAKEPICTURE...", "Error: "+ex);
             }
+
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
@@ -214,10 +220,12 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
+
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
+
         Log.d("CREATEIMAGEFILE", mCurrentPhotoPath);
-//        Picasso.with(NewCatActivity.this).load("file:"+mCurrentPhotoPath).into(mPhoto);
+
         galleryAddPic(); // Add image to device gallery.
         return image;
     }
@@ -232,22 +240,21 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
-//            setPic();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-//            mPhoto.setImageBitmap(imageBitmap);
-            Uri imageUri = data.getData();
-//            Picasso.with(NewCatActivity.this).load(imageUri).into(mPhoto);
-            Picasso.with(NewCatActivity.this).load("file:"+mCurrentPhotoPath).into(mPhoto);
-        }
-        try {
+            Picasso.with(NewCatActivity.this)
+                    .load("file:"+mCurrentPhotoPath)
+                    .resize(300,300)
+                    .centerCrop()
+                    .into(mPhoto);
             // When an Image is picked
-            if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
+        } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
                     && null != data) {
                 // Get the Image from data
                 Uri selectedImage = data.getData();
                 String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+                mCurrentPhotoPath = selectedImage.getPath();
 
                 // Get the cursor
                 Cursor cursor = getContentResolver().query(selectedImage,
@@ -274,10 +281,10 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 Toast.makeText(this, "You haven't picked an image",
                         Toast.LENGTH_LONG).show();
             }
-        } catch (Exception e) {
-            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
-                    .show();
-        }
+//        } catch (Exception e) {
+//            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
+//                    .show();
+//        }
     }
 
     public class CropSquareTransformation implements Transformation {
