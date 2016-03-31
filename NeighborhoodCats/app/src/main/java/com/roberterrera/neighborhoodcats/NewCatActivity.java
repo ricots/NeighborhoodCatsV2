@@ -27,7 +27,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
-import com.roberterrera.neighborhoodcats.localdata.DBAssetHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
@@ -42,7 +41,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
 
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
+//    private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_TAKE_PHOTO = 2;
     private static final int RESULT_LOAD_IMG = 3;
     private String[] perms = {"android.permission.CAMERA"};
@@ -240,6 +239,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //TODO: Add a textview where the image view is that says "Tap to take a photo, long press to load from gallery", and set visibility to "GONE" at the start of the onActivityResult if statements.
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Picasso.with(NewCatActivity.this)
