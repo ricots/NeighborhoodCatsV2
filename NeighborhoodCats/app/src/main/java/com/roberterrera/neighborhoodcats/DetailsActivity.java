@@ -5,22 +5,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
 import android.view.Display;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.android.gms.analytics.Tracker;
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
-import com.roberterrera.neighborhoodcats.models.Cat;
 import com.squareup.picasso.Picasso;
-
-import io.realm.Realm;
-import io.realm.RealmAsyncTask;
-import io.realm.RealmConfiguration;
 
 public class DetailsActivity extends AppCompatActivity {
 

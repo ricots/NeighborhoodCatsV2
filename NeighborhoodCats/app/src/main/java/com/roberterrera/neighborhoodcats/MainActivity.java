@@ -26,7 +26,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
-import com.roberterrera.neighborhoodcats.localdata.DBAssetHelper;
 import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity
@@ -69,12 +68,6 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         Toast.makeText(MainActivity.this, "Cats loaded", Toast.LENGTH_SHORT).show();
-
-//        GetCatsListAsyncTask getCatsListAsyncTask = new GetCatsListAsyncTask();
-//        getCatsListAsyncTask.execute();
-//
-//        DBAssetHelper dbAssetHelper = new DBAssetHelper(MainActivity.this);
-//        dbAssetHelper.getReadableDatabase();
 
         mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
         mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
