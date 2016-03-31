@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
@@ -49,6 +51,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     private String mCurrentPhotoPath;
     private String imgDecodableString;
+    private String filemanagerstring;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +76,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 //        getLocation();
 
       //TODO: Ask for storage permission and check that the permission is granted (check if anything Marshmallow-specific needs to be done).
+        // Take a photo if you tap on the imageview
         mPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,6 +84,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             }
         });
 
+        // Use an image from device.
         mPhoto.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -98,23 +104,15 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             saveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                  Toast.makeText(NewCatActivity.this, "Save button tapped", Toast.LENGTH_SHORT).show();
-//                    DBAssetHelper dbSetup = new DBAssetHelper(NewCatActivity.this);
-//                            dbSetup.getWritableDatabase();
-
-                            // Save cat to database.
+                    // Save cat to database.
                     CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
                     helper.getWritableDatabase();
 
                     try {
-//                             if (mCurrentPhotoPath == null) {
-//                                mCurrentPhotoPath.;
-//                              }
                         helper.insert(
                                 mEditCatName.getText().toString(),
                                 mEditCatDesc.getText().toString(),
-                                //TODO: Get location.
-//                               String.valueOf(mTracker));
+                                //TODO: Get location from image.
                                 "*Your location here*",
                                 "file:"+mCurrentPhotoPath);
                         Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
@@ -130,6 +128,103 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
         }
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //TODO: Add a textview where the image view is that says "Tap to take a photo, long press to load from gallery", and set visibility to "GONE" at the start of the onActivityResult if statements.
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Picasso.with(NewCatActivity.this)
+                    .load("file:"+mCurrentPhotoPath)
+                    .resize(300,300)
+                    .centerCrop()
+                    .into(mPhoto);
+
+            // When an Image is picked
+        } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
+                && null != data) {
+            Uri selectedImageUri = data.getData();
+
+            //OI FILE Manager
+//            filemanagerstring = selectedImageUri.getPath();
+
+            //MEDIA GALLERY
+            mCurrentPhotoPath = getPath(selectedImageUri);
+
+            Picasso.with(NewCatActivity.this)
+                    .load("file:"+mCurrentPhotoPath)
+                    .resize(300,300)
+                    .centerCrop()
+                    .into(mPhoto);
+
+            //DEBUG PURPOSE - you can delete this if you want
+            if(mCurrentPhotoPath!=null)
+                System.out.println(mCurrentPhotoPath);
+            else System.out.println("selectedImagePath is null");
+            if(mCurrentPhotoPath!=null)
+                System.out.println(filemanagerstring);
+            else System.out.println("mCurrentPhotoPath is null");
+
+            //NOW WE HAVE OUR WANTED STRING
+            if(mCurrentPhotoPath!=null)
+                System.out.println("selectedImagePath is the right one for you!");
+            else
+                System.out.println("filemanagerstring is the right one for you!");
+        }
+    }
+
+
+    //UPDATED!
+    public String getPath(Uri uri) {
+        String[] projection = { MediaStore.Images.Media.DATA };
+        Cursor cursor = getContentResolver().query(uri,
+                projection, null, null, null);
+        if(cursor!=null)
+        {
+            //HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
+            //THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
+            int column_index = cursor
+                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        }
+        else return null;
+    }
+            /*           // Get the Image from data
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+            mCurrentPhotoPath = selectedImage.getPath();
+
+            // Get the cursor
+            Cursor cursor = getContentResolver().query(selectedImage,
+                    filePathColumn, null, null, null);
+            // Move to first row
+            if (cursor != null) {
+                cursor.moveToFirst();
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                imgDecodableString = cursor.getString(columnIndex);
+                Log.d("RESULT_LOAD_IMG", "Gallery path: "+mCurrentPhotoPath);
+                cursor.close();
+            }
+            // Set the Image in ImageView after decoding the String
+            if (mPhoto != null) {
+                mPhoto.setImageBitmap(BitmapFactory
+                        .decodeFile(imgDecodableString));
+            }
+
+            //TODO: Get GPS location from photo and save to COL_IMG.
+            // If the photo has GPS EXIF data, store that in the COL_IMG column. Else use current location of device.
+
+        } else {
+            Toast.makeText(this, "You haven't picked an image",
+                    Toast.LENGTH_LONG).show();
+        }
+//        } catch (Exception e) {
+//            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
+//                    .show();
+//        }
+    }*/
 
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
@@ -237,108 +332,36 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
       this.sendBroadcast(mediaScanIntent);
   }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //TODO: Add a textview where the image view is that says "Tap to take a photo, long press to load from gallery", and set visibility to "GONE" at the start of the onActivityResult if statements.
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Picasso.with(NewCatActivity.this)
-                    .load("file:"+mCurrentPhotoPath)
-                    .resize(300,300)
-                    .centerCrop()
-                    .into(mPhoto);
-            // When an Image is picked
-        } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
-                    && null != data) {
-                // Get the Image from data
-                Uri selectedImage = data.getData();
-                String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
-                mCurrentPhotoPath = selectedImage.getPath();
+    private String getLocationFromImage (String file){
+        String exif="Exif: " + file;
+        try {
+            ExifInterface exifInterface = new ExifInterface(file);
+// TODO: Look at this resource: http://stackoverflow.com/questions/15403797/how-to-get-the-latititude-and-longitude-of-an-image-in-sdcard-to-my-application
+//            exif += "\nIMAGE_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
+//            exif += "\nIMAGE_WIDTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
+//            exif += "\n DATETIME: " + exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
+//            exif += "\n TAG_MAKE: " + exifInterface.getAttribute(ExifInterface.TAG_MAKE);
+//            exif += "\n TAG_MODEL: " + exifInterface.getAttribute(ExifInterface.TAG_MODEL);
+//            exif += "\n TAG_ORIENTATION: " + exifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
+//            exif += "\n TAG_WHITE_BALANCE: " + exifInterface.getAttribute(ExifInterface.TAG_WHITE_BALANCE);
+//            exif += "\n TAG_FOCAL_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
+//            exif += "\n TAG_FLASH: " + exifInterface.getAttribute(ExifInterface.TAG_FLASH);
+//            exif += "\nGPS related:";
+            exif += "\n TAG_GPS_DATESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
+            exif += "\n TAG_GPS_TIMESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
+            exif += "\n TAG_GPS_LATITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+            exif += "\n TAG_GPS_LATITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+            exif += "\n TAG_GPS_LONGITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+            exif += "\n TAG_GPS_LONGITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+            exif += "\n TAG_GPS_PROCESSING_METHOD: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
 
-                // Get the cursor
-                Cursor cursor = getContentResolver().query(selectedImage,
-                        filePathColumn, null, null, null);
-                // Move to first row
-                if (cursor != null) {
-                    cursor.moveToFirst();
-                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                    imgDecodableString = cursor.getString(columnIndex);
-//                    mCurrentPhotoPath = imgDecodableString;
-                    Log.d("RESULT_LOAD_IMG", "Gallery path: "+mCurrentPhotoPath);
-                    cursor.close();
-                }
-                // Set the Image in ImageView after decoding the String
-                if (mPhoto != null) {
-                    mPhoto.setImageBitmap(BitmapFactory
-                            .decodeFile(imgDecodableString));
-                }
-
-                //TODO: Get GPS location from photo and save to COL_IMG.
-                // If the photo has GPS EXIF data, store that in the COL_IMG column. Else use current location of device.
-
-            } else {
-                Toast.makeText(this, "You haven't picked an image",
-                        Toast.LENGTH_LONG).show();
-            }
-//        } catch (Exception e) {
-//            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
-//                    .show();
-//        }
-    }
-
-    public class CropSquareTransformation implements Transformation {
-        @Override public Bitmap transform(Bitmap source) {
-            int size = Math.min(source.getWidth(), source.getHeight());
-            int x = (source.getWidth() - size) / 2;
-            int y = (source.getHeight() - size) / 2;
-            Bitmap result = Bitmap.createBitmap(source, x, y, size, size);
-            if (result != source) {
-                source.recycle();
-            }
-            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d("GETLOCATIONFROMIMAGE", "Error: "+ e.toString());
         }
 
-        @Override public String key() { return "square()"; }
-    }
-
-    private void setPic() {
-        // Get the dimensions of the View
-        int targetW = mPhoto.getWidth();
-        int targetH = mPhoto.getHeight();
-
-        // Get the dimensions of the bitmap
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
-
-        // Determine how much to scale down the image
-        int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
-
-        // Decode the image file into a Bitmap sized to fill the View
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        bmOptions.inPurgeable = true;
-
-        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-        mPhoto.setImageBitmap(bitmap);
-    }
-
-    private void resizeWithPicasso(Bitmap imageBitmap){
-//        Bundle extras = data.getExtras();
-//            Bitmap imageBitmap = (Bitmap) extras.get("data");
-
-        // Get the dimensions of the View
-        int targetW = mPhoto.getWidth();
-        int targetH = mPhoto.getHeight();
-
-        Picasso.with(NewCatActivity.this)
-                .load(mCurrentPhotoPath)
-                .resize(targetW, targetH)
-                .centerCrop()
-                .into(mPhoto);
+        return exif;
     }
 
     private boolean hasCamera(){
@@ -353,7 +376,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
         return false;
     }
-
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
