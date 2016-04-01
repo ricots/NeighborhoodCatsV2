@@ -1,6 +1,7 @@
 package com.roberterrera.neighborhoodcats;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -13,13 +14,17 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,6 +57,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private String mCurrentPhotoPath;
     private String imgDecodableString;
     private String filemanagerstring;
+    private ShareActionProvider mShareActionProvider;
 
 
     @Override
@@ -105,24 +111,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 @Override
                 public void onClick(View v) {
                     // Save cat to database.
-                    CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
-                    helper.getWritableDatabase();
-
-                    try {
-                        helper.insert(
-                                mEditCatName.getText().toString(),
-                                mEditCatDesc.getText().toString(),
-                                //TODO: Get location from image.
-                                "*Your location here*",
-                                "file:"+mCurrentPhotoPath);
-                        Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e){
-                        Toast.makeText(NewCatActivity.this,
-                                "There was a problem saving your cat data :(",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
-                    startActivity(backToMainIntent);
+                    save();
                 }
             });
 
@@ -378,12 +367,99 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.newcat, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        if (id == R.id.action_save) {
+            save();
+            return true;
+        }
+        if (id == R.id.menu_item_share){
+            save();
+            shareChooser();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void shareChooser() {
+        // specify our test image location
+        Uri url = Uri.parse(mCurrentPhotoPath);
+
+        // set up an intent to share the image
+        Intent share_intent = new Intent();
+        share_intent.setAction(Intent.ACTION_SEND);
+        share_intent.setType("image/jpg");
+        share_intent.putExtra(Intent.EXTRA_STREAM,
+                Uri.fromFile(new File(url.toString())));
+        share_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        share_intent.putExtra(Intent.EXTRA_SUBJECT,
+                "Share this cat!");
+        share_intent.putExtra(Intent.EXTRA_TEXT,
+                mEditCatName.getText().toString()+": "
+                        +mEditCatDesc.getText().toString());
+
+        // start the intent
+        try {
+            startActivity(Intent.createChooser(share_intent,
+                    "ShareThroughChooser Test"));
+        } catch (android.content.ActivityNotFoundException ex) {
+            (new AlertDialog.Builder(NewCatActivity.this)
+                    .setMessage("Share failed")
+                    .setPositiveButton("OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                                    int whichButton) {
+                                }
+                            }).create()).show();
+        }
+    }
+
+//    // Call to update the share intent
+//    private void setShareIntent(Intent shareIntent) {
+//        if (mShareActionProvider != null) {
+//            mShareActionProvider.setShareIntent(shareIntent);
+//        }
+//    }
+
+    @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+    }
+
+    private void save(){
+        CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
+        helper.getWritableDatabase();
+
+        try {
+            helper.insert(
+                    mEditCatName.getText().toString(),
+                    mEditCatDesc.getText().toString(),
+                    //TODO: Get location from image.
+                    "*Your location here*",
+                    "file:"+mCurrentPhotoPath);
+            Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e){
+            Toast.makeText(NewCatActivity.this,
+                    "There was a problem saving your cat data :(",
+                    Toast.LENGTH_SHORT).show();
+        }
+        Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
+        startActivity(backToMainIntent);
     }
 
 }
