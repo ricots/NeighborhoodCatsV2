@@ -1,11 +1,17 @@
 package com.roberterrera.neighborhoodcats;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Point;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Display;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -13,6 +19,8 @@ import android.widget.TextView;
 
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
+
+import java.io.File;
 
 public class DetailsActivity extends AppCompatActivity {
 
@@ -79,9 +87,8 @@ public class DetailsActivity extends AppCompatActivity {
         int width = size.x;
         int height = size.y;
 
-        //        Picasso.with(DetailsActivity.this).load(helper.getCatPhotoByID(id)).into(mPhoto);
         Picasso.with(DetailsActivity.this)
-            .load(helper.getCatPhotoByID(id))
+            .load("file:"+helper.getCatPhotoByID(id))
             .resize(width, height)
             .centerCrop()
             .into(mPhoto);
@@ -92,4 +99,58 @@ public class DetailsActivity extends AppCompatActivity {
 
 
         //TODO: Finish setting up DetailsActivity.
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.details, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        if (id == R.id.menu_item_share){
+            shareChooser();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void shareChooser() {
+        // specify our test image location
+        Uri url = Uri.parse(helper.getCatPhotoByID(id));
+
+        // set up an intent to share the image
+        Intent share_intent = new Intent();
+        share_intent.setAction(Intent.ACTION_SEND);
+        share_intent.setType("image/jpg");
+        share_intent.putExtra(Intent.EXTRA_STREAM,
+                Uri.fromFile(new File(url.toString())));
+        share_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        share_intent.putExtra(Intent.EXTRA_SUBJECT,
+                "Share this cat!");
+        share_intent.putExtra(Intent.EXTRA_TEXT,
+                helper.getCatNameByID(id)+": "
+                        +helper.getCatDescByID(id));
+
+        // start the intent
+        try {
+            startActivity(Intent.createChooser(share_intent,
+                    "Sharing "+helper.getCatNameByID(id)));
+        } catch (android.content.ActivityNotFoundException ex) {
+            (new AlertDialog.Builder(DetailsActivity.this)
+                    .setMessage("Share failed")
+                    .setPositiveButton("OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                                    int whichButton) {
+                                }
+                            }).create()).show();
+        }
+    }
 }

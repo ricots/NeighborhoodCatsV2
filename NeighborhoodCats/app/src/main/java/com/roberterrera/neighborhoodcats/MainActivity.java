@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity
                 mCatThumbnail = (ImageView) view.findViewById(R.id.imageview_catthumbnail);
 //                Picasso.with(MainActivity.this).load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG))).into(mCatThumbnail);
                 Picasso.with(MainActivity.this)
-                    .load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)))
+                    .load("file:"+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)))
                     .resize(50, 50)
                     .centerCrop()
                     .into(mCatThumbnail);
