@@ -87,9 +87,8 @@ public class DetailsActivity extends AppCompatActivity {
         int width = size.x;
         int height = size.y;
 
-        //        Picasso.with(DetailsActivity.this).load(helper.getCatPhotoByID(id)).into(mPhoto);
         Picasso.with(DetailsActivity.this)
-            .load(helper.getCatPhotoByID(id))
+            .load("file:"+helper.getCatPhotoByID(id))
             .resize(width, height)
             .centerCrop()
             .into(mPhoto);
@@ -104,7 +103,7 @@ public class DetailsActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.newcat, menu);
+        getMenuInflater().inflate(R.menu.details, menu);
         return true;
     }
 
@@ -136,13 +135,13 @@ public class DetailsActivity extends AppCompatActivity {
         share_intent.putExtra(Intent.EXTRA_SUBJECT,
                 "Share this cat!");
         share_intent.putExtra(Intent.EXTRA_TEXT,
-                mEditCatName.getText().toString()+": "
-                        +mEditCatDesc.getText().toString());
+                helper.getCatNameByID(id)+": "
+                        +helper.getCatDescByID(id));
 
         // start the intent
         try {
             startActivity(Intent.createChooser(share_intent,
-                    "ShareThroughChooser Test"));
+                    "Sharing "+helper.getCatNameByID(id)));
         } catch (android.content.ActivityNotFoundException ex) {
             (new AlertDialog.Builder(DetailsActivity.this)
                     .setMessage("Share failed")

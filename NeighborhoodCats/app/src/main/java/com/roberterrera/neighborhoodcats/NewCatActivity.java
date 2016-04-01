@@ -412,7 +412,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         // start the intent
         try {
             startActivity(Intent.createChooser(share_intent,
-                    "ShareThroughChooser Test"));
+                    "Sharing "+mEditCatName.getText().toString()));
         } catch (android.content.ActivityNotFoundException ex) {
             (new AlertDialog.Builder(NewCatActivity.this)
                     .setMessage("Share failed")
@@ -451,7 +451,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     mEditCatDesc.getText().toString(),
                     //TODO: Get location from image.
                     "*Your location here*",
-                    "file:"+mCurrentPhotoPath);
+                    mCurrentPhotoPath);
             Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
         } catch (Exception e){
             Toast.makeText(NewCatActivity.this,
