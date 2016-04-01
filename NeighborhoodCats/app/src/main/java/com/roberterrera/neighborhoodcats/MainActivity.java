@@ -4,7 +4,9 @@ import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -39,6 +41,8 @@ public class MainActivity extends AppCompatActivity
     private TextView mCatName;
     private ImageView mCatThumbnail;
     private CatsSQLiteOpenHelper mHelper;
+    private String[] perms = {"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_FINE_LOCATION"};
+    private int permsRequestCode = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +73,9 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Toast.makeText(MainActivity.this, "Cats loaded", Toast.LENGTH_SHORT).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(perms, permsRequestCode);
+        }
 
         mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
         mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
@@ -97,6 +103,7 @@ public class MainActivity extends AppCompatActivity
                     .into(mCatThumbnail);
                 // Log the filepath
                 Log.d("CURSORADAPTER", "Name: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME))+", COL_IMG: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)));
+                Toast.makeText(MainActivity.this, "Cats loaded", Toast.LENGTH_SHORT).show();
             }
         };
 
@@ -110,8 +117,6 @@ public class MainActivity extends AppCompatActivity
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
           @Override
           public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//            Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
-//            mCursor = mCursorAdapter.getCursor();
             Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
             mCursor.moveToPosition(position);
               mHelper.getReadableDatabase();
@@ -124,7 +129,6 @@ public class MainActivity extends AppCompatActivity
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//              Toast.makeText(MainActivity.this, position+" long clicked", Toast.LENGTH_SHORT).show();
                 mHelper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
                 mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
                 mCursorAdapter.swapCursor(mCursor);
@@ -212,6 +216,15 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
+        switch(permsRequestCode){
+            case 200:
+                boolean permissionAccepted = grantResults[2]== PackageManager.PERMISSION_GRANTED;
+                break;
+        }
     }
 
     @Override
