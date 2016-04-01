@@ -47,12 +47,9 @@ public class DetailsActivity extends AppCompatActivity {
       mPhoto = (ImageView) findViewById(R.id.imageView_details_newimage);
       mEditCatDesc = (EditText) findViewById(R.id.editText_details_newdesc);
       mEditCatName = (EditText) findViewById(R.id.editText_details_newname);
-      Button updateButton = (Button) findViewById(R.id.button_update);
 
       LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
       loadCatAsyncTask.execute();
-
-
 
     }
 

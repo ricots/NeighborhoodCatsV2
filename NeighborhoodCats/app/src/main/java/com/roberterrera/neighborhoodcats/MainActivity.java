@@ -1,6 +1,7 @@
 package com.roberterrera.neighborhoodcats;
 
 import android.app.SearchManager;
+import android.app.SearchableInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -11,6 +12,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -99,7 +101,10 @@ public class MainActivity extends AppCompatActivity
         };
 
         mListView = (ListView) findViewById(R.id.listview_cats);
-        mListView.setAdapter(mCursorAdapter);
+        if (mListView != null) {
+            mListView.setAdapter(mCursorAdapter);
+        }
+        handleIntent(getIntent());
 
         // Get item details and display them in DetailsActivity.
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -119,8 +124,7 @@ public class MainActivity extends AppCompatActivity
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-              Toast.makeText(MainActivity.this, position+" long clicked", Toast.LENGTH_SHORT).show();
-                // TODO: Run a getCatID to get the id and pass that into deleteCatByID.
+//              Toast.makeText(MainActivity.this, position+" long clicked", Toast.LENGTH_SHORT).show();
                 mHelper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
                 mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
                 mCursorAdapter.swapCursor(mCursor);
@@ -128,73 +132,22 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        handleIntent(getIntent());
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
-//        super.onNewIntent(intent);
         handleIntent(intent);
     }
 
     public void handleIntent(Intent intent){
-//        Toast.makeText(MainActivity.this, "Toast from outside if statement", Toast.LENGTH_SHORT).show();
 
         if (Intent.ACTION_SEARCH.equals( intent.getAction() )){
             String query = intent.getStringExtra(SearchManager.QUERY);
-            Cursor cursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
-            mCursorAdapter.swapCursor(cursor);
+            mCursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
+            mCursorAdapter.swapCursor(mCursor);
         }
     }
 
-    /*
-    private class GetCatsListAsyncTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            DBAssetHelper dbAssetHelper = new DBAssetHelper(MainActivity.this);
-            dbAssetHelper.getReadableDatabase();
-            mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
-
-            return null;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            //TODO: Set up progress bar?
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
-                @Override
-                public View newView(Context context, Cursor cursor, ViewGroup parent) {
-                    return LayoutInflater.from(context).inflate(R.layout.list_item_layout, parent, false);
-                }
-
-                @Override
-                public void bindView(View view, Context context, Cursor cursor) {
-
-                    // Create helper object and make the database available to be read.
-                    CatsSQLiteOpenHelper helper = new CatsSQLiteOpenHelper(MainActivity.this);
-                    helper.getReadableDatabase();
-
-                    mCatName = (TextView) view.findViewById(R.id.textview_catname_list);
-                    mCatName.setText( cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME)) );
-                    // Load image file path into thumbnail
-                    mCatThumbnail = (ImageView) view.findViewById(R.id.imageview_catthumbnail);
-                    Picasso.with(MainActivity.this).load(CatsSQLiteOpenHelper.COL_IMG).into(mCatThumbnail);
-                }
-            };
-
-                mListView.setAdapter(mCursorAdapter);
-            }
-        }
-*/
 
     @Override
     public void onBackPressed() {
@@ -210,6 +163,14 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
+        // Setup for the search action.
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView)menu.findItem(R.id.action_search).getActionView();
+
+        SearchableInfo info = searchManager.getSearchableInfo( getComponentName() );
+        searchView.setSearchableInfo(info);
+
         return true;
     }
 
@@ -220,7 +181,6 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_search) {
             return true;
         }
@@ -253,15 +213,6 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
-//    public void resizePhoto() {
-//        // Create a thumbnail using Picasso.
-//        Picasso.with(this)
-//                .load(CatsSQLiteOpenHelper.COL_IMG)
-//                .resize(50, 50)
-//                .centerCrop()
-//                .into(mCatThumbnail);
-//    }
 
     @Override
     protected void onResume() {

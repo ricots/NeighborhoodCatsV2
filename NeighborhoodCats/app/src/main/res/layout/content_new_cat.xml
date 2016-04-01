@@ -17,16 +17,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <Button
-        android:id="@+id/button_save"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:background="#607d8b"
-        android:textColor="#FFFFFF"
-        android:text="Save Cat"/>
-
     <TextView
         android:id="@+id/textView_newlocation"
         android:layout_width="wrap_content"
@@ -34,7 +24,6 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="@string/sample_address"
         android:autoLink = "map"
-        android:layout_toLeftOf="@id/button_save"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_below="@id/textView_found"

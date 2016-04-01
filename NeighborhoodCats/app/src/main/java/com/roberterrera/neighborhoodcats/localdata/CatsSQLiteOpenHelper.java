@@ -80,16 +80,14 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         return cursor;
     }
 
-
-
     public Cursor searchCats(String query){
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(CAT_LIST_TABLE_NAME, // a. table
                 CATS_COLUMNS, // b. column names
-                // To search across name, desc, and location.
-                COL_NAME + " LIKE ?" + " OR " + COL_DESC + " LIKE ?" + " OR " + COL_LOCATION + " LIKE ?", // c. selections
-                new String[]{"%" + query + "%", "%" + query + "%", "%" + query + "%"}, // d. selections args
+                // To search across name or desc.
+                COL_NAME + " LIKE ?" + " OR " + COL_DESC + " LIKE ?", // c. selections
+                new String[]{"%" + query + "%", "%" + query + "%"}, // d. selections args
                 null, // e. group by
                 null, // f. having
                 null, // g. order by
@@ -104,18 +102,8 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
     public void deleteCatByID(int id){
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(CAT_LIST_TABLE_NAME, COL_ID + "=" + id, null);
+        db.close();
     }
-
-//    public void deleteCatByID(int id){
-//        SQLiteDatabase db = getWritableDatabase();
-//
-//        String selection = "_id = ?";
-//        String[] selectionArgs = { String.valueOf(COL_ID) };
-//
-//        db.delete(CAT_LIST_TABLE_NAME,
-//                selection,
-//                selectionArgs);
-//    }
 
     public void insert(String name, String desc, String location, String photo){
         SQLiteDatabase db = getWritableDatabase();
@@ -128,7 +116,6 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
 
         db.insert(CAT_LIST_TABLE_NAME, null, values);
         db.close();
-
     }
 
     public String getCatLocByID(int id) {
@@ -182,9 +169,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         if (cursor != null) {
             cursor.moveToFirst();
         }
-//        while (!cursor.isAfterLast()){
-//            cursor.moveToNext();
-//        }
+
         return cursor.getString(cursor.getColumnIndex(COL_DESC));
     }
 

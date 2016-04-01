@@ -19,17 +19,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <Button
-        android:id="@+id/button_update"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:padding="8dp"
-        android:background="#607d8b"
-        android:textColor="#FFFFFF"
-        android:text="Update Cat"/>
-
     <TextView
         android:id="@+id/textView_details_newlocation"
         android:layout_width="wrap_content"
@@ -40,7 +29,6 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_below="@id/textView_details_found"
-        android:layout_toLeftOf="@id/button_update"
         android:layout_marginBottom="15dp" />
 
     <!--Set this imageview to not be a square, or for the camera to only take a square photo.-->

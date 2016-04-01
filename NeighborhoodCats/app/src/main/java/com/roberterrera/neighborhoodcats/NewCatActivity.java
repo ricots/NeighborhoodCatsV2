@@ -6,13 +6,12 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -25,7 +24,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ShareActionProvider;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
@@ -36,7 +34,6 @@ import com.google.android.gms.drive.Drive;
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,16 +45,14 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
 
-//    private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int REQUEST_TAKE_PHOTO = 2;
-    private static final int RESULT_LOAD_IMG = 3;
+    private static final int REQUEST_TAKE_PHOTO = 1;
+    private static final int RESULT_LOAD_IMG = 2;
     private String[] perms = {"android.permission.CAMERA"};
     private int permsRequestCode = 200;
 
     private String mCurrentPhotoPath;
     private String imgDecodableString;
     private String filemanagerstring;
-    private ShareActionProvider mShareActionProvider;
 
 
     @Override
@@ -104,18 +99,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
               return true;
             }
         });
-
-        Button saveButton = (Button) findViewById(R.id.button_save);
-        if (saveButton != null) {
-            saveButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Save cat to database.
-                    save();
-                }
-            });
-
-        }
     }
 
     @Override
@@ -132,36 +115,17 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             // When an Image is picked
         } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
                 && null != data) {
+            // Note: If image is an older image being selected via Google Photos, the image will not
+            // be loaded because it has to be downloaded first.
             Uri selectedImageUri = data.getData();
-
-            //OI FILE Manager
-//            filemanagerstring = selectedImageUri.getPath();
-
-            //MEDIA GALLERY
-            mCurrentPhotoPath = getPath(selectedImageUri);
-
+            mCurrentPhotoPath = selectedImageUri.getPath();
             Picasso.with(NewCatActivity.this)
-                    .load("file:"+mCurrentPhotoPath)
-                    .resize(300,300)
+                    .load("file:" + mCurrentPhotoPath)
+                    .resize(300, 300)
                     .centerCrop()
                     .into(mPhoto);
-
-            //DEBUG PURPOSE - you can delete this if you want
-            if(mCurrentPhotoPath!=null)
-                System.out.println(mCurrentPhotoPath);
-            else System.out.println("selectedImagePath is null");
-            if(mCurrentPhotoPath!=null)
-                System.out.println(filemanagerstring);
-            else System.out.println("mCurrentPhotoPath is null");
-
-            //NOW WE HAVE OUR WANTED STRING
-            if(mCurrentPhotoPath!=null)
-                System.out.println("selectedImagePath is the right one for you!");
-            else
-                System.out.println("filemanagerstring is the right one for you!");
         }
     }
-
 
     //UPDATED!
     public String getPath(Uri uri) {

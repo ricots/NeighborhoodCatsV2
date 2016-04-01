@@ -1,12 +1,9 @@
 package com.roberterrera.neighborhoodcats.models;
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
-
 /**
  * Created by Rob on 3/22/16.
  */
-public class Cat extends RealmObject{
+public class Cat {
     private int id;
     private String mName;
     private String mDesc;

@@ -1,6 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'realm-android'
-
 
 android {
     compileSdkVersion 23
@@ -26,7 +24,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.2.1'
     compile 'com.android.support:design:23.2.1'
-    compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:+'
+    compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.google.android.gms:play-services:8.4.0'
 }
