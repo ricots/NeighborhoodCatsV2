@@ -1,5 +1,6 @@
 package com.roberterrera.neighborhoodcats;
 
+import android.Manifest;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,12 +11,14 @@ import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.os.ResultReceiver;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -27,30 +30,41 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationServices;
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
-    private Location mLastLocation;
     private Tracker mTracker;
     private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
+    private TextView mCatLocation;
+    private String mLatLong;
+    double latitude, longitude;
+    String LATITUDE, LATITUDE_REF, LONGITUDE, LONGITUDE_REF;
+
 
     private static final int REQUEST_TAKE_PHOTO = 1;
     private static final int RESULT_LOAD_IMG = 2;
@@ -70,13 +84,31 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
 
         mPhoto = (ImageView) findViewById(R.id.imageView_newimage);
+        mCatLocation = (TextView) findViewById(R.id.textView_newlocation);
         mEditCatDesc = (EditText) findViewById(R.id.editText_newdesc);
         mEditCatName = (EditText) findViewById(R.id.editText_newname);
 
-        // Open the camera when the activity is launched.
-        dispatchTakePictureIntent();
+        // Create an instance of GoogleAPIClient.
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
 
-      //TODO: Ask for storage permission and check that the permission is granted (check if anything Marshmallow-specific needs to be done).
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+
+        // Open the camera when the activity is launched.
+//        dispatchTakePictureIntent();
+
         // Take a photo if you tap on the imageview
         mPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,6 +143,10 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .resize(300,300)
                     .centerCrop()
                     .into(mPhoto);
+//                getLocationFromImage("file:" + mCurrentPhotoPath);
+                mLatLong = locationToString();
+                mCatLocation.setText(mLatLong);
+                Log.d(TAG, "mLatLong: "+mLatLong);
 
             // When an Image is picked
         } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
@@ -118,16 +154,22 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             // Note: If image is an older image being selected via Google Photos, the image will not
             // be loaded because it has to be downloaded first.
             Uri selectedImageUri = data.getData();
-            mCurrentPhotoPath = selectedImageUri.getPath();
+            mCurrentPhotoPath = getPath(selectedImageUri);
+            Log.d(TAG, "mCurrentPhotoPath: "+mCurrentPhotoPath);
             Picasso.with(NewCatActivity.this)
-                    .load("file:" + mCurrentPhotoPath)
+                    .load("file:"+mCurrentPhotoPath)
                     .resize(300, 300)
                     .centerCrop()
                     .into(mPhoto);
+
+//                getLocationFromImage("file:" + mCurrentPhotoPath);
+                mLatLong = locationToString();
+                mCatLocation.setText(mLatLong);
+                Log.d(TAG, "mLatLong: " + mLatLong);
+
         }
     }
 
-    //UPDATED!
     public String getPath(Uri uri) {
         String[] projection = { MediaStore.Images.Media.DATA };
         Cursor cursor = getContentResolver().query(uri,
@@ -163,10 +205,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             Log.d("HAS_PERMISSION", "Catch: "+String.valueOf(e));
         }
         return false;
-    }
-
-    private void getLocation() {
-
     }
 
     private void dispatchTakePictureIntent() {
@@ -229,37 +267,77 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
   }
 
 
-    private String getLocationFromImage (String file){
-        String exif="Exif: " + file;
-        try {
-            ExifInterface exifInterface = new ExifInterface(file);
-// TODO: Look at this resource: http://stackoverflow.com/questions/15403797/how-to-get-the-latititude-and-longitude-of-an-image-in-sdcard-to-my-application
-//            exif += "\nIMAGE_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
-//            exif += "\nIMAGE_WIDTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
-//            exif += "\n DATETIME: " + exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
-//            exif += "\n TAG_MAKE: " + exifInterface.getAttribute(ExifInterface.TAG_MAKE);
-//            exif += "\n TAG_MODEL: " + exifInterface.getAttribute(ExifInterface.TAG_MODEL);
-//            exif += "\n TAG_ORIENTATION: " + exifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
-//            exif += "\n TAG_WHITE_BALANCE: " + exifInterface.getAttribute(ExifInterface.TAG_WHITE_BALANCE);
-//            exif += "\n TAG_FOCAL_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
-//            exif += "\n TAG_FLASH: " + exifInterface.getAttribute(ExifInterface.TAG_FLASH);
-//            exif += "\nGPS related:";
-            exif += "\n TAG_GPS_DATESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
-            exif += "\n TAG_GPS_TIMESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
-            exif += "\n TAG_GPS_LATITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-            exif += "\n TAG_GPS_LATITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
-            exif += "\n TAG_GPS_LONGITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-            exif += "\n TAG_GPS_LONGITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
-            exif += "\n TAG_GPS_PROCESSING_METHOD: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
+    private void getLocationFromImage(String filepath) throws IOException {
+
+        ExifInterface exif = new ExifInterface(filepath);
+         LATITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+         LATITUDE_REF = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+         LONGITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+         LONGITUDE_REF = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+
+        // your Final lat Long Values
+
+        if ((LATITUDE != null)
+                && (LATITUDE_REF != null)
+                && (LONGITUDE != null)
+                && (LONGITUDE_REF != null)) {
+
+            if (LATITUDE_REF.equals("N")) {
+                latitude = convertToDegree(LATITUDE);
+            } else {
+                latitude = 0 - convertToDegree(LATITUDE);
+            }
+
+            if (LONGITUDE_REF.equals("E")) {
+                longitude = convertToDegree(LONGITUDE);
+            } else {
+                longitude = 0 - convertToDegree(LONGITUDE);
+            }
+
+        }
+    }
+
+        private Float convertToDegree(String stringDMS){
+            Float result = null;
+            String[] DMS = stringDMS.split(",", 3);
+
+            String[] stringD = DMS[0].split("/", 2);
+            Double D0 = new Double(stringD[0]);
+            Double D1 = new Double(stringD[1]);
+            Double FloatD = D0/D1;
+
+            String[] stringM = DMS[1].split("/", 2);
+            Double M0 = new Double(stringM[0]);
+            Double M1 = new Double(stringM[1]);
+            Double FloatM = M0/M1;
+
+            String[] stringS = DMS[2].split("/", 2);
+            Double S0 = new Double(stringS[0]);
+            Double S1 = new Double(stringS[1]);
+            Double FloatS = S0/S1;
+
+            result = new Float(FloatD + (FloatM/60) + (FloatS/3600));
+
+            return result;
 
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.d("GETLOCATIONFROMIMAGE", "Error: "+ e.toString());
         }
 
-        return exif;
+        public int getLatitudeE6(){
+            return (int)(latitude*1000000);
+        }
+
+        public int getLongitudeE6(){
+            return (int)(longitude*1000000);
+        }
+
+    public String locationToString() {
+        return (String.valueOf(latitude)
+                + ", "
+                + String.valueOf(longitude));
     }
+
+
 
     private boolean hasCamera(){
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
@@ -267,101 +345,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     private void getAddressString() {
 
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    public final class Constants {
-        public static final int SUCCESS_RESULT = 0;
-        public static final int FAILURE_RESULT = 1;
-        public static final String PACKAGE_NAME =
-                "com.google.android.gms.location.sample.locationaddress";
-        public static final String RECEIVER = PACKAGE_NAME + ".RECEIVER";
-        public static final String RESULT_DATA_KEY = PACKAGE_NAME +
-                ".RESULT_DATA_KEY";
-        public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME +
-                ".LOCATION_DATA_EXTRA";
-    }
-
-
-    public class FetchAddressIntentService extends IntentService {
-        protected ResultReceiver mReceiver;
-
-        /**
-         * Creates an IntentService.  Invoked by your subclass's constructor.
-         *
-         * @param name Used to name the worker thread, important only for debugging.
-         */
-        public FetchAddressIntentService(String name) {
-            super(name);
-        }
-
-        private void deliverResultToReceiver(int resultCode, String message) {
-            Bundle bundle = new Bundle();
-            bundle.putString(Constants.RESULT_DATA_KEY, message);
-            mReceiver.send(resultCode, bundle);
-        }
-
-        @Override
-        protected void onHandleIntent(Intent intent) {
-            String errorMessage = "";
-
-            // Get the location passed to this service through an extra.
-            Location location = intent.getParcelableExtra(
-                    Constants.LOCATION_DATA_EXTRA);
-
-            List<Address> addresses = null;
-
-            try {
-                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-                addresses = geocoder.getFromLocation(
-                        location.getLatitude(),
-                        location.getLongitude(),
-                        // In this sample, get just a single address.
-                        1);
-            } catch (IOException ioException) {
-                // Catch network or other I/O problems.
-                errorMessage = "Location services are not available";
-                Log.e(TAG, errorMessage, ioException);
-            } catch (IllegalArgumentException illegalArgumentException) {
-                // Catch invalid latitude or longitude values.
-                errorMessage = "Invalid lattitude or longitude.";
-                Log.e(TAG, errorMessage + ". " +
-                        "Latitude = " + location.getLatitude() +
-                        ", Longitude = " +
-                        location.getLongitude(), illegalArgumentException);
-            }
-
-            // Handle case where no address was found.
-            if (addresses == null || addresses.size()  == 0) {
-                if (errorMessage.isEmpty()) {
-                    errorMessage = "No address found :(";
-                    Log.e(TAG, errorMessage);
-                }
-                deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage);
-            } else {
-                Address address = addresses.get(0);
-                ArrayList<String> addressFragments = new ArrayList<String>();
-
-                // Fetch the address lines using getAddressLine,
-                // join them, and send them to the thread.
-                for(int i = 0; i < address.getMaxAddressLineIndex(); i++) {
-                    addressFragments.add(address.getAddressLine(i));
-                }
-                Log.i(TAG, "Address found");
-                deliverResultToReceiver(Constants.SUCCESS_RESULT,
-                        TextUtils.join(System.getProperty("line.separator"),
-                                addressFragments));
-            }
-        }
     }
 
     @Override
@@ -410,7 +393,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         // start the intent
         try {
             startActivity(Intent.createChooser(share_intent,
-                    "Sharing "+mEditCatName.getText().toString()));
+                    "Sharing " + mEditCatName.getText().toString()));
         } catch (android.content.ActivityNotFoundException ex) {
             (new AlertDialog.Builder(NewCatActivity.this)
                     .setMessage("Share failed")
@@ -428,6 +411,35 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (mLastLocation != null) {
+//            mCatLocation.setText(String.valueOf(mLastLocation.getLatitude())+", "
+//                    +(String.valueOf(mLastLocation.getLongitude())));
+//            mLatLong = mCatLocation.getText().toString();
+            latitude = mLastLocation.getLatitude();
+            longitude = mLastLocation.getLongitude();
+//        }
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
     }
@@ -440,8 +452,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             helper.insert(
                     mEditCatName.getText().toString(),
                     mEditCatDesc.getText().toString(),
-                    //TODO: Get location from image.
-                    "*Your location here*",
+                    mLatLong,
                     mCurrentPhotoPath);
             Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
         } catch (Exception e){
@@ -451,6 +462,17 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
         Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
         startActivity(backToMainIntent);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+
+        Log.i("Location info: Lat", String.valueOf(latitude));
+        Log.i("Location info: Lng", String.valueOf(longitude));
+
     }
 
 }
