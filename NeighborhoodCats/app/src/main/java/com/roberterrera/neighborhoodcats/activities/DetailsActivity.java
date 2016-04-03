@@ -1,8 +1,7 @@
-package com.roberterrera.neighborhoodcats;
+package com.roberterrera.neighborhoodcats.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -14,12 +13,12 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.R;
+import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;

@@ -18,7 +18,6 @@ public class Cat {
         this.mLatitude = latitude;
         this.mLongitude = longitude;
         this.mPhoto = photo;
-
     }
 
     public String getLatitude() {

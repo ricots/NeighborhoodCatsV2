@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats;
+package com.roberterrera.neighborhoodcats.activities;
 
 import android.app.SearchManager;
 import android.app.SearchableInfo;
@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -15,30 +14,26 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Display;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.CursorAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.R;
+import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
-import com.roberterrera.neighborhoodcats.models.RecyclerViewAdapter;
-import com.squareup.picasso.Picasso;
+import com.roberterrera.neighborhoodcats.cardview.RecyclerViewAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,16 +98,50 @@ public class MainActivity extends AppCompatActivity
         // use a linear layout manager
         mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(false);
 
-        // specify an adapter (see also next example)
-        mAdapter = new RecyclerViewAdapter(catList);
-        mRecyclerView.setAdapter(mAdapter);
+        // specify the recycler view adapter
+        mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
 
-        mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
+        // Load the user's list.
+        loadCatsList();
+
+        // Get item details and display them in DetailsActivity.
+//        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//          @Override
+//          public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//              Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+//              mCursor.moveToPosition(position);
+//              mHelper.getReadableDatabase();
+//              intent.putExtra("id", mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID)));
+//              mTracker.send(new HitBuilders.EventBuilder()
+//                      .setCategory("Action")
+//                      .setAction("View cat details from list")
+//                      .build());
+//            startActivity(intent);
+//          }
+//        });
+//
+//        // Delete a list item.
+//        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+//            @Override
+//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+//                mTracker.send(new HitBuilders.EventBuilder()
+//                        .setCategory("Action")
+//                        .setAction("Delete Cat")
+//                        .build());
+//                mHelper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID)));
+//                mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
+//                mCursorAdapter.swapCursor(mCursor);
+//              return true;
+//            }
+//        });
+
+//        mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
 //        mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
 //            @Override
 //            public View newView(Context context, Cursor cursor, ViewGroup parent) {
@@ -198,6 +227,8 @@ public class MainActivity extends AppCompatActivity
             String query = intent.getStringExtra(SearchManager.QUERY);
             mCursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
 //            mCursorAdapter.swapCursor(mCursor);
+            mAdapter.notifyDataSetChanged();
+            Toast.makeText(MainActivity.this, "Cat List refreshed", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -210,6 +241,31 @@ public class MainActivity extends AppCompatActivity
         } else {
             super.onBackPressed();
         }
+    }
+
+    private void loadCatsList(){
+        mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
+        mHelper.getReadableDatabase();
+        mCursor = CatsSQLiteOpenHelper.getInstance(this).getCatsList();
+
+        // Loop through arraylist and add database items to it.
+        while (mCursor.moveToNext()){
+            int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+            String name = mHelper.getCatNameByID(id);
+            String desc = mHelper.getCatDescByID(id);
+            String latitude = String.valueOf(mHelper.getCatLatByID(id));
+            String longitude = String.valueOf(mHelper.getCatLatByID(id));
+            String imagePath = mHelper.getCatPhotoByID(id);
+
+            Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
+            catList.add(cat);
+        }
+
+        // Check that arraylist isn't empty.
+        if (!(catList.size()<1)){
+            mRecyclerView.setAdapter(mAdapter);
+        }
+
     }
 
     @Override
@@ -283,6 +339,8 @@ public class MainActivity extends AppCompatActivity
 //        if (mCursor != null) {
 //            mCursorAdapter.swapCursor(mCursor);
 //        }
+        mAdapter.notifyDataSetChanged();
+        Log.d("onResume", "Cat list refreshed");
     }
 
     @Override

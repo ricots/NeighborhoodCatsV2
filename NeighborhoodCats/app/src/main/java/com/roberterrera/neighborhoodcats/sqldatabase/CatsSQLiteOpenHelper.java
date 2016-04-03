@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.localdata;
+package com.roberterrera.neighborhoodcats.sqldatabase;
 
 import android.content.ContentValues;
 import android.content.Context;
