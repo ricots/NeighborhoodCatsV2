@@ -18,16 +18,16 @@ import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by Rob on 4/3/16.
  */
-public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
+public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implements ItemTouchHelperAdapter {
     private List<Cat> catList;
     private Context mContext;
     private ItemClickListener itemClickListener;
-//    private static Cursor mCursor;
 
     // Constructor
     public RecyclerViewAdapter(List<Cat> catList, Context mContext) {
@@ -50,70 +50,39 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
     // Bind the view to the data.
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-         //  CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(holder).getCatsList();
-//        holder.vName.setText(mCursor.getString(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_NAME)));
-//        holder.vDesc.setText(mCursor.getString(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_DESC)));
-//        Log.d("RecyclerAdapter", "Name: " + holder.vName.getText().toString());
-//        Log.d("RecyclerAdapter", "Desc: "+holder.vDesc.getText().toString());
-//
-//
-////        Display display = mContext.
-////        Point size = new Point();
-////        display.getSize(size);
-////        int width = size.x;
-////        int height = size.y;
 
         holder.vName.setText(catList.get(position).getName());
         holder.vDesc.setText(catList.get(position).getDesc());
-//        holder.vThumbnail.setImageResource(R.drawable.bond_cat);
         Picasso.with(mContext)
                 .load("file:"+catList.get(position).getPhoto())
                 .resize(120, 120)
                 .placeholder(R.drawable.ic_pets_black_24dp)
                 .into(holder.vThumbnail);
-
-        holder.setItemClickListener(new ItemClickListener() {
-            @Override
-            public void onItemClick(View v, int pos) {
-//                Intent intent = new Intent(v.getContext(), DetailsActivity.class);
-//                intent.putExtra("id", mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID)));
-//                v.getContext().startActivity(intent);
-                Snackbar.make(v, catList.get(pos).getName(),Snackbar.LENGTH_SHORT).show();
-            }
-        });
-//
-//        //Handle click event on both title and image click
-//        holder.vName.setOnClickListener(clickListener);
-//        holder.vThumbnail.setOnClickListener(clickListener);
-//
-//        holder.vName.setTag(holder);
-//        holder.vThumbnail.setTag(holder);
-
     }
-
-
-//    public static class CatViewHolder extends RecyclerView.ViewHolder {
-//        protected TextView vName, vDesc;
-//        protected ImageView vThumbnail;
-//        public CatViewHolder(View v) {
-//            super(v);
-//
-//            vName =  (TextView) v.findViewById(R.id.textview_catname_cardview);
-//            vDesc = (TextView) v.findViewById(R.id.textview_catdesc_cardview);
-//            vThumbnail = (ImageView) v.findViewById(R.id.imageview_cat_cardview);
-//            itemView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    Intent intent = new Intent(v.getContext(), DetailsActivity.class);
-//                    intent.putExtra("id", mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID)));
-//                    v.getContext().startActivity(intent);
-//                }
-//            });
-//        }
-//    }
 
     @Override
     public int getItemCount() {
         return  catList.size();
+    }
+
+    @Override
+    public void onItemDismiss(int position) {
+        catList.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition) {
+        if (fromPosition < toPosition) {
+            for (int i = fromPosition; i < toPosition; i++) {
+                Collections.swap(catList, i, i + 1);
+            }
+        } else {
+            for (int i = fromPosition; i > toPosition; i--) {
+                Collections.swap(catList, i, i - 1);
+            }
+        }
+        notifyItemMoved(fromPosition, toPosition);
+        return true;
     }
 }

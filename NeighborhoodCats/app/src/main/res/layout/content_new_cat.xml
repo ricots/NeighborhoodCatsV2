@@ -32,10 +32,10 @@
 
     <ImageView
         android:id="@+id/imageView_newimage"
-        android:layout_width="300dp"
+        android:layout_width="match_parent"
         android:layout_height="300dp"
         android:maxWidth="@dimen/activity_horizontal_margin"
-        android:scaleType="centerCrop"
+        android:scaleType="fitCenter"
         android:layout_centerInParent="true"
         tools:src="@drawable/bond_cat"
         android:layout_below="@id/textView_newlocation"/>
@@ -58,6 +58,7 @@
         android:hint="@string/edittext_sample_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:singleLine="true"
         android:layout_below="@id/textView_newname"/>
 
     <TextView
@@ -66,7 +67,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Description"
+        android:text="Cat Notes"
         android:layout_below="@+id/editText_newname"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
