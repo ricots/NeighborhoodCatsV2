@@ -11,8 +11,9 @@
         android:layout_marginLeft="50dp"
         android:layout_marginTop="45dp"
         android:layout_marginRight="45dp"
-        android:textSize="18sp"
-        android:textColor="#000000"
+        android:textColor="#ffffff"
+        android:textStyle="bold"
+        android:textSize="25sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="@string/sample_catname"/>
@@ -20,14 +21,9 @@
     <ImageView
         android:id="@+id/imageview_catthumbnail"
         tools:src="@drawable/bond_cat"
-        android:layout_marginRight="71dp"
-        android:layout_marginEnd="71dp"
-        android:layout_marginTop="20dp"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:adjustViewBounds="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"/>
+        android:scaleType="centerCrop"
+        android:layout_alignBottom="@+id/textview_catname_list"/>
 
 </RelativeLayout>

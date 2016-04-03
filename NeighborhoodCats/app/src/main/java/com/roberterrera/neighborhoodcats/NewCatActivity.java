@@ -136,6 +136,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         //TODO: Add a textview where the image view is that says "Tap to take a photo, long press to load from gallery", and set visibility to "GONE" at the start of the onActivityResult if statements.
+        Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Picasso.with(NewCatActivity.this)
@@ -144,7 +146,15 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .centerCrop()
                     .into(mPhoto);
 //                getLocationFromImage("file:" + mCurrentPhotoPath);
-                mLatLong = locationToString();
+//            try {
+//                List<Address> listAddresses = geocoder.getFromLocation(latitude, longitude, 1);
+//                if (listAddresses !=null && listAddresses.size() > 0){
+//                    mCatLocation.setText(listAddresses.get(0).toString());
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+            mLatLong = locationToString();
                 mCatLocation.setText(mLatLong);
                 Log.d(TAG, "mLatLong: "+mLatLong);
 
@@ -161,6 +171,15 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .resize(300, 300)
                     .centerCrop()
                     .into(mPhoto);
+//
+//            try {
+//                List<Address> listAddresses = geocoder.getFromLocation(latitude, longitude, 1);
+//                if (listAddresses !=null && listAddresses.size() > 0){
+//                    mCatLocation.setText(listAddresses.get(0).toString());
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
 //                getLocationFromImage("file:" + mCurrentPhotoPath);
                 mLatLong = locationToString();
@@ -229,7 +248,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             if (photoFile != null) {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                         Uri.fromFile(photoFile));
-                //TODO: Get GPS location from photo and save to COL_IMG via EXIF data.
+                //TODO: Get GPS location from photo and save to CAT_IMG via EXIF data.
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
@@ -343,10 +362,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
     }
 
-    private void getAddressString() {
-
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -452,8 +467,16 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             helper.insert(
                     mEditCatName.getText().toString(),
                     mEditCatDesc.getText().toString(),
-                    mLatLong,
+                    latitude,
+                    longitude,
                     mCurrentPhotoPath);
+            Log.d("save", mEditCatName.getText().toString()+", "
+                    + mEditCatDesc.getText().toString()+", "
+                    + String.valueOf(latitude)
+                    + ", "
+                    +String.valueOf(longitude)
+                    +", "
+                    + mCurrentPhotoPath);
             Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
         } catch (Exception e){
             Toast.makeText(NewCatActivity.this,

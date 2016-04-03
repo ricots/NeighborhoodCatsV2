@@ -2,9 +2,10 @@ package com.roberterrera.neighborhoodcats;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -14,7 +15,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
@@ -29,9 +29,13 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
+import com.roberterrera.neighborhoodcats.models.Cat;
+
+import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
@@ -43,7 +47,10 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
     private GoogleApiClient mGoogleApiClient;
     LocationManager locationManager;
     String provider;
-
+    ArrayList<Integer> mCatArrayList;
+    Cursor cursor;
+    CatsSQLiteOpenHelper helper;
+    int id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +64,10 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             mMap.setMyLocationEnabled(true);
             return;
-        } else {
-            Toast.makeText(MapsActivity.this,
-                    "Please give location permission in order to map your cats.",
-                    Toast.LENGTH_SHORT).show();
+//        } else {
+//            Toast.makeText(MapsActivity.this,
+//                    "Please give location permission in order to map your cats.",
+//                    Toast.LENGTH_SHORT).show();
         }
 
         // Create an instance of GoogleAPIClient.
@@ -91,6 +98,12 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         provider = locationManager.getBestProvider(new Criteria(), false);
         Location location = locationManager.getLastKnownLocation(provider);
 
+        cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
+        helper = new CatsSQLiteOpenHelper(MapsActivity.this);
+        helper.getReadableDatabase();
+        id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+        mCatArrayList = new ArrayList<>();
+
         if (location != null) {
             Log.i("Location Info", "Location achieved!");
         } else {
@@ -103,34 +116,48 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-            LatLng lastLocation = new LatLng(mLatitude, mLongitude);
-            mMap.addMarker(new MarkerOptions().position(lastLocation).title("You"));
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(lastLocation)
-                    .zoom(mMap.getMaxZoomLevel() * 0.6f)
-                    .build();
-            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        LatLng lastLocation = new LatLng(mLatitude, mLongitude);
+        mMap.addMarker(new MarkerOptions().position(lastLocation).title("You"));
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(lastLocation)
+                .zoom(mMap.getMaxZoomLevel() * 0.6f)
+                .build();
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
-            // You can customize the marker image using images bundled with
-            // your app, or dynamically generated bitmaps.
+        addCatsToList();
+        getCatLocations();
 
     }
 
     private void getCatLocations(){
+        // You can customize the marker image using images bundled with
+        // your app, or dynamically generated bitmaps.
 
-        CatsSQLiteOpenHelper helper = new CatsSQLiteOpenHelper(MapsActivity.this);
-        helper.getReadableDatabase();
-        Cursor cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
+        double catLatitude = helper.getCatLatByID(id);
+        double catLongitude = helper.getCatLongByID(id);
 
-        int id = cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID);
-        double catLatitude = cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_LAT));
-        double catLongitude = cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_LONG));
-        LatLng catLatLing = new LatLng(catLatitude, catLongitude);
+        for (int i = 0; i <= mCatArrayList.size(); i++) {
+            LatLng catLatLing = new LatLng(catLatitude, catLongitude);
+            Marker catMap = mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pets_black_24dp))
+                    .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+                    .position(catLatLing)
+                    .title(helper.getCatNameByID(i)));
+            Log.d("getCatLocations", String.valueOf(catLatLing));
+        }
+    }
 
-        mMap.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromPath(helper.getCatPhotoByID(id)))
-                .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-                .position(catLatLing));
+    private ArrayList<Integer> addCatsToList() {
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                mCatArrayList.add(id);
+                Log.d("addCatsToList", String.valueOf(id));
+            } while (cursor.moveToNext());
+        }
+        Log.d("addCatsToList", mCatArrayList.toString());
+
+        return mCatArrayList;
     }
 
     @Override

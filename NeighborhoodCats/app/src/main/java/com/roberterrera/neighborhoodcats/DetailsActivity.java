@@ -2,6 +2,7 @@ package com.roberterrera.neighborhoodcats;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,6 +31,8 @@ public class DetailsActivity extends AppCompatActivity {
     private EditText mEditCatName, mEditCatDesc;
     private CatsSQLiteOpenHelper helper;
     private int id;
+    private String name, desc, photoPath;
+    private double latitude, longitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +43,18 @@ public class DetailsActivity extends AppCompatActivity {
 
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-      // TODO: Set up layout with text that is editable instead of EditTexts.
-      mCatName = (TextView) findViewById(R.id.textView_details_newname);
-      mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
-      mFoundAt = (TextView) findViewById(R.id.textView_details_found);
-      mCatLocation = (TextView) findViewById(R.id.textView_details_newlocation);
-      mPhoto = (ImageView) findViewById(R.id.imageView_details_newimage);
-      mEditCatDesc = (EditText) findViewById(R.id.editText_details_newdesc);
-      mEditCatName = (EditText) findViewById(R.id.editText_details_newname);
+        // TODO: Set up layout with text that is editable instead of EditTexts.
+        mCatName = (TextView) findViewById(R.id.textView_details_newname);
+        mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
+        mFoundAt = (TextView) findViewById(R.id.textView_details_found);
+        mCatLocation = (TextView) findViewById(R.id.textView_details_newlocation);
+        mPhoto = (ImageView) findViewById(R.id.imageView_details_newimage);
+        mEditCatDesc = (EditText) findViewById(R.id.editText_details_newdesc);
+        mEditCatName = (EditText) findViewById(R.id.editText_details_newname);
 
-      LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
-      loadCatAsyncTask.execute();
+        LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
+        loadCatAsyncTask.execute();
+
 
     }
 
@@ -57,9 +62,15 @@ public class DetailsActivity extends AppCompatActivity {
       @Override
       protected Void doInBackground(Void... params) {
         // Get intent from MainActivity list via the cat's id.
-        id = getIntent().getIntExtra("id", -1);
-        helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
-
+          id = getIntent().getIntExtra("id", -1);
+          helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
+          name = helper.getCatNameByID(id);
+          desc = helper.getCatDescByID(id);
+          photoPath = helper.getCatPhotoByID(id);
+          latitude = helper.getCatLatByID(id);
+          longitude = helper.getCatLongByID(id);
+          Log.d("DetailsActivity", "latitude: " + latitude);
+          Log.d("DetailsActivity", "latitude: " +longitude);
         return null;
       }
 
@@ -68,15 +79,15 @@ public class DetailsActivity extends AppCompatActivity {
         super.onPostExecute(aVoid);
 
         // Set activity title
-        if (helper.getCatNameByID(id) != null) {
-          setTitle(helper.getCatNameByID(id));
+        if (name != null) {
+          setTitle(name);
         } else {
           setTitle("Cat Details");
         }
 
-        mEditCatName.setText(helper.getCatNameByID(id));
-        mEditCatDesc.setText(helper.getCatDescByID(id));
-        mCatLocation.setText(helper.getCatLocByID(id));
+          mEditCatName.setText(name);
+          mEditCatDesc.setText(desc);
+          mCatLocation.setText(String.valueOf(latitude) + ", " + String.valueOf(longitude));
 
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -85,14 +96,12 @@ public class DetailsActivity extends AppCompatActivity {
         int height = size.y;
 
         Picasso.with(DetailsActivity.this)
-            .load("file:"+helper.getCatPhotoByID(id))
+            .load("file:"+photoPath)
             .resize(width, height)
             .centerCrop()
             .into(mPhoto);
       }
     }
-
-
 
 
         //TODO: Finish setting up DetailsActivity.
@@ -120,7 +129,7 @@ public class DetailsActivity extends AppCompatActivity {
 
     private void shareChooser() {
         // specify our test image location
-        Uri url = Uri.parse(helper.getCatPhotoByID(id));
+        Uri url = Uri.parse(photoPath);
 
         // set up an intent to share the image
         Intent share_intent = new Intent();
@@ -131,14 +140,12 @@ public class DetailsActivity extends AppCompatActivity {
         share_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         share_intent.putExtra(Intent.EXTRA_SUBJECT,
                 "Share this cat!");
-        share_intent.putExtra(Intent.EXTRA_TEXT,
-                helper.getCatNameByID(id)+": "
-                        +helper.getCatDescByID(id));
+        share_intent.putExtra(Intent.EXTRA_TEXT, name+": "+desc);
 
         // start the intent
         try {
             startActivity(Intent.createChooser(share_intent,
-                    "Sharing "+helper.getCatNameByID(id)));
+                    "Sharing "+name));
         } catch (android.content.ActivityNotFoundException ex) {
             (new AlertDialog.Builder(DetailsActivity.this)
                     .setMessage("Share failed")
