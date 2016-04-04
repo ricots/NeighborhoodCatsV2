@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +24,7 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -82,7 +84,9 @@ public class MainActivity extends AppCompatActivity
 
         // specify the recycler view adapter
         mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
+        mAdapter.setHasStableIds(true);
         mRecyclerView.setAdapter(mAdapter);
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
@@ -114,21 +118,6 @@ public class MainActivity extends AppCompatActivity
 
         // Load the user's list.
         loadCatsList();
-
-//        mGeofenceList.add(new Geofence.Builder()
-//                // Set the request ID of the geofence. This is a string to identify this
-//                // geofence.
-//                .setRequestId(entry.getKey())
-//
-//                .setCircularRegion(
-//                        entry.getValue().latitude,
-//                        entry.getValue().longitude,
-//                        Constants.GEOFENCE_RADIUS_IN_METERS
-//                )
-//                .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-//                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-//                        Geofence.GEOFENCE_TRANSITION_EXIT)
-//                .build());
 
         // Enable swipe-to-delete on cards.
         SwipeableRecyclerViewTouchListener swipeTouchListener =
@@ -191,6 +180,53 @@ public class MainActivity extends AppCompatActivity
 
         //TODO: Look into why search doesn't return the search results.
         if (Intent.ACTION_SEARCH.equals( intent.getAction() )){
+//             /* this is the Seerach QuerttextListner.
+//       this method filter the list data with a matching string,
+//       hence provides user an easy way to find the information he needs.
+//     */
+//
+//            SearchView.OnQueryTextListener listener = new SearchView.OnQueryTextListener() {
+//                @Override
+//                public boolean onQueryTextChange(String query) {
+//                    query = query.toLowerCase();
+//
+//                    final List<String> filteredList = new ArrayList<>();
+//
+//                    mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
+//                    mHelper.getWritableDatabase();
+//                    mCursor = CatsSQLiteOpenHelper.getInstance(this).getCatsList();
+//
+//                    // Loop through arraylist and add database items to it.
+//                    while (mCursor.moveToNext()){
+//                        int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+//
+//                        if (text.contains(query)) {
+//
+//                            filteredList.add(catList.get(i).getId());
+//                        }
+//                        String name = mHelper.getCatNameByID(id);
+//                        String desc = mHelper.getCatDescByID(id);
+//                        String latitude = String.valueOf(mHelper.getCatLatByID(id));
+//                        String longitude = String.valueOf(mHelper.getCatLongByID(id));
+//                        String imagePath = mHelper.getCatPhotoByID(id);
+//
+//                        Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
+//                        catList.add(cat);
+//                    }
+//
+//                    mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+//                    mAdapter = new Adapter(filteredList, MainActivity.this);
+//                    mRecyclerView.setAdapter(mAdapter);
+//                    mAdapter.notifyDataSetChanged();  // data set changed
+//                    return true;
+//
+//                }
+//                public boolean onQueryTextSubmit(String query) {
+//                    return false;
+//                }
+//            };
+//            searchView.setOnQueryTextListener(listener); // call the QuerytextListner.
+
             String query = intent.getStringExtra(SearchManager.QUERY);
             mCursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
             mAdapter.notifyDataSetChanged();
@@ -228,7 +264,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
+     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -237,10 +273,10 @@ public class MainActivity extends AppCompatActivity
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView)menu.findItem(R.id.action_search).getActionView();
 
-        SearchableInfo info = searchManager.getSearchableInfo( getComponentName() );
+         SearchableInfo info = searchManager.getSearchableInfo( getComponentName() );
         searchView.setSearchableInfo(info);
 
-        return true;
+         return true;
     }
 
     @Override

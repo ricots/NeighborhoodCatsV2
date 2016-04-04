@@ -34,6 +34,7 @@ public class DetailsActivity extends AppCompatActivity {
     private int id;
     private String name, desc, photoPath;
     private double latitude, longitude;
+    private String mLatLong;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +66,8 @@ public class DetailsActivity extends AppCompatActivity {
         // Get intent from MainActivity list via the cat's id.
           id = getIntent().getIntExtra("id", -1);
           helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
+          helper.getReadableDatabase();
+          helper.close();
           name = helper.getCatNameByID(id);
           desc = helper.getCatDescByID(id);
           photoPath = helper.getCatPhotoByID(id);
@@ -72,6 +75,7 @@ public class DetailsActivity extends AppCompatActivity {
           longitude = helper.getCatLongByID(id);
           Log.d("DetailsActivity", "latitude: "+latitude);
           Log.d("DetailsActivity", "longitude: "+longitude);
+          mLatLong = locationToString();
         return null;
       }
 
@@ -88,7 +92,7 @@ public class DetailsActivity extends AppCompatActivity {
 
 //              mEditCatName.setText(name);
               mFullCatDesc.setText(desc);
-              mCatLocation.setText(latitude + ", " + longitude);
+              mCatLocation.setText(mLatLong);
 
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
@@ -97,11 +101,17 @@ public class DetailsActivity extends AppCompatActivity {
             int height = size.y;
               Picasso.with(DetailsActivity.this)
                       .load("file:" + photoPath)
-                      .resize(width, height)
+//                      .resize(width, height)
                       .placeholder(R.drawable.ic_pets_black_24dp)
-                      .centerCrop()
+//                      .centerCrop()
                       .into(mPhoto);
       }
+    }
+
+    public String locationToString() {
+        return (String.valueOf(latitude)
+                + ", "
+                + String.valueOf(longitude));
     }
 
     @Override

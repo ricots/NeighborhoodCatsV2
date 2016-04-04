@@ -84,7 +84,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
     }
 
 
-
     @Override
     public void onItemDismiss(int position) {
         catList.remove(position);
@@ -104,10 +103,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
         }
         notifyItemMoved(fromPosition, toPosition);
         return true;
-    }
-
-    public RecyclerViewAdapter(int position) {
-
     }
 
 }
