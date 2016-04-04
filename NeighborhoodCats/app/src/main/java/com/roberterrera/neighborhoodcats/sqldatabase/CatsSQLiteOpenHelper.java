@@ -99,6 +99,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         while (!cursor.isAfterLast()){
             cursor.moveToNext();
         }
+        db.close();
         return cursor;
     }
 

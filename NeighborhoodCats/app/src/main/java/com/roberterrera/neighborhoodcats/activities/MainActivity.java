@@ -24,11 +24,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.roberterrera.neighborhoodcats.R;
+import com.roberterrera.neighborhoodcats.cardview.ItemClickListener;
 import com.roberterrera.neighborhoodcats.cardview.ItemTouchHelperAdapter;
 import com.roberterrera.neighborhoodcats.cardview.RecyclerViewAdapter;
 import com.roberterrera.neighborhoodcats.cardview.SimpleItemTouchHelperCallback;
@@ -75,7 +77,7 @@ public class MainActivity extends AppCompatActivity
         // specify the recycler view adapter
         mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
         mRecyclerView.setAdapter(mAdapter);
-
+/*
         ItemTouchHelperAdapter itemTouchHelperAdapter = new ItemTouchHelperAdapter() {
             @Override
             public boolean onItemMove(int fromPosition, int toPosition) {
@@ -92,13 +94,13 @@ public class MainActivity extends AppCompatActivity
                         Log.d("notifyItemRemoved", String.valueOf(position));
                     } while (mCursor.moveToNext());
                 }
-                try {
-                    mHelper.deleteCatByID((mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID))));
-                } catch (IndexOutOfBoundsException e){
-                    Toast.makeText(MainActivity.this, "Error deleting item", Toast.LENGTH_SHORT).show();
-                    Log.d("Main_OnItemDismiss", "Error deleting: "+e);
-                    e.printStackTrace();
-                }
+//                try {
+//                    mHelper.deleteCatByID(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+//                } catch (NullPointerException e){
+//                    Toast.makeText(MainActivity.this, "Error deleting item", Toast.LENGTH_SHORT).show();
+//                    Log.d("Main_OnItemDismiss", "Error deleting: "+e);
+//                    e.printStackTrace();
+//                }
                 mAdapter.notifyDataSetChanged();
             }
         };
@@ -107,7 +109,7 @@ public class MainActivity extends AppCompatActivity
                 new SimpleItemTouchHelperCallback(itemTouchHelperAdapter);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(mRecyclerView);
-
+*/
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
         fab.setOnClickListener(new View.OnClickListener() {
@@ -140,58 +142,56 @@ public class MainActivity extends AppCompatActivity
         loadCatsList();
 
 
-//        SwipeableRecyclerViewTouchListener swipeTouchListener =
-//                new SwipeableRecyclerViewTouchListener(mRecyclerView,
-//                        new SwipeableRecyclerViewTouchListener.SwipeListener() {
-//
-//                            public boolean canSwipe(int position) {
-//                                return true;
-//                            }
-//
-//                            @Override
-//                            public boolean canSwipeLeft(int position) {
-//                                return true;
-//                            }
-//
-//                            @Override
-//                            public boolean canSwipeRight(int position) {
-//                                return true;
-//                            }
-//
-//                            @Override
-//                            public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
-//                                for (int position : reverseSortedPositions) {
-//                                    if (mCursor != null && mCursor.moveToFirst()) {
-//                                        do {
-//                                            catList.remove(position);
-//                                            Log.d("onDismissedBySwipe", String.valueOf(position));
-//                                            mAdapter.notifyItemRemoved(position);
-//                                            Log.d("notifyItemRemoved", String.valueOf(position));
-//                                        } while (mCursor.moveToNext());
-//                                    }
-//                                }
-//                                mHelper.deleteCatByID((mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID))));
-//                                mAdapter.notifyDataSetChanged();
-//                            }
-//
-//                            @Override
-//                            public void onDismissedBySwipeRight(RecyclerView recyclerView, int[] reverseSortedPositions) {
-//                                for (int position : reverseSortedPositions) {
-//                                    if (mCursor != null && mCursor.moveToFirst()) {
-//                                        do {
-//                                            catList.remove(position);
-//                                            Log.d("onDismissedBySwipe", String.valueOf(position));
-//                                            mAdapter.notifyItemRemoved(position);
-//                                            Log.d("notifyItemRemoved", String.valueOf(position));
-//                                        } while (mCursor.moveToNext());
-//                                    }
-//                                }
-//                                mHelper.deleteCatByID((mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID))));
-//                                mAdapter.notifyDataSetChanged();
-//                            }
-//                        });
-//
-//        mRecyclerView.addOnItemTouchListener(swipeTouchListener);
+        SwipeableRecyclerViewTouchListener swipeTouchListener =
+                new SwipeableRecyclerViewTouchListener(mRecyclerView,
+                        new SwipeableRecyclerViewTouchListener.SwipeListener() {
+
+                            public boolean canSwipe(int position) {
+                                return true;
+                            }
+
+                            @Override
+                            public boolean canSwipeLeft(int position) {
+                                return true;
+                            }
+
+                            @Override
+                            public boolean canSwipeRight(int position) {
+                                return true;
+                            }
+
+                            @Override
+                            public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
+                                for (int position : reverseSortedPositions) {
+
+                                            catList.remove(position);
+                                            Log.d("onDismissedBySwipe", String.valueOf(position));
+
+                                            mAdapter.notifyItemRemoved(position);
+//                                            mHelper.deleteCatByID(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+                                            Log.d("notifyItemRemoved", String.valueOf(position));
+                                }
+                                mAdapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onDismissedBySwipeRight(RecyclerView recyclerView, int[] reverseSortedPositions) {
+                                for (int position : reverseSortedPositions) {
+
+                                    catList.remove(position);
+                                    Log.d("onDismissedBySwipe", String.valueOf(position));
+
+                                    mAdapter.notifyItemRemoved(position);
+//                                            mHelper.deleteCatByID(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+                                    Log.d("notifyItemRemoved", String.valueOf(position));
+                                }
+                                mAdapter.notifyDataSetChanged();
+                            }
+
+
+                        });
+
+        mRecyclerView.addOnItemTouchListener(swipeTouchListener);
 
 //        // Get item details and display them in DetailsActivity.
 //        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -238,9 +238,8 @@ public class MainActivity extends AppCompatActivity
         if (Intent.ACTION_SEARCH.equals( intent.getAction() )){
             String query = intent.getStringExtra(SearchManager.QUERY);
             mCursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
-//            mCursorAdapter.swapCursor(mCursor);
             mAdapter.notifyDataSetChanged();
-            Toast.makeText(MainActivity.this, "Cat List refreshed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Cat List refreshed by search.", Toast.LENGTH_SHORT).show();
         }
     }
 
