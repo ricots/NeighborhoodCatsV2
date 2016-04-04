@@ -1,17 +1,15 @@
-package com.roberterrera.neighborhoodcats;
+package com.roberterrera.neighborhoodcats.activities;
 
 import android.Manifest;
-import android.app.IntentService;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.location.Address;
+import android.graphics.Point;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationManager;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,12 +17,11 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.os.ResultReceiver;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,23 +30,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
-import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.R;
+import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
@@ -166,10 +160,17 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             Uri selectedImageUri = data.getData();
             mCurrentPhotoPath = getPath(selectedImageUri);
             Log.d(TAG, "mCurrentPhotoPath: "+mCurrentPhotoPath);
+
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+            int height = size.y;
             Picasso.with(NewCatActivity.this)
-                    .load("file:"+mCurrentPhotoPath)
-                    .resize(300, 300)
-                    .centerCrop()
+                    .load("file:" + mCurrentPhotoPath)
+                    .resize(width, height)
+                    .placeholder(R.drawable.ic_pets_black_24dp)
+//                    .centerCrop()
                     .into(mPhoto);
 //
 //            try {
@@ -230,7 +231,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         setResult(RESULT_OK, takePictureIntent);
 
-        //TODO: Fix database leak.
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
 

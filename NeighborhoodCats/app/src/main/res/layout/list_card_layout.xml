@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    card_view:cardCornerRadius="7dp"
+    card_view:cardElevation="8dp"
+    card_view:cardBackgroundColor="@color/bkg_card"
+    android:layout_margin="5dp"
+    android:padding="16dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="125dp"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/imageview_cat_cardview"
+            tools:src="@drawable/bond_cat"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:minHeight="90dp"
+            android:minWidth="90dp"
+            android:scaleType="fitCenter"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:contentDescription="@string/accessibility_list_photo" />
+
+        <TextView
+            android:id="@+id/textview_catname_cardview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/imageview_cat_cardview"
+            android:layout_toEndOf="@+id/imageview_cat_cardview"
+            android:layout_alignParentTop="true"
+            android:textSize="23sp"
+            tools:text="@string/sample_catname"/>
+
+        <TextView
+            android:id="@+id/textview_catdesc_cardview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:layout_below="@+id/textview_catname_cardview"
+            android:layout_alignStart="@+id/textview_catname_cardview"
+            android:layout_alignLeft="@+id/textview_catname_cardview"
+            android:textSize="14sp"
+            tools:text="@string/sample_desc_cardview"/>
+
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

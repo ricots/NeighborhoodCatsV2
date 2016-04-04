@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.localdata;
+package com.roberterrera.neighborhoodcats.sqldatabase;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -99,6 +99,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         while (!cursor.isAfterLast()){
             cursor.moveToNext();
         }
+        db.close();
         return cursor;
     }
 

@@ -1,8 +1,7 @@
-package com.roberterrera.neighborhoodcats;
+package com.roberterrera.neighborhoodcats.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -14,12 +13,12 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.R;
+import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -76,35 +75,32 @@ public class DetailsActivity extends AppCompatActivity {
 
       @Override
       protected void onPostExecute(Void aVoid) {
-        super.onPostExecute(aVoid);
+          super.onPostExecute(aVoid);
 
-        // Set activity title
-        if (name != null) {
-          setTitle(name);
-        } else {
-          setTitle("Cat Details");
-        }
+              // Set activity title
+               if (name != null) {
+                   setTitle(name);
+               } else {
+                   setTitle("Cat Details");
+               }
 
-          mEditCatName.setText(name);
-          mEditCatDesc.setText(desc);
-          mCatLocation.setText(String.valueOf(latitude) + ", " + String.valueOf(longitude));
+              mEditCatName.setText(name);
+              mEditCatDesc.setText(desc);
+              mCatLocation.setText(String.valueOf(latitude) + ", " + String.valueOf(longitude));
 
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        int width = size.x;
-        int height = size.y;
-
-        Picasso.with(DetailsActivity.this)
-            .load("file:"+photoPath)
-            .resize(width, height)
-            .centerCrop()
-            .into(mPhoto);
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+            int height = size.y;
+              Picasso.with(DetailsActivity.this)
+                  .load("file:" + photoPath)
+                  .resize(width, height)
+                  .placeholder(R.drawable.ic_pets_black_24dp)
+//                  .centerCrop()
+                  .into(mPhoto);
       }
     }
-
-
-        //TODO: Finish setting up DetailsActivity.
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
