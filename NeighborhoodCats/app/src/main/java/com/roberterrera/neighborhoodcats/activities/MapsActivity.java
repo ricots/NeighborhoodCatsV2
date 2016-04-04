@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.roberterrera.neighborhoodcats.R;
+import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 
@@ -42,12 +43,12 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
     private Location mLastLocation;
     private Tracker mTracker;
     private GoogleApiClient mGoogleApiClient;
-    LocationManager locationManager;
-    String provider;
-    ArrayList<Integer> mCatArrayList;
-    Cursor cursor;
-    CatsSQLiteOpenHelper helper;
-    int id;
+    private LocationManager locationManager;
+    private String provider;
+    private ArrayList<Integer> mCatArrayList;
+    private Cursor cursor;
+    private CatsSQLiteOpenHelper helper;
+    private int id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,10 +62,6 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             mMap.setMyLocationEnabled(true);
             return;
-//        } else {
-//            Toast.makeText(MapsActivity.this,
-//                    "Please give location permission in order to map your cats.",
-//                    Toast.LENGTH_SHORT).show();
         }
 
         // Create an instance of GoogleAPIClient.
@@ -95,11 +92,6 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         provider = locationManager.getBestProvider(new Criteria(), false);
         Location location = locationManager.getLastKnownLocation(provider);
 
-        cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
-        helper = new CatsSQLiteOpenHelper(MapsActivity.this);
-        helper.getReadableDatabase();
-        id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-        mCatArrayList = new ArrayList<>();
 
         if (location != null) {
             Log.i("Location Info", "Location achieved!");
@@ -112,8 +104,15 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mCatArrayList = new ArrayList<>();
+
+        helper = new CatsSQLiteOpenHelper(MapsActivity.this);
+        helper.getReadableDatabase();
+        cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
+        id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
 
         LatLng lastLocation = new LatLng(mLatitude, mLongitude);
+
         mMap.addMarker(new MarkerOptions().position(lastLocation).title("You"));
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(lastLocation)
@@ -121,9 +120,24 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
                 .build();
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
+        //TODO: Display saved cats' locations on map with custom pin.
         addCatsToList();
-        getCatLocations();
+        Log.d("addCatsToList", mCatArrayList.toString());
+//        getCatLocations();
 
+    }
+
+    private ArrayList<Integer> addCatsToList() {
+        // looping through all rows and adding to list
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                mCatArrayList.add(id);
+                Log.d("addCatsToList", String.valueOf(id));
+            } while (cursor.moveToNext());
+        }
+        Log.d("addCatsToList", mCatArrayList.toString());
+
+        return mCatArrayList;
     }
 
     private void getCatLocations(){
@@ -133,7 +147,7 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         double catLatitude = helper.getCatLatByID(id);
         double catLongitude = helper.getCatLongByID(id);
 
-        for (int i = 0; i <= mCatArrayList.size(); i++) {
+        for (int i = 0; i < mCatArrayList.size(); i++) {
             LatLng catLatLing = new LatLng(catLatitude, catLongitude);
             Marker catMap = mMap.addMarker(new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pets_black_24dp))
@@ -142,19 +156,6 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
                     .title(helper.getCatNameByID(i)));
             Log.d("getCatLocations", String.valueOf(catLatLing));
         }
-    }
-
-    private ArrayList<Integer> addCatsToList() {
-        // looping through all rows and adding to list
-        if (cursor.moveToFirst()) {
-            do {
-                mCatArrayList.add(id);
-                Log.d("addCatsToList", String.valueOf(id));
-            } while (cursor.moveToNext());
-        }
-        Log.d("addCatsToList", mCatArrayList.toString());
-
-        return mCatArrayList;
     }
 
     @Override

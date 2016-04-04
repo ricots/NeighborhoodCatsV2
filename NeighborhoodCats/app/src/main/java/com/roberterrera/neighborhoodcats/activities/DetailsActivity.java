@@ -97,7 +97,7 @@ public class DetailsActivity extends AppCompatActivity {
                   .load("file:" + photoPath)
                   .resize(width, height)
                   .placeholder(R.drawable.ic_pets_black_24dp)
-//                  .centerCrop()
+                  .centerCrop()
                   .into(mPhoto);
       }
     }

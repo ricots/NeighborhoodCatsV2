@@ -170,7 +170,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .load("file:" + mCurrentPhotoPath)
                     .resize(width, height)
                     .placeholder(R.drawable.ic_pets_black_24dp)
-//                    .centerCrop()
+                    .centerCrop()
                     .into(mPhoto);
 //
 //            try {

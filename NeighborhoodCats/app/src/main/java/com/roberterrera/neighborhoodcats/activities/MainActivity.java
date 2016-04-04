@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.location.Location;
+import android.location.LocationListener;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -19,34 +21,37 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.roberterrera.neighborhoodcats.R;
-import com.roberterrera.neighborhoodcats.cardview.ItemClickListener;
-import com.roberterrera.neighborhoodcats.cardview.ItemTouchHelperAdapter;
 import com.roberterrera.neighborhoodcats.cardview.RecyclerViewAdapter;
-import com.roberterrera.neighborhoodcats.cardview.SimpleItemTouchHelperCallback;
 import com.roberterrera.neighborhoodcats.cardview.SwipeableRecyclerViewTouchListener;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     public Cursor mCursor;
     private List<Cat> catList;
+    private ArrayList<Geofence> mGeofenceList;
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private Tracker mTracker;
@@ -64,6 +69,7 @@ public class MainActivity extends AppCompatActivity
         setTitle(getString(R.string.mainactivity_title));
 
         catList = new ArrayList<>();
+        mGeofenceList = new ArrayList<>();
 
         // use a linear layout manager
         mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
@@ -77,39 +83,7 @@ public class MainActivity extends AppCompatActivity
         // specify the recycler view adapter
         mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
         mRecyclerView.setAdapter(mAdapter);
-/*
-        ItemTouchHelperAdapter itemTouchHelperAdapter = new ItemTouchHelperAdapter() {
-            @Override
-            public boolean onItemMove(int fromPosition, int toPosition) {
-                return true;
-            }
 
-            @Override
-            public void onItemDismiss(int position) {
-                if (mCursor != null && mCursor.moveToFirst()) {
-                    do {
-                        catList.remove(position);
-                        Log.d("onDismissedBySwipe", String.valueOf(position));
-                        mAdapter.notifyItemRemoved(position);
-                        Log.d("notifyItemRemoved", String.valueOf(position));
-                    } while (mCursor.moveToNext());
-                }
-//                try {
-//                    mHelper.deleteCatByID(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-//                } catch (NullPointerException e){
-//                    Toast.makeText(MainActivity.this, "Error deleting item", Toast.LENGTH_SHORT).show();
-//                    Log.d("Main_OnItemDismiss", "Error deleting: "+e);
-//                    e.printStackTrace();
-//                }
-                mAdapter.notifyDataSetChanged();
-            }
-        };
-
-        ItemTouchHelper.Callback callback =
-                new SimpleItemTouchHelperCallback(itemTouchHelperAdapter);
-        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-        touchHelper.attachToRecyclerView(mRecyclerView);
-*/
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
         fab.setOnClickListener(new View.OnClickListener() {
@@ -141,7 +115,22 @@ public class MainActivity extends AppCompatActivity
         // Load the user's list.
         loadCatsList();
 
+//        mGeofenceList.add(new Geofence.Builder()
+//                // Set the request ID of the geofence. This is a string to identify this
+//                // geofence.
+//                .setRequestId(entry.getKey())
+//
+//                .setCircularRegion(
+//                        entry.getValue().latitude,
+//                        entry.getValue().longitude,
+//                        Constants.GEOFENCE_RADIUS_IN_METERS
+//                )
+//                .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+//                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+//                        Geofence.GEOFENCE_TRANSITION_EXIT)
+//                .build());
 
+        // Enable swipe-to-delete on cards.
         SwipeableRecyclerViewTouchListener swipeTouchListener =
                 new SwipeableRecyclerViewTouchListener(mRecyclerView,
                         new SwipeableRecyclerViewTouchListener.SwipeListener() {
@@ -189,6 +178,7 @@ public class MainActivity extends AppCompatActivity
 
         mRecyclerView.addOnItemTouchListener(swipeTouchListener);
 
+        // Handle the search intent.
         handleIntent(getIntent());
     }
 
@@ -199,6 +189,7 @@ public class MainActivity extends AppCompatActivity
 
     public void handleIntent(Intent intent){
 
+        //TODO: Look into why search doesn't return the search results.
         if (Intent.ACTION_SEARCH.equals( intent.getAction() )){
             String query = intent.getStringExtra(SearchManager.QUERY);
             mCursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
@@ -313,4 +304,40 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy() {
         super.onDestroy();
     }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
 }
