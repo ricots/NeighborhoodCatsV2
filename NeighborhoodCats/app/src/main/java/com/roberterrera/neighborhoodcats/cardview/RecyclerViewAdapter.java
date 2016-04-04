@@ -83,43 +83,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
         return  catList.size();
     }
 
- /*   //Methods for animating removing and adding items
-    public Cat removeItem(int position) {
-        final Cat catObject = catList.remove(position);
-        notifyItemRemoved(position);
-        return catObject;
-    }
-
-    public void moveItem(int fromPosition, int toPosition) {
-        final Cat catObject = catList.remove(fromPosition);
-        catList.add(toPosition, catObject);
-        notifyItemMoved(fromPosition, toPosition);
-    }
-
-    public void animateTo(List<Cat> list) {
-        applyAndAnimateRemovals(list);
-        applyAndAnimateMovedItems(list);
-    }
-
-    private void applyAndAnimateRemovals(List<Cat> list) {
-        for (int i = catList.size() - 1; i >= 0; i--) {
-            final Cat catObject = catList.get(i);
-            if (!list.contains(catObject)) {
-                removeItem(i);
-            }
-        }
-    }
-
-
-    private void applyAndAnimateMovedItems(List<Cat> list) {
-        for (int toPosition = list.size() - 1; toPosition >= 0; toPosition--) {
-            final Cat catObject = list.get(toPosition);
-            final int fromPosition = catList.indexOf(catObject);
-            if (fromPosition >= 0 && fromPosition != toPosition) {
-                moveItem(fromPosition, toPosition);
-            }
-        }
-    }*/
 
 
     @Override
@@ -141,6 +104,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
         }
         notifyItemMoved(fromPosition, toPosition);
         return true;
+    }
+
+    public RecyclerViewAdapter(int position) {
+
     }
 
 }
