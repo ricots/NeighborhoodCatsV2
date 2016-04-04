@@ -1,36 +1,44 @@
 package com.roberterrera.neighborhoodcats;
 
+import android.Manifest;
+import android.app.IntentService;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.media.ExifInterface;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.SystemClock;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.os.ResultReceiver;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ShareActionProvider;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.drive.Drive;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationServices;
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.squareup.picasso.Picasso;
@@ -38,22 +46,31 @@ import com.squareup.picasso.Picasso;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
-public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
+    private Tracker mTracker;
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
+    private TextView mCatLocation;
+    private String mLatLong;
+    double latitude, longitude;
+    String LATITUDE, LATITUDE_REF, LONGITUDE, LONGITUDE_REF;
+
 
     private static final int REQUEST_TAKE_PHOTO = 1;
     private static final int RESULT_LOAD_IMG = 2;
-    private String[] perms = {"android.permission.CAMERA"};
-    private int permsRequestCode = 200;
+    private static final String TAG = "NewCatActivity";
 
     private String mCurrentPhotoPath;
-    private String imgDecodableString;
-    private String filemanagerstring;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,18 +82,33 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+
         mPhoto = (ImageView) findViewById(R.id.imageView_newimage);
+        mCatLocation = (TextView) findViewById(R.id.textView_newlocation);
         mEditCatDesc = (EditText) findViewById(R.id.editText_newdesc);
         mEditCatName = (EditText) findViewById(R.id.editText_newname);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(perms, permsRequestCode);
+        // Create an instance of GoogleAPIClient.
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
         }
 
-        dispatchTakePictureIntent();
-//        getLocation();
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
 
-      //TODO: Ask for storage permission and check that the permission is granted (check if anything Marshmallow-specific needs to be done).
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+
+        // Open the camera when the activity is launched.
+//        dispatchTakePictureIntent();
+
         // Take a photo if you tap on the imageview
         mPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,6 +136,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         //TODO: Add a textview where the image view is that says "Tap to take a photo, long press to load from gallery", and set visibility to "GONE" at the start of the onActivityResult if statements.
+        Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Picasso.with(NewCatActivity.this)
@@ -111,6 +145,18 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .resize(300,300)
                     .centerCrop()
                     .into(mPhoto);
+//                getLocationFromImage("file:" + mCurrentPhotoPath);
+//            try {
+//                List<Address> listAddresses = geocoder.getFromLocation(latitude, longitude, 1);
+//                if (listAddresses !=null && listAddresses.size() > 0){
+//                    mCatLocation.setText(listAddresses.get(0).toString());
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+            mLatLong = locationToString();
+                mCatLocation.setText(mLatLong);
+                Log.d(TAG, "mLatLong: "+mLatLong);
 
             // When an Image is picked
         } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
@@ -118,16 +164,31 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             // Note: If image is an older image being selected via Google Photos, the image will not
             // be loaded because it has to be downloaded first.
             Uri selectedImageUri = data.getData();
-            mCurrentPhotoPath = selectedImageUri.getPath();
+            mCurrentPhotoPath = getPath(selectedImageUri);
+            Log.d(TAG, "mCurrentPhotoPath: "+mCurrentPhotoPath);
             Picasso.with(NewCatActivity.this)
-                    .load("file:" + mCurrentPhotoPath)
+                    .load("file:"+mCurrentPhotoPath)
                     .resize(300, 300)
                     .centerCrop()
                     .into(mPhoto);
+//
+//            try {
+//                List<Address> listAddresses = geocoder.getFromLocation(latitude, longitude, 1);
+//                if (listAddresses !=null && listAddresses.size() > 0){
+//                    mCatLocation.setText(listAddresses.get(0).toString());
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+
+//                getLocationFromImage("file:" + mCurrentPhotoPath);
+                mLatLong = locationToString();
+                mCatLocation.setText(mLatLong);
+                Log.d(TAG, "mLatLong: " + mLatLong);
+
         }
     }
 
-    //UPDATED!
     public String getPath(Uri uri) {
         String[] projection = { MediaStore.Images.Media.DATA };
         Cursor cursor = getContentResolver().query(uri,
@@ -143,50 +204,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
         else return null;
     }
-            /*           // Get the Image from data
-            Uri selectedImage = data.getData();
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
-            mCurrentPhotoPath = selectedImage.getPath();
-
-            // Get the cursor
-            Cursor cursor = getContentResolver().query(selectedImage,
-                    filePathColumn, null, null, null);
-            // Move to first row
-            if (cursor != null) {
-                cursor.moveToFirst();
-                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                imgDecodableString = cursor.getString(columnIndex);
-                Log.d("RESULT_LOAD_IMG", "Gallery path: "+mCurrentPhotoPath);
-                cursor.close();
-            }
-            // Set the Image in ImageView after decoding the String
-            if (mPhoto != null) {
-                mPhoto.setImageBitmap(BitmapFactory
-                        .decodeFile(imgDecodableString));
-            }
-
-            //TODO: Get GPS location from photo and save to COL_IMG.
-            // If the photo has GPS EXIF data, store that in the COL_IMG column. Else use current location of device.
-
-        } else {
-            Toast.makeText(this, "You haven't picked an image",
-                    Toast.LENGTH_LONG).show();
-        }
-//        } catch (Exception e) {
-//            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
-//                    .show();
-//        }
-    }*/
-
-    @Override
-    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
-        switch(permsRequestCode){
-            case 200:
-                boolean cameraAccepted = grantResults[0]== PackageManager.PERMISSION_GRANTED;
-                break;
-        }
-    }
 
     // Check permissions
     public boolean hasPermissionInManifest(Context context, String permissionName) {
@@ -208,25 +226,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         return false;
     }
 
-    private void getLocation() {
-        GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this /* AppCompatActivity */,
-                        this /* OnConnectionFailedListener */)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE)
-                .build();
-
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        Tracker mTracker = application.getDefaultTracker();
-        // Build and send an Event.
-        mTracker.send(new HitBuilders.EventBuilder()
-                .setCategory("category")
-                .setAction("clicked button")
-                .setLabel("clicker")
-                .build());
-//        mCatLocation.setText(String.valueOf(mTracker));
-    }
-
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         setResult(RESULT_OK, takePictureIntent);
@@ -234,9 +233,10 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         //TODO: Fix database leak.
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+
+            //TODO: Write code that deletes this image file if the camera is cancelled.
             // Create the File where the photo should go
             File photoFile = null;
-
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
@@ -248,7 +248,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             if (photoFile != null) {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                         Uri.fromFile(photoFile));
-                //TODO: Get GPS location from photo and save to COL_IMG via EXIF data.
+                //TODO: Get GPS location from photo and save to CAT_IMG via EXIF data.
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
@@ -286,48 +286,80 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
   }
 
 
-    private String getLocationFromImage (String file){
-        String exif="Exif: " + file;
-        try {
-            ExifInterface exifInterface = new ExifInterface(file);
-// TODO: Look at this resource: http://stackoverflow.com/questions/15403797/how-to-get-the-latititude-and-longitude-of-an-image-in-sdcard-to-my-application
-//            exif += "\nIMAGE_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
-//            exif += "\nIMAGE_WIDTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
-//            exif += "\n DATETIME: " + exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
-//            exif += "\n TAG_MAKE: " + exifInterface.getAttribute(ExifInterface.TAG_MAKE);
-//            exif += "\n TAG_MODEL: " + exifInterface.getAttribute(ExifInterface.TAG_MODEL);
-//            exif += "\n TAG_ORIENTATION: " + exifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
-//            exif += "\n TAG_WHITE_BALANCE: " + exifInterface.getAttribute(ExifInterface.TAG_WHITE_BALANCE);
-//            exif += "\n TAG_FOCAL_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
-//            exif += "\n TAG_FLASH: " + exifInterface.getAttribute(ExifInterface.TAG_FLASH);
-//            exif += "\nGPS related:";
-            exif += "\n TAG_GPS_DATESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
-            exif += "\n TAG_GPS_TIMESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
-            exif += "\n TAG_GPS_LATITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-            exif += "\n TAG_GPS_LATITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
-            exif += "\n TAG_GPS_LONGITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-            exif += "\n TAG_GPS_LONGITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
-            exif += "\n TAG_GPS_PROCESSING_METHOD: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
+    private void getLocationFromImage(String filepath) throws IOException {
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.d("GETLOCATIONFROMIMAGE", "Error: "+ e.toString());
+        ExifInterface exif = new ExifInterface(filepath);
+         LATITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+         LATITUDE_REF = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+         LONGITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+         LONGITUDE_REF = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+
+        // your Final lat Long Values
+
+        if ((LATITUDE != null)
+                && (LATITUDE_REF != null)
+                && (LONGITUDE != null)
+                && (LONGITUDE_REF != null)) {
+
+            if (LATITUDE_REF.equals("N")) {
+                latitude = convertToDegree(LATITUDE);
+            } else {
+                latitude = 0 - convertToDegree(LATITUDE);
+            }
+
+            if (LONGITUDE_REF.equals("E")) {
+                longitude = convertToDegree(LONGITUDE);
+            } else {
+                longitude = 0 - convertToDegree(LONGITUDE);
+            }
+
+        }
+    }
+
+        private Float convertToDegree(String stringDMS){
+            Float result = null;
+            String[] DMS = stringDMS.split(",", 3);
+
+            String[] stringD = DMS[0].split("/", 2);
+            Double D0 = new Double(stringD[0]);
+            Double D1 = new Double(stringD[1]);
+            Double FloatD = D0/D1;
+
+            String[] stringM = DMS[1].split("/", 2);
+            Double M0 = new Double(stringM[0]);
+            Double M1 = new Double(stringM[1]);
+            Double FloatM = M0/M1;
+
+            String[] stringS = DMS[2].split("/", 2);
+            Double S0 = new Double(stringS[0]);
+            Double S1 = new Double(stringS[1]);
+            Double FloatS = S0/S1;
+
+            result = new Float(FloatD + (FloatM/60) + (FloatS/3600));
+
+            return result;
+
+
         }
 
-        return exif;
+        public int getLatitudeE6(){
+            return (int)(latitude*1000000);
+        }
+
+        public int getLongitudeE6(){
+            return (int)(longitude*1000000);
+        }
+
+    public String locationToString() {
+        return (String.valueOf(latitude)
+                + ", "
+                + String.valueOf(longitude));
     }
+
+
 
     private boolean hasCamera(){
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
-    }
-
-    /* Checks if external storage is available for read and write */
-    public boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
     }
 
     @Override
@@ -376,7 +408,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         // start the intent
         try {
             startActivity(Intent.createChooser(share_intent,
-                    "Sharing "+mEditCatName.getText().toString()));
+                    "Sharing " + mEditCatName.getText().toString()));
         } catch (android.content.ActivityNotFoundException ex) {
             (new AlertDialog.Builder(NewCatActivity.this)
                     .setMessage("Share failed")
@@ -389,15 +421,37 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
     }
 
-//    // Call to update the share intent
-//    private void setShareIntent(Intent shareIntent) {
-//        if (mShareActionProvider != null) {
-//            mShareActionProvider.setShareIntent(shareIntent);
-//        }
-//    }
-
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (mLastLocation != null) {
+//            mCatLocation.setText(String.valueOf(mLastLocation.getLatitude())+", "
+//                    +(String.valueOf(mLastLocation.getLongitude())));
+//            mLatLong = mCatLocation.getText().toString();
+            latitude = mLastLocation.getLatitude();
+            longitude = mLastLocation.getLongitude();
+//        }
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
     }
 
     @Override
@@ -413,9 +467,16 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             helper.insert(
                     mEditCatName.getText().toString(),
                     mEditCatDesc.getText().toString(),
-                    //TODO: Get location from image.
-                    "*Your location here*",
+                    latitude,
+                    longitude,
                     mCurrentPhotoPath);
+            Log.d("save", mEditCatName.getText().toString()+", "
+                    + mEditCatDesc.getText().toString()+", "
+                    + String.valueOf(latitude)
+                    + ", "
+                    +String.valueOf(longitude)
+                    +", "
+                    + mCurrentPhotoPath);
             Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
         } catch (Exception e){
             Toast.makeText(NewCatActivity.this,
@@ -424,6 +485,17 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
         Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
         startActivity(backToMainIntent);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+
+        Log.i("Location info: Lat", String.valueOf(latitude));
+        Log.i("Location info: Lng", String.valueOf(longitude));
+
     }
 
 }

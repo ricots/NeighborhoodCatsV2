@@ -4,7 +4,10 @@ import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Point;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -15,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,9 +29,11 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.roberterrera.neighborhoodcats.localdata.CatsSQLiteOpenHelper;
+import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity
@@ -38,7 +44,10 @@ public class MainActivity extends AppCompatActivity
     private ListView mListView;
     private TextView mCatName;
     private ImageView mCatThumbnail;
+    private Tracker mTracker;
     private CatsSQLiteOpenHelper mHelper;
+    private String[] perms = {"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
+    private int permsRequestCode = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +78,15 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Toast.makeText(MainActivity.this, "Cats loaded", Toast.LENGTH_SHORT).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(perms, permsRequestCode);
+        }
+
+
+        // Obtain the shared Tracker instance.
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
+
 
         mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
         mCursorAdapter = new CursorAdapter(MainActivity.this, mCursor, 0) {
@@ -86,17 +103,24 @@ public class MainActivity extends AppCompatActivity
                 mHelper.getReadableDatabase();
 
                 mCatName = (TextView) view.findViewById(R.id.textview_catname_list);
-                mCatName.setText( cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME)) );
+                mCatName.setText( cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_NAME)) );
+
                 // Load image file path into thumbnail
                 mCatThumbnail = (ImageView) view.findViewById(R.id.imageview_catthumbnail);
-//                Picasso.with(MainActivity.this).load(cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG))).into(mCatThumbnail);
+                Display display = getWindowManager().getDefaultDisplay();
+                Point size = new Point();
+                display.getSize(size);
+                int width = size.x;
+                int height = size.y;
                 Picasso.with(MainActivity.this)
-                    .load("file:"+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)))
-                    .resize(50, 50)
+                    .load("file:"+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_IMG)))
+                    .resize(width, height)
                     .centerCrop()
                     .into(mCatThumbnail);
+
                 // Log the filepath
-                Log.d("CURSORADAPTER", "Name: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_NAME))+", COL_IMG: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.COL_IMG)));
+                Log.d("CURSORADAPTER", "Name: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_NAME))+", CAT_IMG: "+cursor.getString(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_IMG)));
+                Log.d("MAINACTIVITY", "Cat list loaded.");
             }
         };
 
@@ -110,12 +134,14 @@ public class MainActivity extends AppCompatActivity
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
           @Override
           public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//            Toast.makeText(MainActivity.this, position+" clicked", Toast.LENGTH_SHORT).show();
-//            mCursor = mCursorAdapter.getCursor();
-            Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
-            mCursor.moveToPosition(position);
+              Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+              mCursor.moveToPosition(position);
               mHelper.getReadableDatabase();
-            intent.putExtra("id", mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
+              intent.putExtra("id", mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID)));
+              mTracker.send(new HitBuilders.EventBuilder()
+                      .setCategory("Action")
+                      .setAction("View cat details from list")
+                      .build());
             startActivity(intent);
           }
         });
@@ -124,8 +150,11 @@ public class MainActivity extends AppCompatActivity
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//              Toast.makeText(MainActivity.this, position+" long clicked", Toast.LENGTH_SHORT).show();
-                mHelper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.COL_ID)));
+                mTracker.send(new HitBuilders.EventBuilder()
+                        .setCategory("Action")
+                        .setAction("Delete Cat")
+                        .build());
+                mHelper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID)));
                 mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
                 mCursorAdapter.swapCursor(mCursor);
               return true;
@@ -182,6 +211,10 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.action_search) {
+            mTracker.send(new HitBuilders.EventBuilder()
+                    .setCategory("Action")
+                    .setAction("Search")
+                    .build());
             return true;
         }
 
@@ -195,17 +228,12 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //TODO: Update these values with settings.
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_map) {
+            // Handle the map intent
+            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+            startActivity(mapIntent);
+//        } else if (id == R.id.nav_gallery) {
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
 
         }
 
@@ -215,8 +243,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
+        switch(permsRequestCode){
+            case 200:
+                boolean permissionAccepted = grantResults[3]== PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        mTracker.setScreenName("Cat List");
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
         if (mCursor != null) {
             mCursorAdapter.swapCursor(mCursor);
         }

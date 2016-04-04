@@ -108,6 +108,6 @@
     </string>
     <string name="cat_notes_details">Cat Notes</string>
     <string name="cat_name_details">Cat\'s Name</string>
-    <string name="sample_address">Bond Street, Brooklyn, NY 11231</string>
+    <string name="sample_address">Cat location updating...</string>
 
 </resources>
