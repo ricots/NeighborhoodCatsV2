@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -24,7 +23,6 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -34,15 +32,12 @@ import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.Geofence;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.cardview.RecyclerViewAdapter;
 import com.roberterrera.neighborhoodcats.cardview.SwipeableRecyclerViewTouchListener;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,12 +68,12 @@ public class MainActivity extends AppCompatActivity
         catList = new ArrayList<>();
         mGeofenceList = new ArrayList<>();
 
-        // use a linear layout manager
+        // Set up a linear layout manager
         mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        // use this setting to improve performance if you know that changes
+        // Improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
 
@@ -107,6 +102,8 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        /* */
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(perms, permsRequestCode);
@@ -180,53 +177,6 @@ public class MainActivity extends AppCompatActivity
 
         //TODO: Look into why search doesn't return the search results.
         if (Intent.ACTION_SEARCH.equals( intent.getAction() )){
-//             /* this is the Seerach QuerttextListner.
-//       this method filter the list data with a matching string,
-//       hence provides user an easy way to find the information he needs.
-//     */
-//
-//            SearchView.OnQueryTextListener listener = new SearchView.OnQueryTextListener() {
-//                @Override
-//                public boolean onQueryTextChange(String query) {
-//                    query = query.toLowerCase();
-//
-//                    final List<String> filteredList = new ArrayList<>();
-//
-//                    mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
-//                    mHelper.getWritableDatabase();
-//                    mCursor = CatsSQLiteOpenHelper.getInstance(this).getCatsList();
-//
-//                    // Loop through arraylist and add database items to it.
-//                    while (mCursor.moveToNext()){
-//                        int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-//
-//                        if (text.contains(query)) {
-//
-//                            filteredList.add(catList.get(i).getId());
-//                        }
-//                        String name = mHelper.getCatNameByID(id);
-//                        String desc = mHelper.getCatDescByID(id);
-//                        String latitude = String.valueOf(mHelper.getCatLatByID(id));
-//                        String longitude = String.valueOf(mHelper.getCatLongByID(id));
-//                        String imagePath = mHelper.getCatPhotoByID(id);
-//
-//                        Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
-//                        catList.add(cat);
-//                    }
-//
-//                    mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-//                    mAdapter = new Adapter(filteredList, MainActivity.this);
-//                    mRecyclerView.setAdapter(mAdapter);
-//                    mAdapter.notifyDataSetChanged();  // data set changed
-//                    return true;
-//
-//                }
-//                public boolean onQueryTextSubmit(String query) {
-//                    return false;
-//                }
-//            };
-//            searchView.setOnQueryTextListener(listener); // call the QuerytextListner.
-
             String query = intent.getStringExtra(SearchManager.QUERY);
             mCursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
             mAdapter.notifyDataSetChanged();

@@ -3,29 +3,24 @@ package com.roberterrera.neighborhoodcats.cardview;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.roberterrera.neighborhoodcats.activities.DetailsActivity;
 import com.roberterrera.neighborhoodcats.R;
+import com.roberterrera.neighborhoodcats.activities.DetailsActivity;
 import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by Rob on 4/3/16.
  */
-public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implements ItemTouchHelperAdapter {
+public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
     private List<Cat> catList;
     private Context mContext;
     private Cursor mCursor;
@@ -69,7 +64,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
                 mHelper.getWritableDatabase();
                 mCursor = CatsSQLiteOpenHelper.getInstance(mContext).getCatsList();
 
-                Toast.makeText(mContext, "Item " + String.valueOf(pos) + " clicked.", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(mContext, DetailsActivity.class);
                 intent.putExtra("id", catList.get(pos).getId());
                 mContext.startActivity(intent);
@@ -84,25 +78,25 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
     }
 
 
-    @Override
-    public void onItemDismiss(int position) {
-        catList.remove(position);
-        notifyItemRemoved(position);
-    }
-
-    @Override
-    public boolean onItemMove(int fromPosition, int toPosition) {
-        if (fromPosition < toPosition) {
-            for (int i = fromPosition; i < toPosition; i++) {
-                Collections.swap(catList, i, i + 1);
-            }
-        } else {
-            for (int i = fromPosition; i > toPosition; i--) {
-                Collections.swap(catList, i, i - 1);
-            }
-        }
-        notifyItemMoved(fromPosition, toPosition);
-        return true;
-    }
+//    @Override
+//    public void onItemDismiss(int position) {
+//        catList.remove(position);
+//        notifyItemRemoved(position);
+//    }
+////
+//    @Override
+//    public boolean onItemMove(int fromPosition, int toPosition) {
+//        if (fromPosition < toPosition) {
+//            for (int i = fromPosition; i < toPosition; i++) {
+//                Collections.swap(catList, i, i + 1);
+//            }
+//        } else {
+//            for (int i = fromPosition; i > toPosition; i--) {
+//                Collections.swap(catList, i, i - 1);
+//            }
+//        }
+//        notifyItemMoved(fromPosition, toPosition);
+//        return true;
+//    }
 
 }

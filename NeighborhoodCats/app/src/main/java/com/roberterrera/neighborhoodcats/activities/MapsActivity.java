@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -12,7 +13,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.widget.Toolbar;
+import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -33,6 +34,7 @@ import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
@@ -57,6 +59,21 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         setContentView(R.layout.activity_maps);
 
         setTitle("Map Your Cats!");
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        provider = locationManager.getBestProvider(new Criteria(), true);
+        Location location = locationManager.getLastKnownLocation(provider);
+
+        if (location != null) {
+            Log.i("Location Info", "Location achieved!");
+        } else {
+            Log.i("Location Info", "No location :(");
+        }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
@@ -85,23 +102,6 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
                 .setAction("Map")
                 .setLabel("Map my location")
                 .build());
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        provider = locationManager.getBestProvider(new Criteria(), false);
-        Location location = locationManager.getLastKnownLocation(provider);
-
-
-        if (location != null) {
-            Log.i("Location Info", "Location achieved!");
-        } else {
-            Log.i("Location Info", "No location :(");
-        }
-
     }
 
     @Override
@@ -111,11 +111,12 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         helper = new CatsSQLiteOpenHelper(MapsActivity.this);
         helper.getReadableDatabase();
         cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
+
         LatLng lastLocation = new LatLng(mLatitude, mLongitude);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        locationManager.requestLocationUpdates(provider, 0, 1, this);
+        Log.d("onMapReady", mLatitude+", "+mLongitude);
+
+        mMap.setMyLocationEnabled(true);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         mMap.addMarker(new MarkerOptions()
                 .position(lastLocation)
@@ -123,11 +124,14 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(lastLocation)
-                .zoom(mMap.getMaxZoomLevel() * 0.8f)
+                .zoom(mMap.getMaxZoomLevel() * .9f)
                 .build();
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mMap.getUiSettings().setZoomControlsEnabled(true);
 
-        //TODO: Display saved cats' locations on map with custom pin.
+//        Log.d("MapsActivity", "LatLing Address: "+getAddressFromLatLng(lastLocation));
+
+        // Display cat markers on the map using the lat and lon saved to the items' database columns.
         loadCatsList();
     }
 
@@ -158,6 +162,7 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         cursor.close();
     }
 
+
     @Override
     public void onConnected(Bundle bundle) {
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
@@ -165,13 +170,16 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         if (mLastLocation != null) {
             mLatitude = mLastLocation.getLatitude();
             mLongitude = mLastLocation.getLongitude();
-            Log.d("onConnected", mLatitude+", "+mLongitude);
         } else {
-            mLatitude = mLastLocation.getLatitude();
-            mLongitude = mLastLocation.getLongitude();
-            Log.d("onConnected_else", mLatitude+", "+mLongitude);
+            Toast.makeText(MapsActivity.this, "Last location is null", Toast.LENGTH_SHORT).show();
         }
+        LatLng lastLocation = new LatLng(mLatitude, mLongitude);
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(lastLocation)
+                .zoom(mMap.getMaxZoomLevel() * .9f)
+                .build();
     }
+
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -209,34 +217,43 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         super.onPause();
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         locationManager.removeUpdates(this);
 
     }
+//
+//    private String getAddressFromLatLng( LatLng latLng ) {
+//        Geocoder geocoder = new Geocoder(MapsActivity.this);
+//
+//        String address = "";
+//        try {
+//            address = geocoder
+//                    .getFromLocation( latLng.latitude, latLng.longitude, 1 )
+//                    .get( 0 ).getAddressLine( 0 );
+//        } catch (IOException e ) {
+//            e.printStackTrace();
+//        }
+//
+//        return address;
+//    }
 
     @Override
     public void onLocationChanged(Location location) {
+//        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        double lat = location.getLatitude();
+        double lng = location.getLongitude();
 
-        Double lat = location.getLatitude();
-        Double lng = location.getLongitude();
+        Log.i("Location info: Lat", String.valueOf(lat));
+        Log.i("Location info: Lng", String.valueOf(lng));
 
-        Log.i("Location info: Lat", lat.toString());
-        Log.i("Location info: Lng", lng.toString());
-
-        mMap.clear();
+//        mMap.clear();
 
         mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title("You"));
-
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 12));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 18));
     }
+
+
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {

@@ -133,7 +133,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
+            Bundle extras = data.getExtras(); //TODO: Crashed on lollipop
             Picasso.with(NewCatActivity.this)
                     .load("file:"+mCurrentPhotoPath)
                     .resize(300,300)
