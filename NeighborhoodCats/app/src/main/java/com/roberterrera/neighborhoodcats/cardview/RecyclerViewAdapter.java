@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Created by Rob on 4/3/16.
  */
-public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
+public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implements ItemTouchHelperAdapter {
     private List<Cat> catList;
     private Context mContext;
     private Cursor mCursor;
@@ -121,7 +121,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
         }
     }*/
 
-    /*
+
     @Override
     public void onItemDismiss(int position) {
         catList.remove(position);
@@ -142,5 +142,5 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
         notifyItemMoved(fromPosition, toPosition);
         return true;
     }
-    */
+
 }

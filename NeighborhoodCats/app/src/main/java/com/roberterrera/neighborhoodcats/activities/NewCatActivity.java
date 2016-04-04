@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Point;
 import android.location.Geocoder;
 import android.location.Location;
 import android.media.ExifInterface;
@@ -20,6 +21,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -158,10 +160,17 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             Uri selectedImageUri = data.getData();
             mCurrentPhotoPath = getPath(selectedImageUri);
             Log.d(TAG, "mCurrentPhotoPath: "+mCurrentPhotoPath);
+
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+            int height = size.y;
             Picasso.with(NewCatActivity.this)
-                    .load("file:"+mCurrentPhotoPath)
-                    .resize(300, 300)
-                    .centerCrop()
+                    .load("file:" + mCurrentPhotoPath)
+                    .resize(width, height)
+                    .placeholder(R.drawable.ic_pets_black_24dp)
+//                    .centerCrop()
                     .into(mPhoto);
 //
 //            try {
@@ -222,7 +231,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         setResult(RESULT_OK, takePictureIntent);
 
-        //TODO: Fix database leak.
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
 

@@ -163,13 +163,11 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
                                 for (int position : reverseSortedPositions) {
+                                    int id = catList.get(position).getId();
 
-                                            catList.remove(position);
-                                            Log.d("onDismissedBySwipe", String.valueOf(position));
-
-                                            mAdapter.notifyItemRemoved(position);
-//                                            mHelper.deleteCatByID(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-                                            Log.d("notifyItemRemoved", String.valueOf(position));
+                                    mHelper.deleteCatByID(id);
+                                    catList.remove(position);
+                                    mAdapter.notifyItemRemoved(position);
                                 }
                                 mAdapter.notifyDataSetChanged();
                             }
@@ -177,13 +175,11 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onDismissedBySwipeRight(RecyclerView recyclerView, int[] reverseSortedPositions) {
                                 for (int position : reverseSortedPositions) {
+                                    int id = catList.get(position).getId();
 
+                                    mHelper.deleteCatByID(id);
                                     catList.remove(position);
-                                    Log.d("onDismissedBySwipe", String.valueOf(position));
-
                                     mAdapter.notifyItemRemoved(position);
-//                                            mHelper.deleteCatByID(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-                                    Log.d("notifyItemRemoved", String.valueOf(position));
                                 }
                                 mAdapter.notifyDataSetChanged();
                             }
@@ -193,39 +189,7 @@ public class MainActivity extends AppCompatActivity
 
         mRecyclerView.addOnItemTouchListener(swipeTouchListener);
 
-//        // Get item details and display them in DetailsActivity.
-//        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//          @Override
-//          public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//              Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
-//              mCursor.moveToPosition(position);
-//              mHelper.getReadableDatabase();
-//              intent.putExtra("id", mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID)));
-//              mTracker.send(new HitBuilders.EventBuilder()
-//                      .setCategory("Action")
-//                      .setAction("View cat details from list")
-//                      .build());
-//            startActivity(intent);
-//          }
-//        });
-//
-//        // Delete a list item.
-//        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//                mTracker.send(new HitBuilders.EventBuilder()
-//                        .setCategory("Action")
-//                        .setAction("Delete Cat")
-//                        .build());
-//                mHelper.deleteCatByID(mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID)));
-//                mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
-//                mCursorAdapter.swapCursor(mCursor);
-//              return true;
-//            }
-//        });
-
         handleIntent(getIntent());
-
     }
 
     @Override

@@ -39,7 +39,7 @@
             android:maxWidth="@dimen/activity_horizontal_margin"
             android:scaleType="fitCenter"
             android:layout_centerInParent="true"
-            tools:src="@drawable/bond_cat"
+            tools:src="@drawable/ic_pets_black_24dp"
             android:layout_below="@id/textView_details_newlocation"/>
 
 

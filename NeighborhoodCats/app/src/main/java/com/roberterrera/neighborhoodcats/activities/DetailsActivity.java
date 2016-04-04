@@ -75,35 +75,32 @@ public class DetailsActivity extends AppCompatActivity {
 
       @Override
       protected void onPostExecute(Void aVoid) {
-        super.onPostExecute(aVoid);
+          super.onPostExecute(aVoid);
 
-        // Set activity title
-        if (name != null) {
-          setTitle(name);
-        } else {
-          setTitle("Cat Details");
-        }
+              // Set activity title
+               if (name != null) {
+                   setTitle(name);
+               } else {
+                   setTitle("Cat Details");
+               }
 
-          mEditCatName.setText(name);
-          mEditCatDesc.setText(desc);
-          mCatLocation.setText(String.valueOf(latitude) + ", " + String.valueOf(longitude));
+              mEditCatName.setText(name);
+              mEditCatDesc.setText(desc);
+              mCatLocation.setText(String.valueOf(latitude) + ", " + String.valueOf(longitude));
 
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        int width = size.x;
-        int height = size.y;
-
-        Picasso.with(DetailsActivity.this)
-            .load("file:"+photoPath)
-            .resize(width, height)
-            .centerCrop()
-            .into(mPhoto);
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+            int height = size.y;
+              Picasso.with(DetailsActivity.this)
+                  .load("file:" + photoPath)
+                  .resize(width, height)
+                  .placeholder(R.drawable.ic_pets_black_24dp)
+//                  .centerCrop()
+                  .into(mPhoto);
       }
     }
-
-
-        //TODO: Finish setting up DetailsActivity.
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
