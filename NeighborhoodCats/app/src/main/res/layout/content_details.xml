@@ -12,71 +12,80 @@
     tools:context=".activities.DetailsActivity"
     tools:showIn="@layout/activity_details">
 
-    <TextView
-        android:id="@+id/textView_details_found"
-        android:text="Found at:"
-        android:textColor="#000000"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <ImageView
+        android:id="@+id/imageView_details_newimage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        tools:src="@drawable/ic_pets_black_24dp" />
 
-    <TextView
-        android:id="@+id/textView_details_newlocation"
-        android:layout_width="wrap_content"
+    <FrameLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:text="Address"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:autoLink = "map"
+        android:foregroundGravity="bottom"
+        android:background="#b7ffffff"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView_details_found"
-        android:layout_alignLeft="@+id/editText_details_newname"
-        android:layout_alignStart="@+id/editText_details_newname" />
+        android:layout_alignParentStart="true">
 
-    <!--Set this imageview to not be a square, or for the camera to only take a square photo.-->
-
-        <ImageView
-            android:id="@+id/imageView_details_newimage"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:maxWidth="@dimen/activity_horizontal_margin"
-            android:scaleType="fitCenter"
-            android:layout_centerInParent="true"
-            tools:src="@drawable/ic_pets_black_24dp"
-            android:layout_below="@id/textView_details_newlocation"/>
-
-
-        <TextView
-            android:id="@+id/textView_details_newname"
-            android:layout_width="wrap_content"
+        <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/cat_name_details"
-            android:textColor="#000000"
-            android:layout_below="@+id/imageView_details_newimage"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginTop="37dp" />
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:fillViewport="false">
 
-        <EditText
-            android:id="@+id/editText_details_newname"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:singleLine="true"
-            android:layout_below="@id/textView_details_newname" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/textView_details_newdesc"
-            android:textColor="#000000"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/cat_notes_details"
-            android:layout_below="@+id/editText_details_newname" />
+            <TextView
+                android:id="@+id/textView_details_found"
+                android:text="Found at:"
+                android:textColor="#000000"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
-        <EditText
-            android:id="@+id/editText_details_newdesc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/textView_details_newdesc" />
+            <TextView
+                android:id="@+id/textView_details_newlocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="Address"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:autoLink = "map" />
 
+            <!--Set this imageview to not be a square, or for the camera to only take a square photo.-->
+            <!-- -->
+            <!--<TextView-->
+                <!--android:id="@+id/textView_details_newname"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textAppearance="?android:attr/textAppearanceMedium"-->
+                <!--android:text="@string/cat_name_details"-->
+                <!--android:textColor="#000000"-->
+                <!--android:layout_marginTop="37dp" />-->
+        <!-- -->
+            <!--<EditText-->
+                <!--android:id="@+id/editText_details_newname"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:singleLine="true" />-->
+
+            <TextView
+                android:id="@+id/textView_details_newdesc"
+                android:textColor="#000000"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/cat_notes_details"/>
+
+            <TextView
+                android:id="@+id/editText_details_newdesc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
 </RelativeLayout>

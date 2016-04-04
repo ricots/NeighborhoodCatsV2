@@ -21,13 +21,15 @@ import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
 
 public class DetailsActivity extends AppCompatActivity {
 
-    private TextView mCatName, mCatDesc, mFoundAt, mCatLocation;
+    private TextView mCatName, mCatDesc, mFoundAt, mCatLocation, mFullCatDesc;
     private ImageView mPhoto;
-    private EditText mEditCatName, mEditCatDesc;
+    private EditText mEditCatName;
     private CatsSQLiteOpenHelper helper;
     private int id;
     private String name, desc, photoPath;
@@ -43,13 +45,13 @@ public class DetailsActivity extends AppCompatActivity {
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // TODO: Set up layout with text that is editable instead of EditTexts.
-        mCatName = (TextView) findViewById(R.id.textView_details_newname);
+//        mCatName = (TextView) findViewById(R.id.textView_details_newname);
         mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
         mFoundAt = (TextView) findViewById(R.id.textView_details_found);
         mCatLocation = (TextView) findViewById(R.id.textView_details_newlocation);
         mPhoto = (ImageView) findViewById(R.id.imageView_details_newimage);
-        mEditCatDesc = (EditText) findViewById(R.id.editText_details_newdesc);
-        mEditCatName = (EditText) findViewById(R.id.editText_details_newname);
+        mFullCatDesc = (TextView) findViewById(R.id.editText_details_newdesc);
+//        mEditCatName = (EditText) findViewById(R.id.editText_details_newname);
 
         LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
         loadCatAsyncTask.execute();
@@ -68,8 +70,8 @@ public class DetailsActivity extends AppCompatActivity {
           photoPath = helper.getCatPhotoByID(id);
           latitude = helper.getCatLatByID(id);
           longitude = helper.getCatLongByID(id);
-          Log.d("DetailsActivity", "latitude: " + latitude);
-          Log.d("DetailsActivity", "latitude: " +longitude);
+          Log.d("DetailsActivity", "latitude: "+latitude);
+          Log.d("DetailsActivity", "longitude: "+longitude);
         return null;
       }
 
@@ -84,9 +86,9 @@ public class DetailsActivity extends AppCompatActivity {
                    setTitle("Cat Details");
                }
 
-              mEditCatName.setText(name);
-              mEditCatDesc.setText(desc);
-              mCatLocation.setText(String.valueOf(latitude) + ", " + String.valueOf(longitude));
+//              mEditCatName.setText(name);
+              mFullCatDesc.setText(desc);
+              mCatLocation.setText(latitude + ", " + longitude);
 
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
@@ -94,11 +96,11 @@ public class DetailsActivity extends AppCompatActivity {
             int width = size.x;
             int height = size.y;
               Picasso.with(DetailsActivity.this)
-                  .load("file:" + photoPath)
-                  .resize(width, height)
-                  .placeholder(R.drawable.ic_pets_black_24dp)
-                  .centerCrop()
-                  .into(mPhoto);
+                      .load("file:" + photoPath)
+                      .resize(width, height)
+                      .placeholder(R.drawable.ic_pets_black_24dp)
+                      .centerCrop()
+                      .into(mPhoto);
       }
     }
 

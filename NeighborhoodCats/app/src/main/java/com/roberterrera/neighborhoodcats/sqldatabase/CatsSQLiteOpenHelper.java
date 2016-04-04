@@ -138,7 +138,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         if (cursor != null) {
             cursor.moveToFirst();
         }
-        return cursor.getColumnIndex(CAT_LAT);
+        return cursor.getDouble(cursor.getColumnIndex(CAT_LAT));
     }
 
     public double getCatLongByID(int id) {
@@ -156,7 +156,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         if (cursor != null) {
             cursor.moveToFirst();
         }
-        return cursor.getColumnIndex(CAT_LONG);
+        return cursor.getDouble(cursor.getColumnIndex(CAT_LONG));
     }
 
     public String getCatNameByID(int id) {

@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity
             String name = mHelper.getCatNameByID(id);
             String desc = mHelper.getCatDescByID(id);
             String latitude = String.valueOf(mHelper.getCatLatByID(id));
-            String longitude = String.valueOf(mHelper.getCatLatByID(id));
+            String longitude = String.valueOf(mHelper.getCatLongByID(id));
             String imagePath = mHelper.getCatPhotoByID(id);
 
             Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
