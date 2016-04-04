@@ -8,10 +8,10 @@ public class Cat {
     private String mName;
     private String mDesc;
     private String mPhoto; // file location of image
-    private String mLatitude;
-    private String mLongitude;
+    private double mLatitude;
+    private double mLongitude;
 
-    public Cat(int id, String name, String desc, String latitude, String longitude, String photo) {
+    public Cat(int id, String name, String desc, double latitude, double longitude, String photo) {
         this.id = id;
         this.mName = name;
         this.mDesc = desc;
@@ -20,20 +20,20 @@ public class Cat {
         this.mPhoto = photo;
     }
 
-    public String getLatitude() {
+    public double getLatitude() {
         return mLatitude;
     }
 
-    public void setLatitude(String latitude) {
-        this.mLatitude = latitude;
+    public void setLatitude(double mLatitude) {
+        this.mLatitude = mLatitude;
     }
 
-    public String getLongitude() {
+    public double getLongitude() {
         return mLongitude;
     }
 
-    public void setLongitude(String longitude) {
-        this.mLongitude = longitude;
+    public void setLongitude(double mLongitude) {
+        this.mLongitude = mLongitude;
     }
 
     public Cat() {}

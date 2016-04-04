@@ -116,7 +116,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         values.put(CAT_NAME, name);
         values.put(CAT_DESC, desc);
         values.put(CAT_LAT, latitude);
-        values.put(CAT_LAT, longitude);
+        values.put(CAT_LONG, longitude);
         values.put(CAT_IMG, photo);
 
         db.insert(CAT_LIST_TABLE_NAME, null, values);
@@ -227,8 +227,8 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
 
         String name = cursor.getString( cursor.getColumnIndex(CAT_NAME) );
         String desc = cursor.getString( cursor.getColumnIndex(CAT_DESC) );
-        String latitude = cursor.getString(cursor.getColumnIndex(CAT_LAT));
-        String longitude = cursor.getString(cursor.getColumnIndex(CAT_LONG));
+        double latitude = cursor.getColumnIndex(CAT_LAT);
+        double longitude = cursor.getColumnIndex(CAT_LONG);
         String photo = cursor.getString(cursor.getColumnIndex(CAT_IMG));
 
         cursor.close();

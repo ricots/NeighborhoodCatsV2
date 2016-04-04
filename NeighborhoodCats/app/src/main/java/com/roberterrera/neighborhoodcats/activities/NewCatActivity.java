@@ -430,9 +430,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (mLastLocation != null) {
-//            mCatLocation.setText(String.valueOf(mLastLocation.getLatitude())+", "
-//                    +(String.valueOf(mLastLocation.getLongitude())));
-//            mLatLong = mCatLocation.getText().toString();
             latitude = mLastLocation.getLatitude();
             longitude = mLastLocation.getLongitude();
 //        }

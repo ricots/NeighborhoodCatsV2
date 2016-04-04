@@ -255,8 +255,8 @@ public class MainActivity extends AppCompatActivity
             int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
             String name = mHelper.getCatNameByID(id);
             String desc = mHelper.getCatDescByID(id);
-            String latitude = String.valueOf(mHelper.getCatLatByID(id));
-            String longitude = String.valueOf(mHelper.getCatLongByID(id));
+            double latitude = mHelper.getCatLatByID(id);
+            double longitude = mHelper.getCatLongByID(id);
             String imagePath = mHelper.getCatPhotoByID(id);
 
             Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);

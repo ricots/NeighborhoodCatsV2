@@ -12,7 +12,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.widget.Toast;
+import android.widget.Toolbar;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -38,6 +38,7 @@ import java.util.ArrayList;
 public class MapsActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
 
+
     private GoogleMap mMap;
     private double mLatitude, mLongitude;
     private Location mLastLocation;
@@ -54,6 +55,8 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        setTitle("Map Your Cats!");
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
@@ -105,57 +108,54 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mCatArrayList = new ArrayList<>();
-
+        helper = new CatsSQLiteOpenHelper(MapsActivity.this);
+        helper.getReadableDatabase();
+        cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
         LatLng lastLocation = new LatLng(mLatitude, mLongitude);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        locationManager.requestLocationUpdates(provider, 0, 1, this);
 
-        mMap.addMarker(new MarkerOptions().position(lastLocation).title("You"));
+        mMap.addMarker(new MarkerOptions()
+                .position(lastLocation)
+                .title("You"));
+
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(lastLocation)
-                .zoom(mMap.getMaxZoomLevel() * 0.6f)
+                .zoom(mMap.getMaxZoomLevel() * 0.8f)
                 .build();
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
         //TODO: Display saved cats' locations on map with custom pin.
-        addCatsToList();
-        Log.d("addCatsToList", mCatArrayList.toString());
-        getCatLocations();
-
-    }
-//TODO: Investigate: Logs show 3 items in arraylist [1,1,1,] even though only 2 items are in database.
-    private ArrayList<Cat> addCatsToList() {
-        helper = new CatsSQLiteOpenHelper(MapsActivity.this);
-        helper.getReadableDatabase();
-        cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
-        id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-
-        // looping through all rows and adding to list
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                mCatArrayList.add(helper.getCatByID(id));
-                Log.d("addCatsToList", String.valueOf(id));
-            } while (cursor.moveToNext());
-        }
-        Log.d("addCatsToList", mCatArrayList.toString());
-
-        return mCatArrayList;
+        loadCatsList();
     }
 
-    private void getCatLocations(){
-        // You can customize the marker image using images bundled with
-        // your app, or dynamically generated bitmaps.
+    private void loadCatsList(){
 
-        double catLatitude = helper.getCatLatByID(id);
-        double catLongitude = helper.getCatLongByID(id);
+        // Loop through arraylist and add database items to it.
+        while (cursor.moveToNext()){
+            int id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+            String name = helper.getCatNameByID(id);
+            String desc = helper.getCatDescByID(id);
+            double latitude = helper.getCatLatByID(id);
+            double longitude = helper.getCatLongByID(id);
+            String imagePath = helper.getCatPhotoByID(id);
 
-        for (int i = 0; i <= cursor.getCount(); i++) {
-            LatLng catLatLing = new LatLng(catLatitude, catLongitude);
+            Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
+            mCatArrayList.add(cat);
+
+            LatLng catLatLing = new LatLng(latitude, longitude);
             Marker catMap = mMap.addMarker(new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pets_black_24dp))
                     .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
                     .position(catLatLing)
-                    .title(helper.getCatNameByID(i)));
+                    .title(name));
             Log.d("getCatLocations", String.valueOf(catLatLing));
+            Log.d("mCatArrayList", "mCatArrayList size: "+mCatArrayList.size());
+
         }
+        cursor.close();
     }
 
     @Override
@@ -165,8 +165,11 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         if (mLastLocation != null) {
             mLatitude = mLastLocation.getLatitude();
             mLongitude = mLastLocation.getLongitude();
+            Log.d("onConnected", mLatitude+", "+mLongitude);
         } else {
-            Toast.makeText(MapsActivity.this, "Last location is null", Toast.LENGTH_SHORT).show();
+            mLatitude = mLastLocation.getLatitude();
+            mLongitude = mLastLocation.getLongitude();
+            Log.d("onConnected_else", mLatitude+", "+mLongitude);
         }
     }
 
@@ -186,13 +189,6 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         mTracker.setScreenName("MapsActivity~");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         locationManager.requestLocationUpdates(provider, 400, 1, this);
