@@ -19,7 +19,7 @@ My hope is that this app will give you some joy as you photograph the cats in yo
  - More features are planned! Stay tuned! (To suggest a feature please email me at robert.errera.developer@gmail.com)
 
 ### APIs, SDKs, and Libraries used:
- - Camera SDK
+ - Camera API
  - Google Maps API
  - [Picasso library](http://square.github.io/picasso/)
  - Bruno R. Nunes' [SwipableRecyclerView implementation](https://github.com/brnunes/SwipeableRecyclerView)

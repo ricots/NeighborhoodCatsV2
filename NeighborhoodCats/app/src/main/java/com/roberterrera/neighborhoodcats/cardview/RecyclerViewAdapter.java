@@ -15,12 +15,13 @@ import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by Rob on 4/3/16.
  */
-public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
+public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implements ItemTouchHelperAdapter {
     private List<Cat> catList;
     private Context mContext;
     private Cursor mCursor;
@@ -78,25 +79,25 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
     }
 
 
-//    @Override
-//    public void onItemDismiss(int position) {
-//        catList.remove(position);
-//        notifyItemRemoved(position);
-//    }
-////
-//    @Override
-//    public boolean onItemMove(int fromPosition, int toPosition) {
-//        if (fromPosition < toPosition) {
-//            for (int i = fromPosition; i < toPosition; i++) {
-//                Collections.swap(catList, i, i + 1);
-//            }
-//        } else {
-//            for (int i = fromPosition; i > toPosition; i--) {
-//                Collections.swap(catList, i, i - 1);
-//            }
-//        }
-//        notifyItemMoved(fromPosition, toPosition);
-//        return true;
-//    }
+    @Override
+    public void onItemDismiss(int position) {
+        catList.remove(position);
+        notifyItemRemoved(position);
+    }
+//
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition) {
+        if (fromPosition < toPosition) {
+            for (int i = fromPosition; i < toPosition; i++) {
+                Collections.swap(catList, i, i + 1);
+            }
+        } else {
+            for (int i = fromPosition; i > toPosition; i--) {
+                Collections.swap(catList, i, i - 1);
+            }
+        }
+        notifyItemMoved(fromPosition, toPosition);
+        return true;
+    }
 
 }

@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity
 
         // specify the recycler view adapter
         mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
-        mAdapter.setHasStableIds(true);
         mRecyclerView.setAdapter(mAdapter);
 
 
@@ -162,6 +161,8 @@ public class MainActivity extends AppCompatActivity
             Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
             catList.add(cat);
         }
+        mCursor.close();
+        mHelper.close();
     }
 
      @Override
