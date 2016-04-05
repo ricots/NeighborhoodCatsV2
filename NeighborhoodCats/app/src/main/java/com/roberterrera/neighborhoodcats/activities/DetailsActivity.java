@@ -3,6 +3,8 @@ package com.roberterrera.neighborhoodcats.activities;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Point;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -24,6 +26,10 @@ import com.squareup.picasso.Picasso;
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class DetailsActivity extends AppCompatActivity {
 
@@ -74,8 +80,8 @@ public class DetailsActivity extends AppCompatActivity {
           latitude = helper.getCatLatByID(id);
           longitude = helper.getCatLongByID(id);
           Log.d("DetailsActivity", "latitude: "+latitude);
-          Log.d("DetailsActivity", "longitude: "+longitude);
-          mLatLong = locationToString();
+          Log.d("DetailsActivity", "longitude: " + longitude);
+//          mLatLong = locationToString();
         return null;
       }
 
@@ -83,18 +89,18 @@ public class DetailsActivity extends AppCompatActivity {
       protected void onPostExecute(Void aVoid) {
           super.onPostExecute(aVoid);
 
-              // Set activity title
-               if (name != null) {
-                   setTitle(name);
-               } else {
-                   setTitle("Cat Details");
-               }
+          // Set activity title
+          if (name != null) {
+              setTitle(name);
+          } else {
+              setTitle("Cat Details");
+          }
 
-//              mEditCatName.setText(name);
-              mFullCatDesc.setText(desc);
-              mCatLocation.setText(mLatLong);
+          mFullCatDesc.setText(desc);
+          showAddress();
 
-            Display display = getWindowManager().getDefaultDisplay();
+
+          Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
             display.getSize(size);
             int width = size.x;
@@ -108,10 +114,26 @@ public class DetailsActivity extends AppCompatActivity {
       }
     }
 
-    public String locationToString() {
-        return (String.valueOf(latitude)
-                + ", "
-                + String.valueOf(longitude));
+    public void showAddress(){
+        Geocoder geocoder;
+        List<Address> addresses;
+        geocoder = new Geocoder(this, Locale.getDefault());
+
+        addresses = new ArrayList<>();
+
+        try {
+            addresses = geocoder.getFromLocation(latitude, longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+        String city = addresses.get(0).getLocality();
+        String state = addresses.get(0).getAdminArea();
+        String postalCode = addresses.get(0).getPostalCode();
+
+        mCatLocation.setText(address+", "+city+", "+state+" "+postalCode);
+
     }
 
     @Override
