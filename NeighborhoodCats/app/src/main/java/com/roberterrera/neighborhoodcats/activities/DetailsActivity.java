@@ -23,8 +23,6 @@ import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,14 +49,11 @@ public class DetailsActivity extends AppCompatActivity {
 
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // TODO: Set up layout with text that is editable instead of EditTexts.
-//        mCatName = (TextView) findViewById(R.id.textView_details_newname);
         mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
         mFoundAt = (TextView) findViewById(R.id.textView_details_found);
         mCatLocation = (TextView) findViewById(R.id.textView_details_newlocation);
         mPhoto = (ImageView) findViewById(R.id.imageView_details_newimage);
         mFullCatDesc = (TextView) findViewById(R.id.editText_details_newdesc);
-//        mEditCatName = (EditText) findViewById(R.id.editText_details_newname);
 
         LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
         loadCatAsyncTask.execute();

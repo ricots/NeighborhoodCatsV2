@@ -5,13 +5,13 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Criteria;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -34,7 +34,6 @@ import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
@@ -129,8 +128,6 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
-//        Log.d("MapsActivity", "LatLing Address: "+getAddressFromLatLng(lastLocation));
-
         // Display cat markers on the map using the lat and lon saved to the items' database columns.
         loadCatsList();
     }
@@ -222,21 +219,6 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         locationManager.removeUpdates(this);
 
     }
-//
-//    private String getAddressFromLatLng( LatLng latLng ) {
-//        Geocoder geocoder = new Geocoder(MapsActivity.this);
-//
-//        String address = "";
-//        try {
-//            address = geocoder
-//                    .getFromLocation( latLng.latitude, latLng.longitude, 1 )
-//                    .get( 0 ).getAddressLine( 0 );
-//        } catch (IOException e ) {
-//            e.printStackTrace();
-//        }
-//
-//        return address;
-//    }
 
     @Override
     public void onLocationChanged(Location location) {

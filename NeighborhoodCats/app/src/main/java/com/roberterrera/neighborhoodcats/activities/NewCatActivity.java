@@ -36,8 +36,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.roberterrera.neighborhoodcats.R;
-import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
+import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -129,7 +129,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //TODO: Add a textview where the image view is that says "Tap to take a photo, long press to load from gallery", and set visibility to "GONE" at the start of the onActivityResult if statements.
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
@@ -234,7 +233,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
 
-            //TODO: Write code that deletes this image file if the camera is cancelled.
             // Create the File where the photo should go
             File photoFile = null;
             try {
@@ -248,7 +246,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             if (photoFile != null) {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                         Uri.fromFile(photoFile));
-                //TODO: Get GPS location from photo and save to CAT_IMG via EXIF data.
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
