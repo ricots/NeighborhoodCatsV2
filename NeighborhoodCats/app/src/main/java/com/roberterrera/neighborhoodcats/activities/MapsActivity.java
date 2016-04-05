@@ -240,16 +240,13 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
 
     @Override
     public void onLocationChanged(Location location) {
-//        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+
         double lat = location.getLatitude();
         double lng = location.getLongitude();
 
         Log.i("Location info: Lat", String.valueOf(lat));
         Log.i("Location info: Lng", String.valueOf(lng));
 
-//        mMap.clear();
-
-        mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title("You"));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 18));
     }
 

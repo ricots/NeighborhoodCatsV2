@@ -16,7 +16,7 @@
         android:id="@+id/imageView_details_newimage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"
+        android:layout_alignParentTop="true"
         tools:src="@drawable/ic_pets_black_24dp" />
 
     <FrameLayout
@@ -43,7 +43,6 @@
             <TextView
                 android:id="@+id/textView_details_found"
                 android:text="Found at:"
-                android:textColor="#000000"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
@@ -58,7 +57,6 @@
 
             <TextView
                 android:id="@+id/textView_details_newdesc"
-                android:textColor="#000000"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -68,7 +66,8 @@
             <TextView
                 android:id="@+id/editText_details_newdesc"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="#000000"/>
 
             </LinearLayout>
         </ScrollView>
