@@ -43,9 +43,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks,
+        implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
-
+//    implements NavigationView.OnNavigationItemSelectedListener
     public Cursor mCursor;
     private List<Cat> catList;
     private ArrayList<Geofence> mGeofenceList;
@@ -94,14 +94,14 @@ public class MainActivity extends AppCompatActivity
         });
 
         /* Drawer setup */
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+//        drawer.setDrawerListener(toggle);
+//        toggle.syncState();
+//
+//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+//        navigationView.setNavigationItemSelectedListener(this);
         /* */
 
 
@@ -165,35 +165,35 @@ public class MainActivity extends AppCompatActivity
         mRecyclerView.addOnItemTouchListener(swipeTouchListener);
 
         // Handle the search intent.
-        handleIntent(getIntent());
+//        handleIntent(getIntent());
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        handleIntent(intent);
-    }
+//    @Override
+//    protected void onNewIntent(Intent intent) {
+//        handleIntent(intent);
+//    }
+//
+//    public void handleIntent(Intent intent){
+//
+//        //TODO: Look into why search doesn't return the search results.
+//        if (Intent.ACTION_SEARCH.equals( intent.getAction() )){
+//            String query = intent.getStringExtra(SearchManager.QUERY);
+//            mCursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
+//            mAdapter.notifyDataSetChanged();
+//            Toast.makeText(MainActivity.this, "Cat List refreshed by search.", Toast.LENGTH_SHORT).show();
+//        }
+//    }
 
-    public void handleIntent(Intent intent){
 
-        //TODO: Look into why search doesn't return the search results.
-        if (Intent.ACTION_SEARCH.equals( intent.getAction() )){
-            String query = intent.getStringExtra(SearchManager.QUERY);
-            mCursor = CatsSQLiteOpenHelper.getInstance(this).searchCats(query);
-            mAdapter.notifyDataSetChanged();
-            Toast.makeText(MainActivity.this, "Cat List refreshed by search.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
+//    @Override
+//    public void onBackPressed() {
+//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        if (drawer.isDrawerOpen(GravityCompat.START)) {
+//            drawer.closeDrawer(GravityCompat.START);
+//        } else {
+//            super.onBackPressed();
+//        }
+//    }
 
     private void loadCatsList(){
         mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
@@ -219,12 +219,12 @@ public class MainActivity extends AppCompatActivity
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
 
-        // Setup for the search action.
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView)menu.findItem(R.id.action_search).getActionView();
-
-         SearchableInfo info = searchManager.getSearchableInfo( getComponentName() );
-        searchView.setSearchableInfo(info);
+//        // Setup for the search action.
+//        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+//        SearchView searchView = (SearchView)menu.findItem(R.id.action_search).getActionView();
+//
+//         SearchableInfo info = searchManager.getSearchableInfo( getComponentName() );
+//        searchView.setSearchableInfo(info);
 
          return true;
     }
@@ -236,37 +236,39 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (id == R.id.action_search) {
-            mTracker.send(new HitBuilders.EventBuilder()
-                    .setCategory("Action")
-                    .setAction("Search")
-                    .build());
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        //TODO: Update these values with settings.
-        if (id == R.id.nav_map) {
-            // Handle the map intent
+//        if (id == R.id.action_search) {
+//            mTracker.send(new HitBuilders.EventBuilder()
+//                    .setCategory("Action")
+//                    .setAction("Search")
+//                    .build());
+//            return true;
+//        }
+        if (id == R.id.menu_map) {
             Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
             startActivity(mapIntent);
-//        } else if (id == R.id.nav_gallery) {
-
-
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
+            return super.onOptionsItemSelected(item);
     }
+
+//    @SuppressWarnings("StatementWithEmptyBody")
+//    @Override
+//    public boolean onNavigationItemSelected(MenuItem item) {
+//        // Handle navigation view item clicks here.
+//        int id = item.getItemId();
+//
+//        //TODO: Update these values with settings.
+//        if (id == R.id.nav_map) {
+//            // Handle the map intent
+//            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+//            startActivity(mapIntent);
+////        } else if (id == R.id.nav_gallery) {
+//        }
+//
+//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        drawer.closeDrawer(GravityCompat.START);
+//        return true;
+//    }
 
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){

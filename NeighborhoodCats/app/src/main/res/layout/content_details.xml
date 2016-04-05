@@ -22,9 +22,11 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="135dp"
-        android:foregroundGravity="bottom"
-        android:background="#daffffff"
-        android:layout_alignParentBottom="true"
+        android:foregroundGravity="top"
+        android:background="#FFFFFF"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true">
 

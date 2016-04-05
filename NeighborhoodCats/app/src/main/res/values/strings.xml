@@ -111,5 +111,6 @@
     <string name="sample_address">Cat location updating...</string>
     <string name="accessibility_list_photo">Photo of cat</string>
     <string name="sample_desc_cardview">This is a sample description of a cat that you may have spotted while going about your day. Maybe it was a calico. Maybe it was a plain old gray. Maybe it wanted to play!</string>
+    <string name="menu_map">Map Your Cats</string>
 
 </resources>
