@@ -11,6 +11,7 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -60,7 +61,6 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.mainactivity_title));
 
-        //TODO: Disable swipe to open nav drawer (by killing xml?)
         catList = new ArrayList<>();
         mGeofenceList = new ArrayList<>();
 
@@ -77,6 +77,8 @@ public class MainActivity extends AppCompatActivity
         mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
         mRecyclerView.setAdapter(mAdapter);
 
+        DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
