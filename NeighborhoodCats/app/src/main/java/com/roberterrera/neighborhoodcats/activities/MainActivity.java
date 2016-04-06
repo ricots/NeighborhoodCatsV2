@@ -1,10 +1,13 @@
 package com.roberterrera.neighborhoodcats.activities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -17,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -56,6 +60,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.mainactivity_title));
 
+        //TODO: Disable swipe to open nav drawer (by killing xml?)
         catList = new ArrayList<>();
         mGeofenceList = new ArrayList<>();
 
@@ -181,8 +186,15 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.menu_map) {
-            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
-            startActivity(mapIntent);
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+            if (networkInfo != null && networkInfo.isConnected()) {
+                Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+                startActivity(mapIntent);
+            } else {
+                Toast.makeText(MainActivity.this, "Cat Map unavailable without an internet connection.", Toast.LENGTH_SHORT).show();
+            }
         }
 
             return super.onOptionsItemSelected(item);

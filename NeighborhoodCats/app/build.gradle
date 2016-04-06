@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "com.roberterrera.neighborhoodcats"
-        minSdkVersion 16
+        minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -33,6 +33,4 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:8.3.0'
     compile 'com.google.android.gms:play-services-identity:8.3.0'
     compile 'com.google.android.gms:play-services-analytics:8.3.0'
-//    compile 'frankiesardo:icepick:3.2.0'
-//    provided 'frankiesardo:icepick-processor:3.2.0'
 }

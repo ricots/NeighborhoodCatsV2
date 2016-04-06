@@ -8,9 +8,12 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Point;
+import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.media.ExifInterface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -43,7 +46,9 @@ import com.squareup.picasso.Picasso;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
@@ -56,8 +61,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private Location mLastLocation;
     private TextView mCatLocation;
     private String mLatLong;
-    double latitude, longitude;
-    String LATITUDE, LATITUDE_REF, LONGITUDE, LONGITUDE_REF;
+    private double latitude, longitude;
+    private NetworkInfo networkInfo;
+    private ConnectivityManager connMgr;
 
 
     private static final int REQUEST_TAKE_PHOTO = 1;
@@ -97,11 +103,19 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
+
+        connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        networkInfo = connMgr.getActiveNetworkInfo();
+
+        if (networkInfo != null && networkInfo.isConnected()) {
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                    mGoogleApiClient);
+        } else {
+            Toast.makeText(NewCatActivity.this, "Location unavailable", Toast.LENGTH_SHORT).show();
+        }
 
         // Open the camera when the activity is launched.
-//        dispatchTakePictureIntent();
+        dispatchTakePictureIntent();
 
         // Take a photo if you tap on the imageview
         mPhoto.setOnClickListener(new View.OnClickListener() {
@@ -132,24 +146,19 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras(); //TODO: Crashed on lollipop
+            Bundle extras = data.getExtras(); //TODO: Crashes on lollipop/kitkat
             Picasso.with(NewCatActivity.this)
                     .load("file:"+mCurrentPhotoPath)
                     .resize(300,300)
                     .centerCrop()
                     .into(mPhoto);
-//                getLocationFromImage("file:" + mCurrentPhotoPath);
-//            try {
-//                List<Address> listAddresses = geocoder.getFromLocation(latitude, longitude, 1);
-//                if (listAddresses !=null && listAddresses.size() > 0){
-//                    mCatLocation.setText(listAddresses.get(0).toString());
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-            mLatLong = locationToString();
-                mCatLocation.setText(mLatLong);
-                Log.d(TAG, "mLatLong: "+mLatLong);
+
+            if (networkInfo != null && networkInfo.isConnected()) {
+                showAddress();
+            } else {
+                mLatLong = locationToString();
+            }
+            mCatLocation.setText(mLatLong);
 
             // When an Image is picked
         } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
@@ -158,7 +167,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             // be loaded because it has to be downloaded first.
             Uri selectedImageUri = data.getData();
             mCurrentPhotoPath = getPath(selectedImageUri);
-            Log.d(TAG, "mCurrentPhotoPath: "+mCurrentPhotoPath);
 
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
@@ -171,20 +179,13 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .placeholder(R.drawable.ic_pets_black_24dp)
                     .centerCrop()
                     .into(mPhoto);
-//
-//            try {
-//                List<Address> listAddresses = geocoder.getFromLocation(latitude, longitude, 1);
-//                if (listAddresses !=null && listAddresses.size() > 0){
-//                    mCatLocation.setText(listAddresses.get(0).toString());
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
 
-//                getLocationFromImage("file:" + mCurrentPhotoPath);
+            if (networkInfo != null && networkInfo.isConnected()) {
+                showAddress();
+            } else {
                 mLatLong = locationToString();
-                mCatLocation.setText(mLatLong);
-                Log.d(TAG, "mLatLong: " + mLatLong);
+            }
+            mCatLocation.setText(mLatLong);
 
         }
     }
@@ -282,78 +283,33 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
       this.sendBroadcast(mediaScanIntent);
   }
 
-
-    private void getLocationFromImage(String filepath) throws IOException {
-
-        ExifInterface exif = new ExifInterface(filepath);
-         LATITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-         LATITUDE_REF = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
-         LONGITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-         LONGITUDE_REF = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
-
-        // your Final lat Long Values
-
-        if ((LATITUDE != null)
-                && (LATITUDE_REF != null)
-                && (LONGITUDE != null)
-                && (LONGITUDE_REF != null)) {
-
-            if (LATITUDE_REF.equals("N")) {
-                latitude = convertToDegree(LATITUDE);
-            } else {
-                latitude = 0 - convertToDegree(LATITUDE);
-            }
-
-            if (LONGITUDE_REF.equals("E")) {
-                longitude = convertToDegree(LONGITUDE);
-            } else {
-                longitude = 0 - convertToDegree(LONGITUDE);
-            }
-
-        }
-    }
-
-        private Float convertToDegree(String stringDMS){
-            Float result = null;
-            String[] DMS = stringDMS.split(",", 3);
-
-            String[] stringD = DMS[0].split("/", 2);
-            Double D0 = new Double(stringD[0]);
-            Double D1 = new Double(stringD[1]);
-            Double FloatD = D0/D1;
-
-            String[] stringM = DMS[1].split("/", 2);
-            Double M0 = new Double(stringM[0]);
-            Double M1 = new Double(stringM[1]);
-            Double FloatM = M0/M1;
-
-            String[] stringS = DMS[2].split("/", 2);
-            Double S0 = new Double(stringS[0]);
-            Double S1 = new Double(stringS[1]);
-            Double FloatS = S0/S1;
-
-            result = new Float(FloatD + (FloatM/60) + (FloatS/3600));
-
-            return result;
-
-
-        }
-
-        public int getLatitudeE6(){
-            return (int)(latitude*1000000);
-        }
-
-        public int getLongitudeE6(){
-            return (int)(longitude*1000000);
-        }
-
     public String locationToString() {
         return (String.valueOf(latitude)
                 + ", "
                 + String.valueOf(longitude));
     }
 
+    public void showAddress(){
+        Geocoder geocoder;
+        List<Address> addresses;
+        geocoder = new Geocoder(this, Locale.getDefault());
 
+        addresses = new ArrayList<>();
+
+        try {
+            addresses = geocoder.getFromLocation(latitude, longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+        String city = addresses.get(0).getLocality();
+        String state = addresses.get(0).getAdminArea();
+        String postalCode = addresses.get(0).getPostalCode();
+
+        mCatLocation.setText(address+", "+city+", "+state+" "+postalCode);
+
+    }
 
     private boolean hasCamera(){
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
@@ -420,16 +376,26 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        Toast.makeText(NewCatActivity.this, "Could not connect to internet. Cat locations won't be saved.", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        if (mLastLocation != null) {
-            latitude = mLastLocation.getLatitude();
-            longitude = mLastLocation.getLongitude();
-//        }
+
+        // Check if a connection is available.
+        networkInfo = connMgr.getActiveNetworkInfo();
+
+        if (networkInfo != null && networkInfo.isConnected()) {
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                    mGoogleApiClient);
+            if (mLastLocation != null) {
+                latitude = mLastLocation.getLatitude();
+                longitude = mLastLocation.getLongitude();
+            }
+        } else {
+            latitude = 0.0;
+            longitude = 0.0;
+            Toast.makeText(NewCatActivity.this, "Location unavailable.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -484,12 +450,16 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     public void onLocationChanged(Location location) {
 
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
+        // Check if a connection is available.
+        networkInfo = connMgr.getActiveNetworkInfo();
 
-        Log.i("Location info: Lat", String.valueOf(latitude));
-        Log.i("Location info: Lng", String.valueOf(longitude));
-
+        if (networkInfo != null && networkInfo.isConnected()) {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+        } else {
+            latitude = 0.0;
+            longitude = 0.0;
+        }
     }
 
 }

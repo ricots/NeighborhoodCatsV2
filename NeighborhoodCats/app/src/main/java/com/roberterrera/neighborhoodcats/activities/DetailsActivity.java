@@ -1,10 +1,13 @@
 package com.roberterrera.neighborhoodcats.activities;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -18,6 +21,7 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
@@ -74,9 +78,7 @@ public class DetailsActivity extends AppCompatActivity {
           photoPath = helper.getCatPhotoByID(id);
           latitude = helper.getCatLatByID(id);
           longitude = helper.getCatLongByID(id);
-          Log.d("DetailsActivity", "latitude: "+latitude);
-          Log.d("DetailsActivity", "longitude: " + longitude);
-//          mLatLong = locationToString();
+          mLatLong = locationToString();
         return null;
       }
 
@@ -92,7 +94,16 @@ public class DetailsActivity extends AppCompatActivity {
           }
 
           mFullCatDesc.setText(desc);
-          showAddress();
+
+          ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+          final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+          if (networkInfo != null && networkInfo.isConnected()) {
+              showAddress();
+          } else {
+              mCatLocation.setText(mLatLong);
+              Toast.makeText(DetailsActivity.this, "Could not show street address without a connection.", Toast.LENGTH_SHORT).show();
+          }
 
 
           Display display = getWindowManager().getDefaultDisplay();
@@ -131,6 +142,12 @@ public class DetailsActivity extends AppCompatActivity {
 
     }
 
+    public String locationToString() {
+        return (String.valueOf(latitude)
+                + ", "
+                + String.valueOf(longitude));
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -165,7 +182,7 @@ public class DetailsActivity extends AppCompatActivity {
         share_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         share_intent.putExtra(Intent.EXTRA_SUBJECT,
                 "Share this cat!");
-        share_intent.putExtra(Intent.EXTRA_TEXT, name+": "+desc);
+        share_intent.putExtra(Intent.EXTRA_TEXT, name + ": " + desc);
 
         // start the intent
         try {
