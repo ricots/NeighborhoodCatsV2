@@ -68,6 +68,8 @@
                     android:id="@+id/editText_details_newdesc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    tools:text="Sample notes"
+                    android:textIsSelectable="true"
                     android:textColor="#000000" />
 
             </LinearLayout>
