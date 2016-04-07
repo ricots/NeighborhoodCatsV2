@@ -33,7 +33,7 @@ My hope is that this app will give you some joy as you photograph the cats in yo
  - On Lollipop or KitKat: Saved items created via the device's photo gallery do not reliably appear in the list.
  - If the image is an older image being selected via Google Photos, the image will not be loaded because it has to be downloaded first (so there is no image file path to load when the app is looking for the file path).
 
-**NOTE ABOUT PLAY STORE: The Play Store submission is pending (4/6), and the app should be live soon.**
+*Now available on the [Google Play Store!] (https://play.google.com/store/apps/details?id=com.roberterrera.neighborhoodcats)*
 
 ![](https://github.com/roberrera/NeighborhoodCats/blob/master/NeighborhoodCats/Screenshots/device-2016-04-04-220043(75%20pct).png)
 ![](https://github.com/roberrera/NeighborhoodCats/blob/master/NeighborhoodCats/Screenshots/device-2016-04-04-220600(reduced).png)
