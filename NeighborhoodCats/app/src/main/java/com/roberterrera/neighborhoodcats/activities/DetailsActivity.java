@@ -165,6 +165,10 @@ public class DetailsActivity extends AppCompatActivity {
         if (id == R.id.menu_item_share){
             shareChooser();
         }
+        if (id == R.id.menu_edit){
+            Intent editIntent = new Intent(DetailsActivity.this, EditActivity.class);
+            startActivity(editIntent);
+        }
 
         return super.onOptionsItemSelected(item);
     }
