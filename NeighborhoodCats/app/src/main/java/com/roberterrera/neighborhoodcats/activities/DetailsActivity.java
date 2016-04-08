@@ -111,12 +111,11 @@ public class DetailsActivity extends AppCompatActivity {
             display.getSize(size);
             int width = size.x;
             int height = size.y;
-              Picasso.with(DetailsActivity.this)
-                      .load("file:" + photoPath)
-//                      .resize(width, height)
-                      .placeholder(R.drawable.ic_pets_black_24dp)
-//                      .centerCrop()
-                      .into(mPhoto);
+
+          Picasso.with(DetailsActivity.this)
+              .load("file:" + photoPath)
+              .placeholder(R.drawable.ic_pets_black_24dp)
+              .into(mPhoto);
       }
     }
 
