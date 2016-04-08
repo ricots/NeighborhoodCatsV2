@@ -257,12 +257,12 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         db.update(CAT_LIST_TABLE_NAME, values, selection, selectionArgs);
         db.close();
     }
-    public void updateNameByID (int id, int newValue){
+    public void updateNameByID (int id, String newName){
 
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(CAT_NAME, newValue);
+        values.put(CAT_NAME, newName);
 
         // Which row to update, based on the ID
         String selection = CAT_ID + " LIKE ?";
@@ -278,12 +278,12 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void updateDescByID (int id, int newValue){
+    public void updateDescByID (int id, String newDesc){
 
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(CAT_DESC, newValue);
+        values.put(CAT_DESC, newDesc);
 
         // Which row to update, based on the ID
         String selection = CAT_ID + " LIKE ?";
@@ -299,25 +299,26 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-//    public void updateLocationByID (int id, int newValue){
-//
-//        SQLiteDatabase db = this.getWritableDatabase();
-//
-//        ContentValues values = new ContentValues();
-//        values.put(COL_LOCATION, newValue);
-//
-//        // Which row to update, based on the ID
-//        String selection = CAT_ID + " LIKE ?";
-//        String[] selectionArgs = { String.valueOf(id) };
-//
-//        int count = db.update(
-//                CAT_LIST_TABLE_NAME,
-//                values,
-//                selection,
-//                selectionArgs);
-//
-//        db.update(CAT_LIST_TABLE_NAME, values, selection, selectionArgs);
-//        db.close();
-//    }
+    public void updateLocationByID (int id, double lat, double lon){
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(CAT_LAT, lat);
+        values.put(CAT_LONG, lon);
+
+        // Which row to update, based on the ID
+        String selection = CAT_ID + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(id) };
+
+        int count = db.update(
+                CAT_LIST_TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
+
+        db.update(CAT_LIST_TABLE_NAME, values, selection, selectionArgs);
+        db.close();
+    }
 
 }

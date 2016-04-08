@@ -3,6 +3,7 @@ package com.roberterrera.neighborhoodcats.activities;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
@@ -39,7 +40,7 @@ public class DetailsActivity extends AppCompatActivity {
     private ImageView mPhoto;
     private EditText mEditCatName;
     private CatsSQLiteOpenHelper helper;
-    private int id;
+    private int catId;
     private String name, desc, photoPath;
     private double latitude, longitude;
     private String mLatLong;
@@ -62,22 +63,21 @@ public class DetailsActivity extends AppCompatActivity {
         LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
         loadCatAsyncTask.execute();
 
-
     }
 
     private class LoadCatAsyncTask extends AsyncTask<Void, Void, Void>{
       @Override
       protected Void doInBackground(Void... params) {
         // Get intent from MainActivity list via the cat's id.
-          id = getIntent().getIntExtra("id", -1);
+          catId = getIntent().getIntExtra("id", -1);
           helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
           helper.getReadableDatabase();
           helper.close();
-          name = helper.getCatNameByID(id);
-          desc = helper.getCatDescByID(id);
-          photoPath = helper.getCatPhotoByID(id);
-          latitude = helper.getCatLatByID(id);
-          longitude = helper.getCatLongByID(id);
+          name = helper.getCatNameByID(catId);
+          desc = helper.getCatDescByID(catId);
+          photoPath = helper.getCatPhotoByID(catId);
+          latitude = helper.getCatLatByID(catId);
+          longitude = helper.getCatLongByID(catId);
           mLatLong = locationToString();
         return null;
       }
@@ -166,8 +166,13 @@ public class DetailsActivity extends AppCompatActivity {
             shareChooser();
         }
         if (id == R.id.menu_edit){
+            CatsSQLiteOpenHelper mHelper = new CatsSQLiteOpenHelper(DetailsActivity.this);
+            mHelper.getWritableDatabase();
+
             Intent editIntent = new Intent(DetailsActivity.this, EditActivity.class);
+            editIntent.putExtra("id", catId);
             startActivity(editIntent);
+            mHelper.close();
         }
 
         return super.onOptionsItemSelected(item);
