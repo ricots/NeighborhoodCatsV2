@@ -76,12 +76,12 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_cat);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("New Cat!");
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
 
         mPhoto = (ImageView) findViewById(R.id.imageView_newimage);
         mCatLocation = (TextView) findViewById(R.id.textView_newlocation);
@@ -445,6 +445,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
         Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
         startActivity(backToMainIntent);
+        helper.close();
     }
 
     @Override
