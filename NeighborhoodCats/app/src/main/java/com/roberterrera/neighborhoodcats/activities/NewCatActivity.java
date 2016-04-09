@@ -119,12 +119,12 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         } else {
             Toast.makeText(NewCatActivity.this, "Location unavailable", Toast.LENGTH_SHORT).show();
         }
+        setupCameraIntentHelper();
 
         // Open the camera when the activity is launched.
         if (mCameraIntentHelper != null) {
             mCameraIntentHelper.startCameraIntent();
         }
-        setupCameraIntentHelper();
 
 
         // Take a photo if you tap on the imageview
@@ -160,24 +160,26 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             public void onPhotoUriFound(Date dateCameraIntentStarted, Uri photoUri, int rotateXDegrees) {
                 Toast.makeText(NewCatActivity.this, R.string.activity_camera_intent_photo_uri_found, Toast.LENGTH_SHORT).show();
 
-                Display display = getWindowManager().getDefaultDisplay();
-                Point size = new Point();
-                display.getSize(size);
-                int width = size.x;
-                int height = size.y;
+//                Display display = getWindowManager().getDefaultDisplay();
+//                Point size = new Point();
+//                display.getSize(size);
+//                int width = size.x;
+//                int height = size.y;
 
-                Picasso.with(NewCatActivity.this)
-                        .load("file:" + mCurrentPhotoPath)
-                        .resize(width, height)
-                        .centerCrop()
-                        .into(mPhoto);
+//                Picasso.with(NewCatActivity.this)
+//                        .load("file:" + mCurrentPhotoPath)
+//                        .resize(width, height)
+//                        .centerCrop()
+//                        .into(mPhoto);
 
-//                Bitmap photo = BitmapHelper.readBitmap(NewCatActivity.this, photoUri);
-//                if (photo != null) {
-//                    photo = BitmapHelper.shrinkBitmap(photo, 300, rotateXDegrees);
-//                    ImageView imageView = (ImageView) findViewById(de.ecotastic.android.camerautil.sample.R.id.activity_camera_intent_image_view);
-//                    imageView.setImageBitmap(photo);
-//                }
+                Bitmap photo = BitmapHelper.readBitmap(NewCatActivity.this, photoUri);
+                if (photo != null) {
+                    photo = BitmapHelper.shrinkBitmap(photo, 300, rotateXDegrees);
+                    mPhoto.setImageBitmap(photo);
+                    mCurrentPhotoPath = getPath(photoUri);
+                } /*else {
+                    deletePhotoWithUri(photoUri);
+                }*/
             }
 
             @Override
@@ -221,36 +223,13 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             mCameraIntentHelper.onActivityResult(requestCode, resultCode, data);
 
-            Uri selectedImageUri = data.getData();
-            File cameraFile = null;
-            try {
-                cameraFile = createImageFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            if (cameraFile != null) {
-
-                mCurrentPhotoPath = getPath(selectedImageUri);
-                Display display = getWindowManager().getDefaultDisplay();
-                Point size = new Point();
-                display.getSize(size);
-                int width = size.x;
-                int height = size.y;
-
-                Picasso.with(NewCatActivity.this)
-                        .load("file:" + mCurrentPhotoPath)
-                        .resize(width, height)
-                        .centerCrop()
-                        .into(mPhoto);
-
-                if (networkInfo != null && networkInfo.isConnected()) {
-                    showAddress();
-                } else {
-                    mLatLong = locationToString();
-                }
-                mCatLocation.setText(mLatLong);
-            }
+//                if (networkInfo != null && networkInfo.isConnected()) {
+//                    showAddress();
+//                } else {
+//                    mLatLong = locationToString();
+//                }
+//                mCatLocation.setText(mLatLong);
+//            }
 
             // When an Image is picked
         } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
@@ -273,12 +252,12 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .centerCrop()
                     .into(mPhoto);
 
-            if (networkInfo != null && networkInfo.isConnected()) {
-                showAddress();
-            } else {
-                mLatLong = locationToString();
-            }
-            mCatLocation.setText(mLatLong);
+//            if (networkInfo != null && networkInfo.isConnected()) {
+//                showAddress();
+//            } else {
+//                mLatLong = locationToString();
+//            }
+//            mCatLocation.setText(mLatLong);
 
         }
     }
@@ -319,15 +298,38 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
         return false;
     }
+//
+//    private void dispatchTakePictureIntent() {
+//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//
+//        // Ensure that there's a camera activity to handle the intent
+//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+//            setResult(RESULT_OK, takePictureIntent);
+//            // Create the File where the photo should go
+//            File photoFile = null;
+//            try {
+//                photoFile = createImageFile();
+//            } catch (IOException ex) {
+//                // Error occurred while creating the File
+//                Log.d("DISPATCHTAKEPICTURE...", "Error: "+ex);
+//            }
+//
+//            // Continue only if the File was successfully created
+//            if (photoFile != null) {
+//                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+//                        Uri.fromFile(photoFile));
+//                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+//            }
+//        }
+//    }
 
-
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            setResult(RESULT_OK, takePictureIntent);
-            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-        }
-    }
+//    private void dispatchTakePictureIntent() {
+//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+//            setResult(RESULT_OK, takePictureIntent);
+//            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+//        }
+//    }
 
 
     // Save image to a file in the public pictures dir.
@@ -351,6 +353,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         galleryAddPic(); // Add image to device gallery.
         return image;
     }
+
 
   private void galleryAddPic() {
       Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -550,6 +553,11 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         mCameraIntentHelper.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 
 }

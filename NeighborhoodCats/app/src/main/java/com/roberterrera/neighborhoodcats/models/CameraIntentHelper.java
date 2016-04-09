@@ -25,10 +25,10 @@ import java.util.Locale;
  * @author Ralf Gehrer <ralf@ecotastic.de>
  */
 public class CameraIntentHelper {
-    private static final String DATE_CAMERA_INTENT_STARTED_STATE = "de.ecotastic.android.camerautil.example.TakePhotoActivity.dateCameraIntentStarted";
-    private static final String CAMERA_PIC_URI_STATE = "de.ecotastic.android.camerautil.example.TakePhotoActivity.CAMERA_PIC_URI_STATE";
-    private static final String PHOTO_URI_STATE = "de.ecotastic.android.camerautil.example.TakePhotoActivity.PHOTO_URI_STATE";
-    private static final String ROTATE_X_DEGREES_STATE = "de.ecotastic.android.camerautil.example.TakePhotoActivity.ROTATE_X_DEGREES_STATE";
+    private static final String DATE_CAMERA_INTENT_STARTED_STATE = "com.roberterrera.neighborhoodcats.activities.NewCatActivity.dateCameraIntentStarted";
+    private static final String CAMERA_PIC_URI_STATE = "com.roberterrera.neighborhoodcats.activities.NewCatActivity.CAMERA_PIC_URI_STATE";
+    private static final String PHOTO_URI_STATE = "com.roberterrera.neighborhoodcats.activities.NewCatActivity.PHOTO_URI_STATE";
+    private static final String ROTATE_X_DEGREES_STATE = "com.roberterrera.neighborhoodcats.activities..NewCatActivity.ROTATE_X_DEGREES_STATE";
 
     /**
      * Date and time the camera intent was started.
