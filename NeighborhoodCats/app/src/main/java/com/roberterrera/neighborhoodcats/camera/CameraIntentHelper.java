@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.models;
+package com.roberterrera.neighborhoodcats.camera;
 
 /**
  * Created by Rob on 4/8/16.
@@ -13,6 +13,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+
+import com.roberterrera.neighborhoodcats.activities.NewCatActivity;
 
 import java.io.File;
 import java.util.Date;

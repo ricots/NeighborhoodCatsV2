@@ -12,7 +12,6 @@ import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.media.ExifInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -41,9 +40,9 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
-import com.roberterrera.neighborhoodcats.models.BitmapHelper;
-import com.roberterrera.neighborhoodcats.models.CameraIntentHelper;
-import com.roberterrera.neighborhoodcats.models.CameraIntentHelperCallback;
+import com.roberterrera.neighborhoodcats.camera.BitmapHelper;
+import com.roberterrera.neighborhoodcats.camera.CameraIntentHelper;
+import com.roberterrera.neighborhoodcats.camera.CameraIntentHelperCallback;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
@@ -58,25 +57,26 @@ import java.util.Locale;
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
+    private String mLatLong;
+    public String mCurrentPhotoPath;
+    private double latitude, longitude;
+
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
+    private TextView mCatLocation;
+
     private Tracker mTracker;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
-    private TextView mCatLocation;
-    private String mLatLong;
-    private double latitude, longitude;
+
     private NetworkInfo networkInfo;
     private ConnectivityManager connMgr;
     private CameraIntentHelper mCameraIntentHelper;
-
-
 
     private static final int REQUEST_TAKE_PHOTO = 1;
     private static final int RESULT_LOAD_IMG = 2;
     private static final String TAG = "NewCatActivity";
 
-    private String mCurrentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,20 +166,16 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 //                int width = size.x;
 //                int height = size.y;
 
-//                Picasso.with(NewCatActivity.this)
-//                        .load("file:" + mCurrentPhotoPath)
-//                        .resize(width, height)
-//                        .centerCrop()
-//                        .into(mPhoto);
 
                 Bitmap photo = BitmapHelper.readBitmap(NewCatActivity.this, photoUri);
                 if (photo != null) {
                     photo = BitmapHelper.shrinkBitmap(photo, 300, rotateXDegrees);
                     mPhoto.setImageBitmap(photo);
-                    mCurrentPhotoPath = getPath(photoUri);
-                } /*else {
+                    mCurrentPhotoPath = photoUri.getPath();
+                    Log.d("SETUPCAMERAINTENT", mCurrentPhotoPath);
+                } else {
                     deletePhotoWithUri(photoUri);
-                }*/
+                }
             }
 
             @Override
@@ -216,13 +212,15 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            mCameraIntentHelper.onActivityResult(requestCode, resultCode, data);
-
+//        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
+            mCameraIntentHelper.onActivityResult(requestCode, resultCode, intent);
+        if (mCurrentPhotoPath != null) {
+            Log.d("ONACTIVITYRESULT", mCurrentPhotoPath);
+        }
 //                if (networkInfo != null && networkInfo.isConnected()) {
 //                    showAddress();
 //                } else {
@@ -232,11 +230,13 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 //            }
 
             // When an Image is picked
-        } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
-                && null != data) {
+//        } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
+//                && null != intent) {
+        if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
+                && null != intent) {
             // Note: If image is an older image being selected via Google Photos, the image will not
             // be loaded because it has to be downloaded first.
-            Uri selectedImageUri = data.getData();
+            Uri selectedImageUri = intent.getData();
             mCurrentPhotoPath = getPath(selectedImageUri);
 
             Display display = getWindowManager().getDefaultDisplay();

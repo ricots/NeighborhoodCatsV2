@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.models;
+package com.roberterrera.neighborhoodcats.camera;
 
 import android.annotation.SuppressLint;
 import java.text.DateFormat;

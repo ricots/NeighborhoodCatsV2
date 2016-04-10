@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.models;
+package com.roberterrera.neighborhoodcats.camera;
 
 /**
  * Created by Rob on 4/8/16.
