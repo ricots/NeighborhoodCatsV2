@@ -134,7 +134,15 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
 
             mEditCatName.setText(helper.getCatNameByID(catId));
             mEditCatDesc.setText(helper.getCatDescByID(catId));
-            showAddress();
+
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+//            if (networkInfo != null && networkInfo.isConnected()) {
+//                showAddress();
+//            } else {
+                mCatLocation.setText(locationToString());
+//            }
 
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
@@ -176,6 +184,11 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
 
         mCatLocation.setText(address+", "+city+", "+state+" "+postalCode);
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 
     @Override

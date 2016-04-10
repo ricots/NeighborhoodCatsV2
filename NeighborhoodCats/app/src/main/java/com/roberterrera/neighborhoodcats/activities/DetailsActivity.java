@@ -95,28 +95,26 @@ public class DetailsActivity extends AppCompatActivity {
 
           mFullCatDesc.setText(desc);
 
-          ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-          final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-
-          if (networkInfo != null && networkInfo.isConnected()) {
-              showAddress();
-          } else {
+//          ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+//          final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+//
+//          if (networkInfo != null && networkInfo.isConnected()) {
+//              showAddress();
+//          } else {
               mCatLocation.setText(mLatLong);
-              Toast.makeText(DetailsActivity.this, "Could not show street address without a connection.", Toast.LENGTH_SHORT).show();
-          }
-
+//              Toast.makeText(DetailsActivity.this, "Could not show street address without a connection.", Toast.LENGTH_SHORT).show();
+//          }
 
           Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
             display.getSize(size);
             int width = size.x;
             int height = size.y;
-              Picasso.with(DetailsActivity.this)
-                      .load("file:" + photoPath)
-//                      .resize(width, height)
-                      .placeholder(R.drawable.ic_pets_black_24dp)
-//                      .centerCrop()
-                      .into(mPhoto);
+
+          Picasso.with(DetailsActivity.this)
+              .load("file:" + photoPath)
+              .placeholder(R.drawable.ic_pets_black_24dp)
+              .into(mPhoto);
       }
     }
 
@@ -133,14 +131,43 @@ public class DetailsActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-        String city = addresses.get(0).getLocality();
-        String state = addresses.get(0).getAdminArea();
-        String postalCode = addresses.get(0).getPostalCode();
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-        mCatLocation.setText(address+", "+city+", "+state+" "+postalCode);
+        if (networkInfo != null && networkInfo.isConnected()) {
+            String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+            String city = addresses.get(0).getLocality();
+            String state = addresses.get(0).getAdminArea();
+            String postalCode = addresses.get(0).getPostalCode();
+
+            mCatLocation.setText(address + ", " + city + ", " + state + " " + postalCode);
+        } else {
+            mCatLocation.setText(mLatLong);
+        }
 
     }
+
+//    public GeoPoint getLocationFromAddress(String strAddress){
+//
+//        Geocoder coder = new Geocoder(this);
+//        List<Address> address;
+//        GeoPoint p1 = null;
+//
+//        try {
+//            address = coder.getFromLocationName(strAddress,5);
+//            if (address==null) {
+//                return null;
+//            }
+//            Address location=address.get(0);
+//            location.getLatitude();
+//            location.getLongitude();
+//
+//            p1 = new GeoPoint((int) (location.getLatitude() * 1E6),
+//                    (int) (location.getLongitude() * 1E6));
+//
+//            return p1;
+//        }
+//    }
 
     public String locationToString() {
         return (String.valueOf(latitude)
@@ -207,5 +234,11 @@ public class DetailsActivity extends AppCompatActivity {
                                 }
                             }).create()).show();
         }
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }

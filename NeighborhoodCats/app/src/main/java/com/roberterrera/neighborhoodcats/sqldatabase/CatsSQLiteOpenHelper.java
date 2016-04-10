@@ -60,8 +60,10 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        //TODO: Change this so it copies existing data to a new table with the same name.
-        db.execSQL("DROP TABLE IF EXISTS " + CAT_LIST_TABLE_NAME);
+//        db.execSQL("DROP TABLE IF EXISTS " + CAT_LIST_TABLE_NAME);
+        db.execSQL("ALTER TABLE "+CAT_LIST_TABLE_NAME+" RENAME TO OldTable;"
+                +"CREATE TABLE "+CAT_LIST_TABLE_NAME+" (_id INTEGER AUTO-INCREMENT PRIMARY KEY, CAT_NAME TEXT, CAT_DESC TEXT, CAT_LAT INTEGER, CAT_LONG INTEGER, IMAGE_PATH TEXT);"
+                +"INSERT INTO TABLE "+CAT_LIST_TABLE_NAME+" (CAT_NAME TEXT, CAT_DESC TEXT, CAT_LAT INTEGER, CAT_LONG INTEGER, IMAGE_PATH TEXT) FROM OldTable;");
         this.onCreate(db);
     }
 
