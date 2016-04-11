@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.widget.Toast;
@@ -30,13 +31,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.roberterrera.neighborhoodcats.R;
+import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
-import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 
 import java.util.ArrayList;
 
-public class MapsActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
+public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
 
 
@@ -57,6 +58,9 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setTitle("Map Your Cats!");
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -111,15 +115,24 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         helper.getReadableDatabase();
         cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
 
+        String locationProvider = LocationManager.NETWORK_PROVIDER;
+// Or use LocationManager.GPS_PROVIDER
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
+        mLatitude = lastKnownLocation.getLatitude();
+        mLongitude = lastKnownLocation.getLongitude();
         LatLng lastLocation = new LatLng(mLatitude, mLongitude);
         Log.d("onMapReady", mLatitude+", "+mLongitude);
 
         mMap.setMyLocationEnabled(true);
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-        mMap.addMarker(new MarkerOptions()
-                .position(lastLocation)
-                .title("You"));
+//        mMap.addMarker(new MarkerOptions()
+//                .position(lastLocation)
+//                .title("You"));
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(lastLocation)
@@ -170,9 +183,9 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         } else {
             Toast.makeText(MapsActivity.this, "Last location is null", Toast.LENGTH_SHORT).show();
         }
-        LatLng lastLocation = new LatLng(mLatitude, mLongitude);
+        LatLng location = new LatLng(54.5260, 105.2551);
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(lastLocation)
+                .target(location)
                 .zoom(mMap.getMaxZoomLevel() * .9f)
                 .build();
     }

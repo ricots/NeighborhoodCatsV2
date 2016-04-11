@@ -158,18 +158,18 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         mCameraIntentHelper = new CameraIntentHelper(this, new CameraIntentHelperCallback() {
             @Override
             public void onPhotoUriFound(Date dateCameraIntentStarted, Uri photoUri, int rotateXDegrees) {
-                Toast.makeText(NewCatActivity.this, R.string.activity_camera_intent_photo_uri_found, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(NewCatActivity.this, R.string.activity_camera_intent_photo_uri_found, Toast.LENGTH_SHORT).show();
 
-//                Display display = getWindowManager().getDefaultDisplay();
-//                Point size = new Point();
-//                display.getSize(size);
-//                int width = size.x;
-//                int height = size.y;
+                Display display = getWindowManager().getDefaultDisplay();
+                Point size = new Point();
+                display.getSize(size);
+                int width = size.x;
+                int height = size.y;
 
 
                 Bitmap photo = BitmapHelper.readBitmap(NewCatActivity.this, photoUri);
                 if (photo != null) {
-                    photo = BitmapHelper.shrinkBitmap(photo, 300, rotateXDegrees);
+                    photo = BitmapHelper.shrinkBitmap(photo, width);
                     mPhoto.setImageBitmap(photo);
                     mCurrentPhotoPath = photoUri.getPath();
                     Log.d("SETUPCAMERAINTENT", mCurrentPhotoPath);
@@ -190,7 +190,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
             @Override
             public void onCanceled() {
-                Toast.makeText(getApplicationContext(), getString(R.string.warning_camera_intent_canceled), Toast.LENGTH_LONG).show();
+//                Toast.makeText(getApplicationContext(), getString(R.string.warning_camera_intent_canceled), Toast.LENGTH_LONG).show();
             }
 
             @Override
@@ -216,22 +216,16 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         super.onActivityResult(requestCode, resultCode, intent);
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
-//        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             mCameraIntentHelper.onActivityResult(requestCode, resultCode, intent);
-        if (mCurrentPhotoPath != null) {
-            Log.d("ONACTIVITYRESULT", mCurrentPhotoPath);
-        }
-//                if (networkInfo != null && networkInfo.isConnected()) {
-//                    showAddress();
-//                } else {
-//                    mLatLong = locationToString();
-//                }
-//                mCatLocation.setText(mLatLong);
-//            }
+
+                if (networkInfo != null && networkInfo.isConnected()) {
+                    showAddress();
+                } else {
+                    mLatLong = locationToString();
+                }
+                mCatLocation.setText(mLatLong);
 
             // When an Image is picked
-//        } else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
-//                && null != intent) {
         if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
                 && null != intent) {
             // Note: If image is an older image being selected via Google Photos, the image will not
@@ -252,12 +246,12 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .centerCrop()
                     .into(mPhoto);
 
-//            if (networkInfo != null && networkInfo.isConnected()) {
-//                showAddress();
-//            } else {
-//                mLatLong = locationToString();
-//            }
-//            mCatLocation.setText(mLatLong);
+            if (networkInfo != null && networkInfo.isConnected()) {
+                showAddress();
+            } else {
+                mLatLong = locationToString();
+            }
+            mCatLocation.setText(mLatLong);
 
         }
     }
@@ -298,39 +292,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
         return false;
     }
-//
-//    private void dispatchTakePictureIntent() {
-//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//
-//        // Ensure that there's a camera activity to handle the intent
-//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-//            setResult(RESULT_OK, takePictureIntent);
-//            // Create the File where the photo should go
-//            File photoFile = null;
-//            try {
-//                photoFile = createImageFile();
-//            } catch (IOException ex) {
-//                // Error occurred while creating the File
-//                Log.d("DISPATCHTAKEPICTURE...", "Error: "+ex);
-//            }
-//
-//            // Continue only if the File was successfully created
-//            if (photoFile != null) {
-//                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-//                        Uri.fromFile(photoFile));
-//                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-//            }
-//        }
-//    }
-
-//    private void dispatchTakePictureIntent() {
-//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-//            setResult(RESULT_OK, takePictureIntent);
-//            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-//        }
-//    }
-
 
     // Save image to a file in the public pictures dir.
     private File createImageFile() throws IOException {

@@ -95,15 +95,15 @@ public class DetailsActivity extends AppCompatActivity {
 
           mFullCatDesc.setText(desc);
 
-//          ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-//          final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-//
-//          if (networkInfo != null && networkInfo.isConnected()) {
-//              showAddress();
-//          } else {
+          ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+          final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+          if (networkInfo != null && networkInfo.isConnected()) {
+              showAddress();
+          } else {
               mCatLocation.setText(mLatLong);
-//              Toast.makeText(DetailsActivity.this, "Could not show street address without a connection.", Toast.LENGTH_SHORT).show();
-//          }
+              Toast.makeText(DetailsActivity.this, "Could not show street address without a connection.", Toast.LENGTH_SHORT).show();
+          }
 
           Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
