@@ -24,7 +24,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.client.AuthData;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.roberterrera.neighborhoodcats.R;
+import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
@@ -44,6 +48,8 @@ public class DetailsActivity extends AppCompatActivity {
     private String name, desc, photoPath;
     private double latitude, longitude;
     private String mLatLong;
+    private Firebase myFirebaseRef;
+    private Firebase.AuthStateListener authStateListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +59,10 @@ public class DetailsActivity extends AppCompatActivity {
       setSupportActionBar(toolbar);
 
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        // Create a reference to the Firebase database.
+        Firebase.setAndroidContext(this);
+        myFirebaseRef = new Firebase("https://neighborhood-cats.firebaseio.com/");
 
         mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
         mFoundAt = (TextView) findViewById(R.id.textView_details_found);
@@ -68,17 +78,17 @@ public class DetailsActivity extends AppCompatActivity {
     private class LoadCatAsyncTask extends AsyncTask<Void, Void, Void>{
       @Override
       protected Void doInBackground(Void... params) {
-        // Get intent from MainActivity list via the cat's id.
-          catId = getIntent().getIntExtra("id", -1);
-          helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
-          helper.getReadableDatabase();
-          helper.close();
-          name = helper.getCatNameByID(catId);
-          desc = helper.getCatDescByID(catId);
-          photoPath = helper.getCatPhotoByID(catId);
-          latitude = helper.getCatLatByID(catId);
-          longitude = helper.getCatLongByID(catId);
-          mLatLong = locationToString();
+    // Get intent from MainActivity list via the cat's id.
+      catId = getIntent().getIntExtra("id", -1);
+      helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
+      helper.getReadableDatabase();
+      helper.close();
+      name = helper.getCatNameByID(catId);
+      desc = helper.getCatDescByID(catId);
+      photoPath = helper.getCatPhotoByID(catId);
+      latitude = helper.getCatLatByID(catId);
+      longitude = helper.getCatLongByID(catId);
+      mLatLong = locationToString();
         return null;
       }
 
@@ -113,7 +123,7 @@ public class DetailsActivity extends AppCompatActivity {
 
           Picasso.with(DetailsActivity.this)
               .load("file:" + photoPath)
-              .placeholder(R.drawable.ic_pets_black_24dp)
+              .placeholder(R.drawable.ic_pets)
               .into(mPhoto);
       }
     }
@@ -147,6 +157,61 @@ public class DetailsActivity extends AppCompatActivity {
 
     }
 
+    // Listen to changes in authorization.
+    private void monitorAuth(){
+        authStateListener = myFirebaseRef.addAuthStateListener(new Firebase.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(AuthData authData) {
+                if (authData != null) {
+                    // user is logged in
+                } else {
+                    // user is not logged in
+                }
+            }
+        });
+    }
+
+    private void checkAuthState(){
+        AuthData authData = myFirebaseRef.getAuth();
+        if (authData != null) {
+            // user authenticated
+        } else {
+            logUserIn();
+        }
+    }
+
+    private void logUserIn(){
+        // Create a handler to handle the result of the authentication
+        Firebase.AuthResultHandler authResultHandler = new Firebase.AuthResultHandler() {
+            @Override
+            public void onAuthenticated(AuthData authData) {
+                // Authenticated successfully with payload authData
+            }
+            @Override
+            public void onAuthenticationError(FirebaseError firebaseError) {
+                // Authenticated failed with error firebaseError
+            }
+        };
+        // Authenticate user via popular OAuth providers ("facebook", "github", "google", or "twitter")
+        myFirebaseRef.authWithOAuthToken("google", "609527435929-vc8cb6bp810oc2qtfuj732ipkohd4r3l.apps.googleusercontent.com", authResultHandler);
+    }
+
+    private void logOut(){
+        // Invalidates session, logging the user out.
+        myFirebaseRef.unauth();
+        // Stop listening for authorization changes.
+        myFirebaseRef.removeAuthStateListener(authStateListener);
+    }
+
+    private void uploadToFirebase(Cat cat){
+
+
+        /* Get cat object and upload name, desc, photo, and location to Firebase.
+        // Example:
+        // myFirebaseRef.child("message").setValue("Do you have data? You'll love Firebase.");
+        */
+    }
+
 //    public GeoPoint getLocationFromAddress(String strAddress){
 //
 //        Geocoder coder = new Geocoder(this);
@@ -169,6 +234,7 @@ public class DetailsActivity extends AppCompatActivity {
 //        }
 //    }
 
+    // Change latitude and longitude to be Strings.
     public String locationToString() {
         return (String.valueOf(latitude)
                 + ", "
@@ -200,6 +266,9 @@ public class DetailsActivity extends AppCompatActivity {
             editIntent.putExtra("id", catId);
             startActivity(editIntent);
             mHelper.close();
+        }
+        if (id == R.id.menu_logOut){
+            logOut();
         }
 
         return super.onOptionsItemSelected(item);

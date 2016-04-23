@@ -218,11 +218,11 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
             mCameraIntentHelper.onActivityResult(requestCode, resultCode, intent);
 
-                if (networkInfo != null && networkInfo.isConnected()) {
-                    showAddress();
-                } else {
+//                if (networkInfo != null && networkInfo.isConnected()) {
+//                    showAddress();
+//                } else {
                     mLatLong = locationToString();
-                }
+//                }
                 mCatLocation.setText(mLatLong);
 
             // When an Image is picked
@@ -242,7 +242,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             Picasso.with(NewCatActivity.this)
                     .load("file:" + mCurrentPhotoPath)
                     .resize(width, height)
-                    .placeholder(R.drawable.ic_pets_black_24dp)
+                    .placeholder(R.drawable.ic_pets)
                     .centerCrop()
                     .into(mPhoto);
 

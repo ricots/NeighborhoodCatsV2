@@ -3,6 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/menu_upload"
+        android:title="Upload"
+        android:icon="@drawable/ic_backup"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
         android:id="@+id/menu_item_share"
         android:title="Share"
         android:icon="@android:drawable/ic_menu_share"
@@ -14,7 +21,11 @@
         android:id="@+id/menu_edit"
         android:title="Edit"
         android:icon="@android:drawable/ic_menu_edit"
-        app:showAsAction="ifRoom"
-        />
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_logOut"
+        android:title="Log Out"
+        app:showAsAction="never" />
 
 </menu>

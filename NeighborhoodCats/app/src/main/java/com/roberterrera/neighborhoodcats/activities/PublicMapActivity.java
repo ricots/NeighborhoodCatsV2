@@ -24,11 +24,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
@@ -36,28 +33,31 @@ import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 
 import java.util.ArrayList;
 
-public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
+public class PublicMapActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
 
 
-    private GoogleMap mMap;
-    private double mLatitude, mLongitude;
-    private Location mLastLocation;
-    private Tracker mTracker;
-    private GoogleApiClient mGoogleApiClient;
-    private LocationManager locationManager;
-    private String provider;
-    private ArrayList<Cat> mCatArrayList;
-    private Cursor cursor;
-    private CatsSQLiteOpenHelper helper;
-    private int id;
+private GoogleMap mMap;
+private double mLatitude, mLongitude;
+private Location mLastLocation;
+private Tracker mTracker;
+private GoogleApiClient mGoogleApiClient;
+private LocationManager locationManager;
+private String provider;
+private ArrayList<Cat> mCatArrayList;
+private Cursor cursor;
+private CatsSQLiteOpenHelper helper;
+private int id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
+        setContentView(R.layout.activity_public_map);
 
-        setTitle("Map Your Cats!");
+        Firebase.setAndroidContext(this);
+        Firebase myFirebaseRef = new Firebase("https://neighborhood-cats.firebaseio.com/");
+
+        setTitle("Community Cats");
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -99,7 +99,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         mTracker.send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Map")
-                .setLabel("Map my location")
+                .setLabel("Community Cats")
                 .build());
     }
 
@@ -107,12 +107,11 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mCatArrayList = new ArrayList<>();
-        helper = new CatsSQLiteOpenHelper(MapsActivity.this);
+        helper = new CatsSQLiteOpenHelper(PublicMapActivity.this);
         helper.getReadableDatabase();
-        cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
+        cursor = CatsSQLiteOpenHelper.getInstance(PublicMapActivity.this).getCatsList();
 
         String locationProvider = LocationManager.NETWORK_PROVIDER;
-// Or use LocationManager.GPS_PROVIDER
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -126,10 +125,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         mMap.setMyLocationEnabled(true);
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-//        mMap.addMarker(new MarkerOptions()
-//                .position(lastLocation)
-//                .title("You"));
-
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(lastLocation)
                 .zoom(mMap.getMaxZoomLevel() * .9f)
@@ -137,35 +132,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
-        // Display cat markers on the map using the lat and lon saved to the items' database columns.
-        loadCatsList();
-    }
-
-    private void loadCatsList() {
-
-        // Loop through arraylist and add database items to it.
-        while (cursor.moveToNext()) {
-            int id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-            String name = helper.getCatNameByID(id);
-            String desc = helper.getCatDescByID(id);
-            double latitude = helper.getCatLatByID(id);
-            double longitude = helper.getCatLongByID(id);
-            String imagePath = helper.getCatPhotoByID(id);
-
-            Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
-            mCatArrayList.add(cat);
-
-            LatLng catLatLing = new LatLng(latitude, longitude);
-            Marker catMap = mMap.addMarker(new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pets))
-                    .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-                    .position(catLatLing)
-                    .title(name));
-            Log.d("getCatLocations", String.valueOf(catLatLing));
-            Log.d("mCatArrayList", "mCatArrayList size: " + mCatArrayList.size());
-
-        }
-        cursor.close();
     }
 
 
@@ -179,7 +145,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
             mLatitude = mLastLocation.getLatitude();
             mLongitude = mLastLocation.getLongitude();
         } else {
-            Toast.makeText(MapsActivity.this, "Last location is null", Toast.LENGTH_SHORT).show();
+            Toast.makeText(PublicMapActivity.this, "Last location is null", Toast.LENGTH_SHORT).show();
         }
         LatLng location = new LatLng(54.5260, 105.2551);
         CameraPosition cameraPosition = new CameraPosition.Builder()

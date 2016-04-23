@@ -126,5 +126,6 @@
     <string name="action_share">Share</string>
     <string name="action_update">Update</string>
     <string name="title_activity_edit">EditActivity</string>
+    <string name="title_activity_public_map">Map</string>
 
 </resources>

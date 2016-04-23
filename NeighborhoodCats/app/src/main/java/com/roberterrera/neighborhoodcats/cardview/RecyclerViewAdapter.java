@@ -54,7 +54,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
         Picasso.with(mContext)
                 .load("file:"+catList.get(position).getPhoto())
                 .resize(120, 120)
-                .placeholder(R.drawable.ic_pets_black_24dp)
+                .placeholder(R.drawable.ic_pets)
                 .into(holder.vThumbnail);
 
         holder.setItemClickListener(new ItemClickListener() {

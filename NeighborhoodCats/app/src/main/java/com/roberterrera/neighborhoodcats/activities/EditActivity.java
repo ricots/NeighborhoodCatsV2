@@ -138,11 +138,11 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
             ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-//            if (networkInfo != null && networkInfo.isConnected()) {
-//                showAddress();
-//            } else {
+            if (networkInfo != null && networkInfo.isConnected()) {
+                showAddress();
+            } else {
                 mCatLocation.setText(locationToString());
-//            }
+            }
 
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
@@ -152,7 +152,7 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
             Picasso.with(EditActivity.this)
                     .load("file:" + photoPath)
 //                      .resize(width, height)
-                    .placeholder(R.drawable.ic_pets_black_24dp)
+                    .placeholder(R.drawable.ic_pets)
 //                      .centerCrop()
                     .into(mPhoto);
         }
