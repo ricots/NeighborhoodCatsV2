@@ -18,22 +18,20 @@ My hope is that this app will give you some joy as you photograph the cats in yo
  - Share an entry to an app on your phone (shares the photo, cat name, and cat notes).
  - More features are planned! Stay tuned! (To suggest a feature please email me at robert.errera.developer@gmail.com)
 
-### APIs, SDKs, and Libraries used:
+### APIs, SDKs, Libraries, & open source code used:
  - Camera API
  - Google Maps API
+ - Google Analytics API
  - [Picasso library](http://square.github.io/picasso/)
- - Bruno R. Nunes' [SwipableRecyclerView implementation](https://github.com/brnunes/SwipeableRecyclerView)
+ - Bruno R. Nunes' [SwipableRecyclerView](https://github.com/brnunes/SwipeableRecyclerView)
+ - Ralf Gehrer's [AndroidCameraUtil](https://github.com/ralfgehrer/AndroidCameraUtil) 
  - RecyclerView / CardView
 
 ### Known Bugs:
-
-***Note: This app has been optimized for Android 6 Marshmallow, but more work needs to be done to get it running properly on earlier OS versions. Please wait for the updated app for Lollipop/KitKat compatibility. Thanks for your patience!***
-
- - On Lollipop or KitKat: Saving an item via the camera crashes the app.
- - On Lollipop or KitKat: Saved items created via the device's photo gallery do not reliably appear in the list.
+ - The first photo added does not reliably appear on the list. (All entries added after the first one are added without a problem.)
  - If the image is an older image being selected via Google Photos, the image will not be loaded because it has to be downloaded first (so there is no image file path to load when the app is looking for the file path).
 
-*Now available on the [Google Play Store!] (https://play.google.com/store/apps/details?id=com.roberterrera.neighborhoodcats)*
+*Now available on the [Google Play Store!](https://play.google.com/store/apps/details?id=com.roberterrera.neighborhoodcats)*
 
 ![](https://github.com/roberrera/NeighborhoodCats/blob/master/NeighborhoodCats/Screenshots/device-2016-04-04-220043(75%20pct).png)
 ![](https://github.com/roberrera/NeighborhoodCats/blob/master/NeighborhoodCats/Screenshots/device-2016-04-04-220600(reduced).png)
