@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -64,6 +65,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
     private TextView mCatLocation;
+    private Bitmap photo;
 
     private Tracker mTracker;
     private GoogleApiClient mGoogleApiClient;
@@ -158,7 +160,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         mCameraIntentHelper = new CameraIntentHelper(this, new CameraIntentHelperCallback() {
             @Override
             public void onPhotoUriFound(Date dateCameraIntentStarted, Uri photoUri, int rotateXDegrees) {
-//                Toast.makeText(NewCatActivity.this, R.string.activity_camera_intent_photo_uri_found, Toast.LENGTH_SHORT).show();
 
                 Display display = getWindowManager().getDefaultDisplay();
                 Point size = new Point();
@@ -167,16 +168,16 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 int height = size.y;
 
 
-                Bitmap photo = BitmapHelper.readBitmap(NewCatActivity.this, photoUri);
+                photo = BitmapHelper.readBitmap(NewCatActivity.this, photoUri);
                 if (photo != null) {
                     photo = BitmapHelper.shrinkBitmap(photo, width);
                     mPhoto.setImageBitmap(photo);
                     mCurrentPhotoPath = photoUri.getPath();
-                    Log.d("SETUPCAMERAINTENT", mCurrentPhotoPath);
                 } else {
                     deletePhotoWithUri(photoUri);
                 }
             }
+
 
             @Override
             public void deletePhotoWithUri(Uri photoUri) {
@@ -190,7 +191,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
             @Override
             public void onCanceled() {
-//                Toast.makeText(getApplicationContext(), getString(R.string.warning_camera_intent_canceled), Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.warning_camera_intent_canceled), Toast.LENGTH_LONG).show();
             }
 
             @Override
@@ -254,6 +255,11 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             mCatLocation.setText(mLatLong);
 
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 
     public String getPath(Uri uri) {
@@ -508,13 +514,15 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         mCameraIntentHelper.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putParcelable("file_uri", photo);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         mCameraIntentHelper.onRestoreInstanceState(savedInstanceState);
-    }
+        // get the file url
+        photo = savedInstanceState.getParcelable("file_uri");    }
 
     @Override
     public void onBackPressed() {

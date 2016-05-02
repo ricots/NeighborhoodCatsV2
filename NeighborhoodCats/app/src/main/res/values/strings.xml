@@ -118,7 +118,7 @@
     <string name="activity_camera_intent_photo_uri_found">Photo uri found: </string>
     <string name="activity_camera_intent_photo_uri_not_found">Photo uri not found!</string>
 
-    <string name="warning_camera_intent_canceled">Camera Intent was canceled by user.</string>
+    <string name="warning_camera_intent_canceled">Tap the paw for camera or long-press to use your own photo.</string>
 
     <string name="error_sd_card_not_mounted">External storage is required. Your SD card is most likely not mounted.</string>
     <string name="error_could_not_take_photo">There was an issue with your camera. Sorry for the inconvenience!</string>
