@@ -10,7 +10,9 @@ import retrofit2.http.Query;
  * Created by Rob on 5/4/16.
  */
 public interface PetfinderService {
-    @GET("shelter.find?key=e8736f4c0a4c61832d001b9d357055f4")
+    @GET("shelter.find")
     Call<List<Shelter>> listShelters(
-            @Query("location") int zipcode);
+            @Query("format") String format,
+            @Query("location") String zipcode,
+            @Query("key") String key);
 }
