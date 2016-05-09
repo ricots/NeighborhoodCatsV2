@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.activities;
+package com.roberterrera.neighborhoodcats;
 
 import android.Manifest;
 import android.content.Context;
@@ -14,9 +14,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -34,11 +32,13 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.roberterrera.neighborhoodcats.R;
+import com.google.gson.Gson;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
-import com.roberterrera.neighborhoodcats.models.PetfinderService;
-import com.roberterrera.neighborhoodcats.models.Shelter;
+import com.roberterrera.neighborhoodcats.networking.PetfinderItem;
+import com.roberterrera.neighborhoodcats.networking.PetfinderService;
+import com.roberterrera.neighborhoodcats.networking.SearchResults;
+import com.roberterrera.neighborhoodcats.networking.ShelterItem;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 
 import java.io.IOException;
@@ -47,18 +47,17 @@ import java.util.List;
 import java.util.Locale;
 
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.GET;
-import retrofit2.http.Path;
-import retrofit2.http.Query;
 
 public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
 
     private int id;
     private double mLatitude, mLongitude;
-    private String zipcode;
+    private String location; // This is the zipcode query for PetfinderItem API
     private String provider;
     private ArrayList<Cat> mCatArrayList;
 
@@ -139,7 +138,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         mLatitude = lastKnownLocation.getLatitude();
         mLongitude = lastKnownLocation.getLongitude();
         LatLng lastLocation = new LatLng(mLatitude, mLongitude);
-        Log.d("onMapReady", mLatitude+", "+mLongitude);
+        Log.d("onMapReady", mLatitude + ", " + mLongitude);
 
         mMap.setMyLocationEnabled(true);
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
@@ -154,19 +153,54 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         // Display cat markers on the map using the lat and lon saved to the items' database columns.
         loadCatsList();
 
+
+        // Build a Retrofit object that calls the PetfinderItem API.
+        final String shelterName = "name";
         String format = "format=json";
         String key = "key=e8736f4c0a4c61832d001b9d357055f4";
         getZipcode(mLatitude, mLongitude);
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://api.petfinder.com/")
+                .baseUrl("http://api.petfinder.com")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         PetfinderService service = retrofit.create(PetfinderService.class);
-        Call<List<Shelter>> shelters = service.listShelters(format, zipcode, key);
+        Call<List<PetfinderItem>> shelters = service.listShelters(format, location, key);
+        shelters.enqueue(new Callback<List<PetfinderItem>>() {
+            @Override
+            public void onResponse(Call<List<PetfinderItem>> call, Response<List<PetfinderItem>> response) {
+/*
+                Gson gson = new Gson();
+                SearchResults result = gson.fromJson(data, SearchResults.class);
+                ArrayList<ShelterItem> sheltersArrayList = new ArrayList<ShelterItem>();
+                PetfinderItem petfinderItem = new PetfinderItem(location, shelterName);
+                ArrayList<PetfinderItem> petfinderItemArrayList = new ArrayList<>();
+
+                // Loop through arraylist and add database items to it.
+
+                // For every object in the item array, add the name to the ArrayList.
+                for (int i = 0; i < sheltersArrayList.size(); i++) {
+                    petfinderItemArrayList.add(petfinderItem);
+                }
+
+                LatLng shelterLatLing = new LatLng(mLatitude, mLongitude);
+                Marker shelterMap = mMap.addMarker(new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_domain))
+                        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+                        .position(shelterLatLing)
+                        .title(shelterName));
+
+                        */
+            }
+
+            @Override
+            public void onFailure(Call<List<PetfinderItem>> call, Throwable t) {
+                Toast.makeText(MapsActivity.this, "Unable to load shelters.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    public void getZipcode(double latitude, double longitude){
+    public void getZipcode(double latitude, double longitude) {
         Geocoder geocoder;
         List<Address> addresses;
         geocoder = new Geocoder(this, Locale.getDefault());
@@ -183,7 +217,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         if (networkInfo != null && networkInfo.isConnected()) {
             String postalCode = addresses.get(0).getPostalCode();
-            zipcode = postalCode;
+            location = postalCode;
         } else {
             Toast.makeText(MapsActivity.this,
                     "Cannot show nearby shelters without an internet connection.",
@@ -192,10 +226,10 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
     }
 
-    private void loadCatsList(){
+    private void loadCatsList() {
 
         // Loop through arraylist and add database items to it.
-        while (cursor.moveToNext()){
+        while (cursor.moveToNext()) {
             int id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
             String name = helper.getCatNameByID(id);
             String desc = helper.getCatDescByID(id);
@@ -212,9 +246,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                     .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
                     .position(catLatLing)
                     .title(name));
-            Log.d("getCatLocations", String.valueOf(catLatLing));
-            Log.d("mCatArrayList", "mCatArrayList size: "+mCatArrayList.size());
-
         }
         cursor.close();
     }
@@ -222,8 +253,11 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            return;
+        }
+
         if (mLastLocation != null) {
             mLatitude = mLastLocation.getLatitude();
             mLongitude = mLastLocation.getLongitude();

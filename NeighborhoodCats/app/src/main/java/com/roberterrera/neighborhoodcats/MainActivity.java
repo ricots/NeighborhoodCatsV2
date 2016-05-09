@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.activities;
+package com.roberterrera.neighborhoodcats;
 
 import android.content.Context;
 import android.content.Intent;
@@ -28,7 +28,6 @@ import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.Geofence;
-import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.cardview.RecyclerViewAdapter;
 import com.roberterrera.neighborhoodcats.cardview.SwipeableRecyclerViewTouchListener;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;

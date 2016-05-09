@@ -1,18 +1,13 @@
 package com.roberterrera.neighborhoodcats.cardview;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.roberterrera.neighborhoodcats.R;
-import com.roberterrera.neighborhoodcats.activities.DetailsActivity;
-import com.roberterrera.neighborhoodcats.activities.MainActivity;
-import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 
 /**
  * Created by Rob on 4/3/16.

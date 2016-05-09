@@ -7,10 +7,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.roberterrera.neighborhoodcats.R;
-import com.roberterrera.neighborhoodcats.activities.DetailsActivity;
+import com.roberterrera.neighborhoodcats.DetailsActivity;
 import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
@@ -41,8 +40,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
                 inflate(R.layout.list_card_layout, parent, false);
 
         // Initialize the view holder.
-        ViewHolder holder = new ViewHolder(v);
-        return holder;
+        return new ViewHolder(v);
     }
 
     // Bind the view to the data.
