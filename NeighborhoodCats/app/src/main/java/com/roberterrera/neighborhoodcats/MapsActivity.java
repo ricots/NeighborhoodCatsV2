@@ -32,13 +32,11 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.gson.Gson;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
-import com.roberterrera.neighborhoodcats.networking.PetfinderItem;
-import com.roberterrera.neighborhoodcats.networking.PetfinderService;
-import com.roberterrera.neighborhoodcats.networking.SearchResults;
-import com.roberterrera.neighborhoodcats.networking.ShelterItem;
+import com.roberterrera.neighborhoodcats.models.Petfinder;
+import com.roberterrera.neighborhoodcats.models.Shelter;
+import com.roberterrera.neighborhoodcats.service.PetfinderAPI;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 
 import java.io.IOException;
@@ -49,8 +47,6 @@ import java.util.Locale;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
@@ -92,10 +88,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.i("Location Info", "No location :(");
         }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             mMap.setMyLocationEnabled(true);
             return;
@@ -155,56 +148,48 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
         // Build a Retrofit object that calls the PetfinderItem API.
-        final String shelterName = "name";
         String format = "format=json";
         String key = "key=e8736f4c0a4c61832d001b9d357055f4";
         getZipcode(mLatitude, mLongitude);
+        Log.d("MAPSACTIVITY", "getZipcode: " + location);
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://api.petfinder.com")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        PetfinderService service = retrofit.create(PetfinderService.class);
-        Call<List<PetfinderItem>> shelters = service.listShelters(format, location, key);
-        shelters.enqueue(new Callback<List<PetfinderItem>>() {
+        PetfinderAPI.Factory.getInstance().loadShelters(format, location, key).enqueue(new Callback<Shelter>() {
             @Override
-            public void onResponse(Call<List<PetfinderItem>> call, Response<List<PetfinderItem>> response) {
-/*
-                Gson gson = new Gson();
-                SearchResults result = gson.fromJson(data, SearchResults.class);
-                ArrayList<ShelterItem> sheltersArrayList = new ArrayList<ShelterItem>();
-                PetfinderItem petfinderItem = new PetfinderItem(location, shelterName);
-                ArrayList<PetfinderItem> petfinderItemArrayList = new ArrayList<>();
+            public void onResponse(Call<Shelter> call, Response<Shelter> response) {
+                Petfinder petfinder = response.body().getPetfinder();
 
-                // Loop through arraylist and add database items to it.
+                List<Petfinder> results = new ArrayList<Petfinder>();
 
-                // For every object in the item array, add the name to the ArrayList.
-                for (int i = 0; i < sheltersArrayList.size(); i++) {
-                    petfinderItemArrayList.add(petfinderItem);
+                for (int j = 0; j <= results.size(); j++) {
+
+                    double shelterLat = Double.parseDouble(String.valueOf(
+                            petfinder.getShelters().getShelter().get(j).getLatitude()));
+                    double shelterLong = Double.parseDouble(String.valueOf(
+                            petfinder.getShelters().getShelter().get(j).getLongitude()));
+                    LatLng shelterLatLing = new LatLng(shelterLat, shelterLong);
+                    Log.d("RETROFIT", String.valueOf(petfinder.getShelters().getShelter().get(j).getName()));
+                    Log.d("RETROFIT", "Shelter LatLing " + String.valueOf(shelterLatLing));
+
+                    // Show shelter markers on map.
+                    Marker shelterMap = mMap.addMarker(new MarkerOptions()
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_domain))
+                            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+                            .position(shelterLatLing)
+                            .title(String.valueOf(petfinder.getShelters().getShelter().get(j).getName())));
                 }
-
-                LatLng shelterLatLing = new LatLng(mLatitude, mLongitude);
-                Marker shelterMap = mMap.addMarker(new MarkerOptions()
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_domain))
-                        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-                        .position(shelterLatLing)
-                        .title(shelterName));
-
-                        */
             }
 
             @Override
-            public void onFailure(Call<List<PetfinderItem>> call, Throwable t) {
+            public void onFailure(Call<Shelter> call, Throwable t) {
                 Toast.makeText(MapsActivity.this, "Unable to load shelters.", Toast.LENGTH_SHORT).show();
+                Log.d("ONFAILURE", String.valueOf(t));
             }
         });
     }
 
     public void getZipcode(double latitude, double longitude) {
-        Geocoder geocoder;
-        List<Address> addresses;
-        geocoder = new Geocoder(this, Locale.getDefault());
-        addresses = new ArrayList<>();
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        List<Address> addresses = new ArrayList<>();
 
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
@@ -253,11 +238,14 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
         if (mLastLocation != null) {
             mLatitude = mLastLocation.getLatitude();
             mLongitude = mLastLocation.getLongitude();
@@ -287,7 +275,10 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onResume();
         mTracker.setScreenName("MapsActivity~");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         locationManager.requestLocationUpdates(provider, 400, 1, this);
@@ -307,11 +298,13 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onPause() {
         super.onPause();
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         locationManager.removeUpdates(this);
-
     }
 
     @Override
