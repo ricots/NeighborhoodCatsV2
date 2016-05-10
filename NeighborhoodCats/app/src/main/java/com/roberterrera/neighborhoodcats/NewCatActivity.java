@@ -430,11 +430,15 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         networkInfo = connMgr.getActiveNetworkInfo();
 
         if (networkInfo != null && networkInfo.isConnected()) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                        mGoogleApiClient);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
+
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                    mGoogleApiClient);
 
             if (mLastLocation != null) {
                 latitude = mLastLocation.getLatitude();
@@ -467,7 +471,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         super.onResume();
     }
 
-    private void save(){
+    private void save() {
         CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
         helper.getWritableDatabase();
 
@@ -478,15 +482,15 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     latitude,
                     longitude,
                     mCurrentPhotoPath);
-            Log.d("save", mEditCatName.getText().toString()+", "
-                    + mEditCatDesc.getText().toString()+", "
+            Log.d("save", mEditCatName.getText().toString() + ", "
+                    + mEditCatDesc.getText().toString() + ", "
                     + String.valueOf(latitude)
                     + ", "
-                    +String.valueOf(longitude)
-                    +", "
+                    + String.valueOf(longitude)
+                    + ", "
                     + mCurrentPhotoPath);
             Toast.makeText(NewCatActivity.this, "Cat saved.", Toast.LENGTH_SHORT).show();
-        } catch (Exception e){
+        } catch (Exception e) {
             Toast.makeText(NewCatActivity.this,
                     "There was a problem saving your cat data :(",
                     Toast.LENGTH_SHORT).show();
@@ -503,11 +507,22 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         networkInfo = connMgr.getActiveNetworkInfo();
 
         if (networkInfo != null && networkInfo.isConnected()) {
-            latitude = location.getLatitude();
-            longitude = location.getLongitude();
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                    mGoogleApiClient);
+            if (mLastLocation != null) {
+                latitude = mLastLocation.getLatitude();
+                longitude = mLastLocation.getLongitude();
+            }
         } else {
             latitude = 0.0;
             longitude = 0.0;
+            Toast.makeText(NewCatActivity.this, "Location unavailable.", Toast.LENGTH_SHORT).show();
         }
     }
 

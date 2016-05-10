@@ -242,7 +242,7 @@ public class CameraIntentHelper {
     private void onCameraIntentResult(int requestCode, int resultCode, Intent intent) {
         if (resultCode == Activity.RESULT_OK) {
             Cursor myCursor = null;
-            Date dateOfPicture;
+            Date dateOfPicture = null;
             try {
                 // Create a Cursor to obtain the file Path for the large image
                 String[] largeFileProjection = {MediaStore.Images.ImageColumns._ID,

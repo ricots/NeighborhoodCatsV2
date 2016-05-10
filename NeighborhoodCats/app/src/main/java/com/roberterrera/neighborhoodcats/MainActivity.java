@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView.Adapter mAdapter;
     private Tracker mTracker;
     private CatsSQLiteOpenHelper mHelper;
-    private String[] perms = {"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
+    private String[] perms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION", "android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE"};
     private int permsRequestCode = 200;
 
     @Override
