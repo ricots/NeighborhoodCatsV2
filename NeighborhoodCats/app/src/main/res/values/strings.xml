@@ -126,5 +126,16 @@
     <string name="action_share">Share</string>
     <string name="action_update">Update</string>
     <string name="title_activity_edit">EditActivity</string>
+    <string name="instructions">
+        Welcome to Neighborhood Cats! To take a photo of a cat, tap the paw button to the lower-right.
+        After you take the photo, you'll have the option of adding a name and notes for the cat.
+
+        \n\nUnfortunately, not all cats are perfect, and on some devices your very first cat photo may not show up in your list (sorry!).
+        But all photos after the first one will show up without a problem. To delete a cat entry, swipe the card away. (Be careful—there is no undo!)
+
+        \n\nTo see a map of where you encountered your neighborhood cats, tap the map button to the top-right.
+
+        \n\nThere are many more features to come, which will add more interactivity within your community. Please be patient, and happy cat sighting!
+    </string>
 
 </resources>

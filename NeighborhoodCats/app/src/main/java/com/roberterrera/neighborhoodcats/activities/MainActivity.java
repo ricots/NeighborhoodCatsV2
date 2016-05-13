@@ -157,19 +157,22 @@ public class MainActivity extends AppCompatActivity
         mCursor = CatsSQLiteOpenHelper.getInstance(this).getCatsList();
 
         // Loop through arraylist and add database items to it.
-        while (mCursor.moveToNext()){
-            int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-            String name = mHelper.getCatNameByID(id);
-            String desc = mHelper.getCatDescByID(id);
-            double latitude = mHelper.getCatLatByID(id);
-            double longitude = mHelper.getCatLongByID(id);
-            String imagePath = mHelper.getCatPhotoByID(id);
+        if (mCursor != null) {
+            mRecyclerView.setVisibility(View.VISIBLE);
+            while (mCursor.moveToNext()) {
+                int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+                String name = mHelper.getCatNameByID(id);
+                String desc = mHelper.getCatDescByID(id);
+                double latitude = mHelper.getCatLatByID(id);
+                double longitude = mHelper.getCatLongByID(id);
+                String imagePath = mHelper.getCatPhotoByID(id);
 
-            Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
-            catList.add(cat);
+                Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
+                catList.add(cat);
+            }
+            mCursor.close();
+            mHelper.close();
         }
-        mCursor.close();
-        mHelper.close();
     }
 
      @Override
