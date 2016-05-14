@@ -16,6 +16,7 @@ import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -60,6 +61,12 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     private String mLatLong;
     public String mCurrentPhotoPath;
+    private static final String TAG = "NewCatActivity";
+    private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
+    private String[] cameraPerms = {"android.permission.CAMERA"};
+    private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
+    private static final int REQUEST_TAKE_PHOTO = 1;
+    private static final int RESULT_LOAD_IMG = 2;
     private double latitude, longitude;
 
     private ImageView mPhoto;
@@ -73,12 +80,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     private NetworkInfo networkInfo;
     private ConnectivityManager connMgr;
+
     private CameraIntentHelper mCameraIntentHelper;
-
-    private static final int REQUEST_TAKE_PHOTO = 1;
-    private static final int RESULT_LOAD_IMG = 2;
-    private static final String TAG = "NewCatActivity";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,14 +111,19 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
         mTracker = application.getDefaultTracker();
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-
         connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         networkInfo = connMgr.getActiveNetworkInfo();
 
         if (networkInfo != null && networkInfo.isConnected()) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(locationPerms, 200);
+                }
+                return;
+            }
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                     mGoogleApiClient);
         } else {
@@ -125,6 +133,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
         // Open the camera when the activity is launched.
         if (mCameraIntentHelper != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(cameraPerms, 201);
+            }
             mCameraIntentHelper.startCameraIntent();
         }
 
@@ -134,6 +145,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             @Override
             public void onClick(View v) {
                 if (mCameraIntentHelper != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        requestPermissions(cameraPerms, 201);
+                    }
                     mCameraIntentHelper.startCameraIntent();
                 }
             }
@@ -143,14 +157,18 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         mPhoto.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-              // Create intent to Open Image applications like Gallery, Google Photos
-              Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                  MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(storagePerms, 202);
+                }
+
+                // Create intent to Open Image applications like Gallery, Google Photos
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 setResult(RESULT_OK, galleryIntent);
 
                 // Start the Intent
-              startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
-              return true;
+                startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
+                return true;
             }
         });
     }
@@ -217,16 +235,16 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         super.onActivityResult(requestCode, resultCode, intent);
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
-            mCameraIntentHelper.onActivityResult(requestCode, resultCode, intent);
+        mCameraIntentHelper.onActivityResult(requestCode, resultCode, intent);
 
-                if (networkInfo != null && networkInfo.isConnected()) {
-                    showAddress();
-                } else {
-                    mLatLong = locationToString();
-                }
-                mCatLocation.setText(mLatLong);
+        if (networkInfo != null && networkInfo.isConnected()) {
+            showAddress();
+        } else {
+            mLatLong = locationToString();
+        }
+        mCatLocation.setText(mLatLong);
 
-            // When an Image is picked
+        // When an Image is picked
         if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
                 && null != intent) {
             // Note: If image is an older image being selected via Google Photos, the image will not
@@ -263,23 +281,39 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     public String getPath(Uri uri) {
-        String[] projection = { MediaStore.Images.Media.DATA };
+        String[] projection = {MediaStore.Images.Media.DATA};
         Cursor cursor = getContentResolver().query(uri,
                 projection, null, null, null);
-        if(cursor!=null)
-        {
+        if (cursor != null) {
             //HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
             //THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
             int column_index = cursor
                     .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
             return cursor.getString(column_index);
-        }
-        else return null;
+        } else return null;
     }
 
 
     // Check permissions
+
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
+        boolean permissionAccepted;
+
+        switch (permsRequestCode) {
+            case 200:
+                permissionAccepted = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                break;
+            case 201:
+                permissionAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                break;
+            case 202:
+                permissionAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+    }
+
     public boolean hasPermissionInManifest(Context context, String permissionName) {
         final String packageName = context.getPackageName();
         try {
@@ -294,7 +328,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 }
             }
         } catch (PackageManager.NameNotFoundException e) {
-            Log.d("HAS_PERMISSION", "Catch: "+String.valueOf(e));
+            Log.d("HAS_PERMISSION", "Catch: " + String.valueOf(e));
         }
         return false;
     }
@@ -322,13 +356,13 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
 
-  private void galleryAddPic() {
-      Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-      File f = new File(mCurrentPhotoPath);
-      Uri contentUri = Uri.fromFile(f);
-      mediaScanIntent.setData(contentUri);
-      this.sendBroadcast(mediaScanIntent);
-  }
+    private void galleryAddPic() {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File f = new File(mCurrentPhotoPath);
+        Uri contentUri = Uri.fromFile(f);
+        mediaScanIntent.setData(contentUri);
+        this.sendBroadcast(mediaScanIntent);
+    }
 
     public String locationToString() {
         return (String.valueOf(latitude)
@@ -336,7 +370,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 + String.valueOf(longitude));
     }
 
-    public void showAddress(){
+    public void showAddress() {
         Geocoder geocoder;
         List<Address> addresses;
         geocoder = new Geocoder(this, Locale.getDefault());
@@ -354,11 +388,11 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         String state = addresses.get(0).getAdminArea();
         String postalCode = addresses.get(0).getPostalCode();
 
-        mCatLocation.setText(address+", "+city+", "+state+" "+postalCode);
+        mCatLocation.setText(address + ", " + city + ", " + state + " " + postalCode);
 
     }
 
-    private boolean hasCamera(){
+    private boolean hasCamera() {
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
     }
 
@@ -380,7 +414,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             save();
             return true;
         }
-        if (id == R.id.menu_item_share){
+        if (id == R.id.menu_item_share) {
             save();
             shareChooser();
         }
@@ -402,8 +436,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         share_intent.putExtra(Intent.EXTRA_SUBJECT,
                 "Share this cat!");
         share_intent.putExtra(Intent.EXTRA_TEXT,
-                mEditCatName.getText().toString()+": "
-                        +mEditCatDesc.getText().toString());
+                mEditCatName.getText().toString() + ": "
+                        + mEditCatDesc.getText().toString());
 
         // start the intent
         try {
@@ -433,6 +467,15 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         networkInfo = connMgr.getActiveNetworkInfo();
 
         if (networkInfo != null && networkInfo.isConnected()) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(locationPerms, 200);
+                }
+                return;
+            }
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                     mGoogleApiClient);
             if (mLastLocation != null) {

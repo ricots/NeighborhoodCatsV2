@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView.Adapter mAdapter;
     private Tracker mTracker;
     private CatsSQLiteOpenHelper mHelper;
-    private String[] perms = {"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
-    private int permsRequestCode = 200;
+//    private String[] perms = {"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
+//    private int permsRequestCode = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,10 +89,6 @@ public class MainActivity extends AppCompatActivity
                 startActivity(newCatIntent);
             }
         });
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(perms, permsRequestCode);
-        }
 
         // Obtain the shared Tracker instance.
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
@@ -203,15 +199,6 @@ public class MainActivity extends AppCompatActivity
         }
 
             return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
-        switch(permsRequestCode){
-            case 200:
-                boolean permissionAccepted = grantResults[3]== PackageManager.PERMISSION_GRANTED;
-                break;
-        }
     }
 
     @Override
