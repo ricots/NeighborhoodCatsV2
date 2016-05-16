@@ -1,8 +1,10 @@
 package com.roberterrera.neighborhoodcats.activities;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.location.Address;
@@ -12,6 +14,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -36,13 +39,13 @@ import java.util.Locale;
 
 public class DetailsActivity extends AppCompatActivity {
 
-    private TextView mCatName, mCatDesc, mFoundAt, mCatLocation, mFullCatDesc;
+    private TextView mCatName, mCatLocation, mFullCatDesc;
     private ImageView mPhoto;
     private EditText mEditCatName;
-    private CatsSQLiteOpenHelper helper;
+
+    private double latitude, longitude;
     private int catId;
     private String name, desc, photoPath;
-    private double latitude, longitude;
     private String mLatLong;
 
     @Override
@@ -54,8 +57,8 @@ public class DetailsActivity extends AppCompatActivity {
 
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
-        mFoundAt = (TextView) findViewById(R.id.textView_details_found);
+        TextView mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
+        TextView mFoundAt = (TextView) findViewById(R.id.textView_details_found);
         mCatLocation = (TextView) findViewById(R.id.textView_details_newlocation);
         mPhoto = (ImageView) findViewById(R.id.imageView_details_newimage);
         mFullCatDesc = (TextView) findViewById(R.id.editText_details_newdesc);
@@ -70,7 +73,7 @@ public class DetailsActivity extends AppCompatActivity {
       protected Void doInBackground(Void... params) {
         // Get intent from MainActivity list via the cat's id.
           catId = getIntent().getIntExtra("id", -1);
-          helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
+          CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
           helper.getReadableDatabase();
           helper.close();
           name = helper.getCatNameByID(catId);
@@ -79,6 +82,7 @@ public class DetailsActivity extends AppCompatActivity {
           latitude = helper.getCatLatByID(catId);
           longitude = helper.getCatLongByID(catId);
           mLatLong = locationToString();
+
         return null;
       }
 
@@ -98,18 +102,17 @@ public class DetailsActivity extends AppCompatActivity {
           ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
           final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-          if (networkInfo != null && networkInfo.isConnected()) {
-              showAddress();
-          } else {
+          if (ActivityCompat.checkSelfPermission(DetailsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                  != PackageManager.PERMISSION_GRANTED
+                  && ActivityCompat.checkSelfPermission(DetailsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                  != PackageManager.PERMISSION_GRANTED) {
+
               mCatLocation.setText(mLatLong);
               Toast.makeText(DetailsActivity.this, "Could not show street address without a connection.", Toast.LENGTH_SHORT).show();
-          }
 
-          Display display = getWindowManager().getDefaultDisplay();
-            Point size = new Point();
-            display.getSize(size);
-            int width = size.x;
-            int height = size.y;
+          } else if (networkInfo != null && networkInfo.isConnected()) {
+              showAddress();
+          }
 
           Picasso.with(DetailsActivity.this)
               .load("file:" + photoPath)
@@ -119,20 +122,17 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     public void showAddress(){
-        Geocoder geocoder;
-        List<Address> addresses;
-        geocoder = new Geocoder(this, Locale.getDefault());
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
-        addresses = new ArrayList<>();
+        List<Address> addresses = new ArrayList<>();
 
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
         if (networkInfo != null && networkInfo.isConnected()) {
             String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
