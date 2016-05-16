@@ -20,7 +20,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -59,29 +61,31 @@ import java.util.Locale;
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    private String mLatLong;
-    public String mCurrentPhotoPath;
+
+    private String mCurrentPhotoPath;
     private static final String TAG = "NewCatActivity";
+    private String mLatLong;
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
-    private String[] cameraPerms = {"android.permission.CAMERA"};
+    private String[] cameraPerms = {"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE"};
     private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
     private static final int REQUEST_TAKE_PHOTO = 1;
     private static final int RESULT_LOAD_IMG = 2;
+    private final int locationRequestCode = 200;
+    private final int cameraRequestCode = 201;
+    private final int storageRequestCode = 202;
     private double latitude, longitude;
 
-    private ImageView mPhoto;
     private EditText mEditCatName, mEditCatDesc;
     private TextView mCatLocation;
+    private ImageView mPhoto;
     private Bitmap photo;
+    private CameraIntentHelper mCameraIntentHelper;
 
-    private Tracker mTracker;
     private GoogleApiClient mGoogleApiClient;
-    private Location mLastLocation;
 
     private NetworkInfo networkInfo;
     private ConnectivityManager connMgr;
 
-    private CameraIntentHelper mCameraIntentHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,34 +113,22 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
 
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
+        Tracker mTracker = application.getDefaultTracker();
 
         connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         networkInfo = connMgr.getActiveNetworkInfo();
 
-        if (networkInfo != null && networkInfo.isConnected()) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(locationPerms, 200);
-                }
-                return;
-            }
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                    mGoogleApiClient);
-        } else {
-            Toast.makeText(NewCatActivity.this, "Location unavailable", Toast.LENGTH_SHORT).show();
-        }
-        setupCameraIntentHelper();
 
         // Open the camera when the activity is launched.
-        if (mCameraIntentHelper != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(cameraPerms, 201);
-            }
-            mCameraIntentHelper.startCameraIntent();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            Toast.makeText(NewCatActivity.this, "Camera permission required to take cat photos.", Toast.LENGTH_SHORT).show();
+
+        } else {
+            ActivityCompat.requestPermissions(this, cameraPerms, cameraRequestCode);
         }
 
 
@@ -145,9 +137,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             @Override
             public void onClick(View v) {
                 if (mCameraIntentHelper != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        requestPermissions(cameraPerms, 201);
-                    }
                     mCameraIntentHelper.startCameraIntent();
                 }
             }
@@ -157,9 +146,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         mPhoto.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(storagePerms, 202);
-                }
 
                 // Create intent to Open Image applications like Gallery, Google Photos
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK,
@@ -175,6 +161,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
 
     private void setupCameraIntentHelper() {
+
         mCameraIntentHelper = new CameraIntentHelper(this, new CameraIntentHelperCallback() {
             @Override
             public void onPhotoUriFound(Date dateCameraIntentStarted, Uri photoUri, int rotateXDegrees) {
@@ -183,8 +170,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 Point size = new Point();
                 display.getSize(size);
                 int width = size.x;
-                int height = size.y;
-
 
                 photo = BitmapHelper.readBitmap(NewCatActivity.this, photoUri);
                 if (photo != null) {
@@ -275,12 +260,50 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
     }
 
+    // Check permissions
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        boolean permissionAccepted;
+        switch (permsRequestCode) {
+            case locationRequestCode: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // task you need to do.
+
+                } return;
+            }
+            case cameraRequestCode: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+
+                    setupCameraIntentHelper();
+                    mCameraIntentHelper.startCameraIntent();
+
+                } return;
+            }
+            case storageRequestCode: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // task you need to do.
+
+                }
+            }
+        }
+    }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
     }
 
-    public String getPath(Uri uri) {
+    private String getPath(Uri uri) {
         String[] projection = {MediaStore.Images.Media.DATA};
         Cursor cursor = getContentResolver().query(uri,
                 projection, null, null, null);
@@ -292,26 +315,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             cursor.moveToFirst();
             return cursor.getString(column_index);
         } else return null;
-    }
-
-
-    // Check permissions
-
-    @Override
-    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
-        boolean permissionAccepted;
-
-        switch (permsRequestCode) {
-            case 200:
-                permissionAccepted = grantResults[1] == PackageManager.PERMISSION_GRANTED;
-                break;
-            case 201:
-                permissionAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                break;
-            case 202:
-                permissionAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                break;
-        }
     }
 
     public boolean hasPermissionInManifest(Context context, String permissionName) {
@@ -364,13 +367,19 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         this.sendBroadcast(mediaScanIntent);
     }
 
-    public String locationToString() {
+    private String locationToString() {
         return (String.valueOf(latitude)
                 + ", "
                 + String.valueOf(longitude));
     }
 
-    public void showAddress() {
+    private void showAddress() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(locationPerms, locationRequestCode);
+        } else {
+            Toast.makeText(NewCatActivity.this, getString(R.string.locationPermission), Toast.LENGTH_SHORT).show();
+        }
+
         Geocoder geocoder;
         List<Address> addresses;
         geocoder = new Geocoder(this, Locale.getDefault());
@@ -456,32 +465,38 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Toast.makeText(NewCatActivity.this, "Could not connect to internet. Cat locations won't be saved.", Toast.LENGTH_SHORT).show();
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
         // Check if a connection is available.
-        networkInfo = connMgr.getActiveNetworkInfo();
-
+        Location mLastLocation;
         if (networkInfo != null && networkInfo.isConnected()) {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(locationPerms, locationRequestCode);
+            } else {
+                Toast.makeText(NewCatActivity.this, getString(R.string.locationPermission), Toast.LENGTH_SHORT).show();
+            }
+
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(locationPerms, 200);
-                }
-                return;
-            }
+                    != PackageManager.PERMISSION_GRANTED) {return;}
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                     mGoogleApiClient);
-            if (mLastLocation != null) {
-                latitude = mLastLocation.getLatitude();
-                longitude = mLastLocation.getLongitude();
-            }
+        } else {
+            Toast.makeText(NewCatActivity.this, "Location unavailable", Toast.LENGTH_SHORT).show();
+        }
+
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+
+        if (mLastLocation != null) {
+            latitude = mLastLocation.getLatitude();
+            longitude = mLastLocation.getLongitude();
         } else {
             latitude = 0.0;
             longitude = 0.0;
@@ -495,8 +510,8 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     protected void onStart() {
-        mGoogleApiClient.connect();
         super.onStart();
+        mGoogleApiClient.connect();
     }
 
     protected void onStop() {
@@ -510,6 +525,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     private void save(){
+
         CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(NewCatActivity.this);
         helper.getWritableDatabase();
 
@@ -556,8 +572,10 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        mCameraIntentHelper.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putParcelable("file_uri", photo);
+        if (mCameraIntentHelper != null) {
+            mCameraIntentHelper.onSaveInstanceState(savedInstanceState);
+            savedInstanceState.putParcelable("file_uri", photo);
+        }
     }
 
     @Override
