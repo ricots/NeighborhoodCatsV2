@@ -126,5 +126,15 @@
     <string name="action_share">Share</string>
     <string name="action_update">Update</string>
     <string name="title_activity_edit">EditActivity</string>
+    <string name="instructions">
+        Welcome to Neighborhood Cats!
+
+        \n\nTo take a photo of a cat, tap the paw button to the lower-right.
+
+        \n\nTo see a map of where you encountered your neighborhood cats, tap the map button to the top-right.
+
+        \n\n(There more features to come, which will add more interactivity within your community. Please be patient, and happy cat sighting!)
+    </string>
+    <string name="locationPermission">Location permission needed to map your cats.</string>
 
 </resources>

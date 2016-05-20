@@ -1,5 +1,6 @@
 package com.roberterrera.neighborhoodcats.activities;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,7 +11,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -21,6 +24,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
@@ -42,15 +46,23 @@ public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 //    implements NavigationView.OnNavigationItemSelectedListener
-    public Cursor mCursor;
+
+    private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
+    private String[] cameraPerms = {"android.permission.CAMERA"};
+    private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
+    private final int locationRequestCode = 200;
+    private final int cameraRequestCode = 201;
+    private final int storageRequestCode = 202;
+
     private List<Cat> catList;
-    private ArrayList<Geofence> mGeofenceList;
-    private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+//    private ArrayList<Geofence> mGeofenceList;
+    private TextView instructions;
     private Tracker mTracker;
+
+    public Cursor mCursor;
     private CatsSQLiteOpenHelper mHelper;
-    private String[] perms = {"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
-    private int permsRequestCode = 200;
+
+    private RecyclerView.Adapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,11 +74,13 @@ public class MainActivity extends AppCompatActivity
         setTitle(getString(R.string.mainactivity_title));
 
         catList = new ArrayList<>();
-        mGeofenceList = new ArrayList<>();
+        instructions = (TextView)findViewById(R.id.textview_instructions);
 
         // Set up a linear layout manager
-        mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
+        if (mRecyclerView != null) {
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        }
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
         // Improve performance if you know that changes
@@ -85,14 +99,13 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
-                startActivity(newCatIntent);
+
+                requestCameraPermissions();
+//
+//                Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
+//                startActivity(newCatIntent);
             }
         });
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(perms, permsRequestCode);
-        }
 
         // Obtain the shared Tracker instance.
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
@@ -142,13 +155,13 @@ public class MainActivity extends AppCompatActivity
                                     mAdapter.notifyItemRemoved(position);
                                 }
                                 mAdapter.notifyDataSetChanged();
+                                if (catList.isEmpty()){
+                                    instructions.setVisibility(View.VISIBLE);
+                                }
                             }
-
-
                         });
 
         mRecyclerView.addOnItemTouchListener(swipeTouchListener);
-
     }
 
     private void loadCatsList(){
@@ -156,23 +169,104 @@ public class MainActivity extends AppCompatActivity
         mHelper.getWritableDatabase();
         mCursor = CatsSQLiteOpenHelper.getInstance(this).getCatsList();
 
-        // Loop through arraylist and add database items to it.
-        while (mCursor.moveToNext()){
-            int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-            String name = mHelper.getCatNameByID(id);
-            String desc = mHelper.getCatDescByID(id);
-            double latitude = mHelper.getCatLatByID(id);
-            double longitude = mHelper.getCatLongByID(id);
-            String imagePath = mHelper.getCatPhotoByID(id);
+        requestStoragePermissions();
 
-            Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
-            catList.add(cat);
+        // Loop through arraylist and add database items to it.
+        if (mCursor != null) {
+
+            while (mCursor.moveToNext()) {
+                int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+                String name = mHelper.getCatNameByID(id);
+                String desc = mHelper.getCatDescByID(id);
+                double latitude = mHelper.getCatLatByID(id);
+                double longitude = mHelper.getCatLongByID(id);
+                String imagePath = mHelper.getCatPhotoByID(id);
+
+                Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
+                catList.add(cat);
+                if (!catList.isEmpty()){
+                    instructions.setVisibility(View.GONE);
+                }
+            }
+            mCursor.close();
+            mHelper.close();
         }
-        mCursor.close();
-        mHelper.close();
     }
 
-     @Override
+    private void requestStoragePermissions() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(storagePerms, storageRequestCode);
+        }
+    }
+
+    private void requestCameraPermissions() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(cameraPerms, cameraRequestCode);
+        } else if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
+        }
+    }
+
+    private void requestLocationPermissions() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(locationPerms, locationRequestCode);
+        } else if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(MainActivity.this, locationPerms, locationRequestCode);
+        }
+    }
+
+    // Check permissions
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (permsRequestCode) {
+            case locationRequestCode:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+
+                    Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+                    startActivity(mapIntent);
+                }
+                break;
+
+            case cameraRequestCode:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length == 1
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
+                    startActivity(newCatIntent);
+
+                }
+                break;
+            case storageRequestCode:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length == 1
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // task you need to do.
+
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(permsRequestCode, permissions, grantResults);
+        }
+    }
+
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -188,27 +282,21 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.menu_map) {
+
+
             ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
             if (networkInfo != null && networkInfo.isConnected()) {
-                Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
+                requestLocationPermissions();
+//                Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+//                startActivity(mapIntent);
             } else {
                 Toast.makeText(MainActivity.this, "Cat Map unavailable without an internet connection.", Toast.LENGTH_SHORT).show();
             }
         }
 
             return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
-        switch(permsRequestCode){
-            case 200:
-                boolean permissionAccepted = grantResults[3]== PackageManager.PERMISSION_GRANTED;
-                break;
-        }
     }
 
     @Override

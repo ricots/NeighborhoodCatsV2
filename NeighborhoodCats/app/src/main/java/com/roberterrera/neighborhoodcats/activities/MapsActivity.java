@@ -2,12 +2,14 @@ package com.roberterrera.neighborhoodcats.activities;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -40,27 +42,27 @@ import java.util.ArrayList;
 public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
 
+    private String provider;
+    private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
+    private int id;
+
+    private double mLatitude, mLongitude;
+
+    private ArrayList<Cat> mCatArrayList;
+    private Cursor cursor;
+    private CatsSQLiteOpenHelper helper;
 
     private GoogleMap mMap;
-    private double mLatitude, mLongitude;
     private Location mLastLocation;
     private Tracker mTracker;
     private GoogleApiClient mGoogleApiClient;
     private LocationManager locationManager;
-    private String provider;
-    private ArrayList<Cat> mCatArrayList;
-    private Cursor cursor;
-    private CatsSQLiteOpenHelper helper;
-    private int id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setTitle("Map Your Cats!");
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -116,23 +118,21 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
 
         String locationProvider = LocationManager.NETWORK_PROVIDER;
-// Or use LocationManager.GPS_PROVIDER
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
         mLatitude = lastKnownLocation.getLatitude();
         mLongitude = lastKnownLocation.getLongitude();
         LatLng lastLocation = new LatLng(mLatitude, mLongitude);
-        Log.d("onMapReady", mLatitude+", "+mLongitude);
+        Log.d("onMapReady", mLatitude + ", " + mLongitude);
 
         mMap.setMyLocationEnabled(true);
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-
-//        mMap.addMarker(new MarkerOptions()
-//                .position(lastLocation)
-//                .title("You"));
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(lastLocation)
@@ -145,10 +145,10 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         loadCatsList();
     }
 
-    private void loadCatsList(){
+    private void loadCatsList() {
 
         // Loop through arraylist and add database items to it.
-        while (cursor.moveToNext()){
+        while (cursor.moveToNext()) {
             int id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
             String name = helper.getCatNameByID(id);
             String desc = helper.getCatDescByID(id);
@@ -166,7 +166,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                     .position(catLatLing)
                     .title(name));
             Log.d("getCatLocations", String.valueOf(catLatLing));
-            Log.d("mCatArrayList", "mCatArrayList size: "+mCatArrayList.size());
+            Log.d("mCatArrayList", "mCatArrayList size: " + mCatArrayList.size());
 
         }
         cursor.close();
@@ -175,6 +175,15 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(locationPerms, 200);
+            }
+            return;
+        }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (mLastLocation != null) {
@@ -190,6 +199,35 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 .build();
     }
 
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
+        boolean permissionAccepted;
+
+        switch(permsRequestCode){
+            case 200:
+                permissionAccepted = grantResults[1]== PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+    }
+
+    public boolean hasPermissionInManifest(Context context, String permissionName) {
+        final String packageName = context.getPackageName();
+        try {
+            final PackageInfo packageInfo = context.getPackageManager()
+                    .getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
+            final String[] declaredPermissisons = packageInfo.requestedPermissions;
+            if (declaredPermissisons != null && declaredPermissisons.length > 0) {
+                for (String p : declaredPermissisons) {
+                    if (p.equals(permissionName)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.d("HAS_PERMISSION", "Catch: "+String.valueOf(e));
+        }
+        return false;
+    }
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -206,7 +244,13 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onResume();
         mTracker.setScreenName("MapsActivity~");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(locationPerms, 200);
+            }
             return;
         }
         locationManager.requestLocationUpdates(provider, 400, 1, this);
@@ -226,7 +270,13 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onPause() {
         super.onPause();
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(locationPerms, 200);
+            }
             return;
         }
         locationManager.removeUpdates(this);
