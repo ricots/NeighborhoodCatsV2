@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity
 //    implements NavigationView.OnNavigationItemSelectedListener
 
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
-    private String[] cameraPerms = {"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE"};
+    private String[] cameraPerms = {"android.permission.CAMERA"};
     private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
     private final int locationRequestCode = 200;
     private final int cameraRequestCode = 201;
@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity
     public Cursor mCursor;
     private CatsSQLiteOpenHelper mHelper;
 
-    private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
 
     @Override
@@ -75,12 +74,13 @@ public class MainActivity extends AppCompatActivity
         setTitle(getString(R.string.mainactivity_title));
 
         catList = new ArrayList<>();
-//        mGeofenceList = new ArrayList<>();
         instructions = (TextView)findViewById(R.id.textview_instructions);
 
         // Set up a linear layout manager
-        mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
+        if (mRecyclerView != null) {
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        }
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
         // Improve performance if you know that changes
@@ -99,18 +99,11 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
-                        != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        != PackageManager.PERMISSION_GRANTED) {
 
-                    requestCameraPermissions();
-
-                } else {
-                    Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
-                    startActivity(newCatIntent);
-                }
-                requestLocationPermissions();
+                requestCameraPermissions();
+//
+//                Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
+//                startActivity(newCatIntent);
             }
         });
 
@@ -166,12 +159,9 @@ public class MainActivity extends AppCompatActivity
                                     instructions.setVisibility(View.VISIBLE);
                                 }
                             }
-
-
                         });
 
         mRecyclerView.addOnItemTouchListener(swipeTouchListener);
-
     }
 
     private void loadCatsList(){
@@ -183,6 +173,7 @@ public class MainActivity extends AppCompatActivity
 
         // Loop through arraylist and add database items to it.
         if (mCursor != null) {
+
             while (mCursor.moveToNext()) {
                 int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
                 String name = mHelper.getCatNameByID(id);
@@ -213,6 +204,12 @@ public class MainActivity extends AppCompatActivity
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(cameraPerms, cameraRequestCode);
+        } else if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
         }
     }
 
@@ -220,30 +217,51 @@ public class MainActivity extends AppCompatActivity
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(locationPerms, locationRequestCode);
+        } else if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(MainActivity.this, locationPerms, locationRequestCode);
         }
     }
 
     // Check permissions
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        boolean permissionAccepted;
         switch (permsRequestCode) {
-            case locationRequestCode: {
-                if (grantResults.length > 0) {
-                    permissionAccepted = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+            case locationRequestCode:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+
+                    Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+                    startActivity(mapIntent);
                 }
                 break;
-            }
-            case cameraRequestCode: {
-                if (grantResults.length > 0) {
-                    permissionAccepted = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+
+            case cameraRequestCode:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length == 1
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
+                    startActivity(newCatIntent);
+
                 }
                 break;
-            }
-            case storageRequestCode: {
-                permissionAccepted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            case storageRequestCode:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length == 1
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // task you need to do.
+
+                }
                 break;
-            }
+            default:
+                super.onRequestPermissionsResult(permsRequestCode, permissions, grantResults);
         }
     }
 
@@ -264,12 +282,15 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.menu_map) {
+
+
             ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-            requestLocationPermissions();
+
             if (networkInfo != null && networkInfo.isConnected()) {
-                Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
+                requestLocationPermissions();
+//                Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+//                startActivity(mapIntent);
             } else {
                 Toast.makeText(MainActivity.this, "Cat Map unavailable without an internet connection.", Toast.LENGTH_SHORT).show();
             }
