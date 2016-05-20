@@ -1,5 +1,6 @@
 package com.roberterrera.neighborhoodcats.sqldatabase;
 
+import android.app.Application;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -7,6 +8,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.roberterrera.neighborhoodcats.models.Cat;
+
+import java.io.File;
 
 /**
  * Created by Rob on 3/21/16.
@@ -55,7 +58,7 @@ public class CatsSQLiteOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(CREATE_CAT_LIST_TABLE);
+//        db.execSQL(CREATE_CAT_LIST_TABLE);
     }
 
     @Override
