@@ -58,32 +58,32 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
 
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-            mPhoto = (ImageView) findViewById(R.id.imageView_edit_image);
-            mCatLocation = (TextView) findViewById(R.id.textView_edit_location);
-            mEditCatDesc = (EditText) findViewById(R.id.editText_edit_desc);
-            mEditCatName = (EditText) findViewById(R.id.editText_edit_name);
-            catId = getIntent().getIntExtra("id", -2);
+        mPhoto = (ImageView) findViewById(R.id.imageView_edit_image);
+        mCatLocation = (TextView) findViewById(R.id.textView_edit_location);
+        mEditCatDesc = (EditText) findViewById(R.id.editText_edit_desc);
+        mEditCatName = (EditText) findViewById(R.id.editText_edit_name);
+        catId = getIntent().getIntExtra("id", -2);
 
 
         // Create an instance of GoogleAPIClient.
-            if (mGoogleApiClient == null) {
-                mGoogleApiClient = new GoogleApiClient.Builder(this)
-                        .addConnectionCallbacks(this)
-                        .addOnConnectionFailedListener(this)
-                        .addApi(LocationServices.API)
-                        .build();
-            }
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
 
-            AnalyticsApplication application = (AnalyticsApplication) getApplication();
-            mTracker = application.getDefaultTracker();
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
 
-            LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
-            loadCatAsyncTask.execute();
+        LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
+        loadCatAsyncTask.execute();
 
     }
 
@@ -123,7 +123,7 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
 //            if (networkInfo != null && networkInfo.isConnected()) {
 //                showAddress();
 //            } else {
-                mCatLocation.setText(locationToString());
+            mCatLocation.setText(locationToString());
 //            }
 
             Display display = getWindowManager().getDefaultDisplay();

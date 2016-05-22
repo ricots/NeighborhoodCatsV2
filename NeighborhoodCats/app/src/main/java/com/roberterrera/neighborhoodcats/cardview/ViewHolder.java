@@ -16,7 +16,6 @@ public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickL
 
     protected TextView vName, vDesc;
     protected ImageView vThumbnail;
-    private Cursor mCursor;
     private Context mContext;
     private ItemClickListener itemClickListener;
 

@@ -2,18 +2,15 @@ package com.roberterrera.neighborhoodcats;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.location.Address;
 import android.location.Criteria;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -35,37 +32,28 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
-import com.roberterrera.neighborhoodcats.models.Petfinder;
-import com.roberterrera.neighborhoodcats.models.Shelter;
-import com.roberterrera.neighborhoodcats.service.PetfinderAPI;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
 
-    private int id;
-    private double mLatitude, mLongitude;
-    private String location; // This is the zipcode query for PetfinderItem API
     private String provider;
+    private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
+    private int id;
+
+    private double mLatitude, mLongitude;
+
     private ArrayList<Cat> mCatArrayList;
+    private Cursor cursor;
+    private CatsSQLiteOpenHelper helper;
 
     private GoogleMap mMap;
     private Location mLastLocation;
     private Tracker mTracker;
     private GoogleApiClient mGoogleApiClient;
     private LocationManager locationManager;
-
-    private Cursor cursor;
-    private CatsSQLiteOpenHelper helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,9 +78,9 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             mMap.setMyLocationEnabled(true);
             return;
@@ -152,71 +140,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         // Display cat markers on the map using the lat and lon saved to the items' database columns.
         loadCatsList();
-
-
-        // Build a Retrofit object that calls the PetfinderItem API.
-        String format = "format=json";
-        String key = "key=e8736f4c0a4c61832d001b9d357055f4";
-        getZipcode(mLatitude, mLongitude);
-        Log.d("MAPSACTIVITY", "getZipcode: " + location);
-
-        PetfinderAPI.Factory.getInstance().loadShelters(format, location, key).enqueue(new Callback<Shelter>() {
-            @Override
-            public void onResponse(Call<Shelter> call, Response<Shelter> response) {
-                // TODO: Fix malformed JSON error
-                Petfinder petfinder = response.body().getPetfinder();
-
-                List<Petfinder> results = new ArrayList<Petfinder>();
-
-                for (int j = 0; j <= results.size(); j++) {
-
-                    double shelterLat = Double.parseDouble(String.valueOf(
-                            petfinder.getShelters().getShelter().get(j).getLatitude()));
-                    double shelterLong = Double.parseDouble(String.valueOf(
-                            petfinder.getShelters().getShelter().get(j).getLongitude()));
-                    LatLng shelterLatLing = new LatLng(shelterLat, shelterLong);
-                    Log.d("RETROFIT", String.valueOf(petfinder.getShelters().getShelter().get(j).getName()));
-                    Log.d("RETROFIT", "Shelter LatLing " + String.valueOf(shelterLatLing));
-
-                    // Show shelter markers on map.
-                    Marker shelterMap = mMap.addMarker(new MarkerOptions()
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_domain))
-                            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-                            .position(shelterLatLing)
-                            .title(String.valueOf(petfinder.getShelters().getShelter().get(j).getName())));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Shelter> call, Throwable t) {
-                Toast.makeText(MapsActivity.this, "Unable to load shelters.", Toast.LENGTH_SHORT).show();
-                Log.d("ONFAILURE", String.valueOf(t));
-            }
-        });
-    }
-
-    public void getZipcode(double latitude, double longitude) {
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        List<Address> addresses = new ArrayList<>();
-
-        try {
-            addresses = geocoder.getFromLocation(latitude, longitude, 1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-
-        if (networkInfo != null && networkInfo.isConnected()) {
-            String postalCode = addresses.get(0).getPostalCode();
-            location = postalCode;
-        } else {
-            Toast.makeText(MapsActivity.this,
-                    "Cannot show nearby shelters without an internet connection.",
-                    Toast.LENGTH_SHORT).show();
-        }
-
     }
 
     private void loadCatsList() {
@@ -239,6 +162,9 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                     .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
                     .position(catLatLing)
                     .title(name));
+            Log.d("getCatLocations", String.valueOf(catLatLing));
+            Log.d("mCatArrayList", "mCatArrayList size: " + mCatArrayList.size());
+
         }
         cursor.close();
     }
@@ -250,6 +176,9 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(locationPerms, 200);
+            }
             return;
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
@@ -267,6 +196,35 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 .build();
     }
 
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
+        boolean permissionAccepted;
+
+        switch(permsRequestCode){
+            case 200:
+                permissionAccepted = grantResults[1]== PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+    }
+
+    public boolean hasPermissionInManifest(Context context, String permissionName) {
+        final String packageName = context.getPackageName();
+        try {
+            final PackageInfo packageInfo = context.getPackageManager()
+                    .getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
+            final String[] declaredPermissisons = packageInfo.requestedPermissions;
+            if (declaredPermissisons != null && declaredPermissisons.length > 0) {
+                for (String p : declaredPermissisons) {
+                    if (p.equals(permissionName)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.d("HAS_PERMISSION", "Catch: "+String.valueOf(e));
+        }
+        return false;
+    }
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -274,7 +232,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+    public void onConnectionFailed(ConnectionResult connectionResult) {
 
     }
 
@@ -287,6 +245,9 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(locationPerms, 200);
+            }
             return;
         }
         locationManager.requestLocationUpdates(provider, 400, 1, this);
@@ -310,9 +271,13 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(locationPerms, 200);
+            }
             return;
         }
         locationManager.removeUpdates(this);
+
     }
 
     @Override
