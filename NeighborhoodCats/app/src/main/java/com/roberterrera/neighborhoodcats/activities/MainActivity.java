@@ -70,6 +70,10 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.mainactivity_title));
 
+        // Obtain the shared Tracker instance.
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
+
         catList = new ArrayList<>();
         instructions = (TextView)findViewById(R.id.textview_instructions);
 
@@ -78,18 +82,76 @@ public class MainActivity extends AppCompatActivity
         if (mRecyclerView != null) {
             mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         }
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        if (mRecyclerView != null) {
+            mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        }
 
         // Improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
-        mRecyclerView.setHasFixedSize(true);
+        if (mRecyclerView != null) {
+            mRecyclerView.setHasFixedSize(true);
 
-        // specify the recycler view adapter
-        mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
-        mRecyclerView.setAdapter(mAdapter);
+            // specify the recycler view adapter
+            mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
+            mRecyclerView.setAdapter(mAdapter);
+
+            // Load the user's list.
+            loadCatsList();
+
+            // Enable swipe-to-delete on cards.
+            SwipeableRecyclerViewTouchListener swipeTouchListener =
+                    new SwipeableRecyclerViewTouchListener(mRecyclerView,
+                            new SwipeableRecyclerViewTouchListener.SwipeListener() {
+
+                                public boolean canSwipe(int position) {
+                                    return true;
+                                }
+
+                                @Override
+                                public boolean canSwipeLeft(int position) {
+                                    return true;
+                                }
+
+                                @Override
+                                public boolean canSwipeRight(int position) {
+                                    return true;
+                                }
+
+                                @Override
+                                public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
+                                    for (int position : reverseSortedPositions) {
+                                        int id = catList.get(position).getId();
+
+                                        mHelper.deleteCatByID(id);
+                                        catList.remove(position);
+                                        mAdapter.notifyItemRemoved(position);
+                                    }
+                                    mAdapter.notifyDataSetChanged();
+                                }
+
+                                @Override
+                                public void onDismissedBySwipeRight(RecyclerView recyclerView, int[] reverseSortedPositions) {
+                                    for (int position : reverseSortedPositions) {
+                                        int id = catList.get(position).getId();
+
+                                        mHelper.deleteCatByID(id);
+                                        catList.remove(position);
+                                        mAdapter.notifyItemRemoved(position);
+                                    }
+                                    mAdapter.notifyDataSetChanged();
+                                    if (catList.isEmpty()){
+                                        instructions.setVisibility(View.VISIBLE);
+                                    }
+                                }
+                            });
+
+            mRecyclerView.addOnItemTouchListener(swipeTouchListener);
+        }
 
         DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        if (mDrawerLayout != null) {
+            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
@@ -101,62 +163,6 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-
-        // Load the user's list.
-        loadCatsList();
-
-        // Enable swipe-to-delete on cards.
-        SwipeableRecyclerViewTouchListener swipeTouchListener =
-                new SwipeableRecyclerViewTouchListener(mRecyclerView,
-                        new SwipeableRecyclerViewTouchListener.SwipeListener() {
-
-                            public boolean canSwipe(int position) {
-                                return true;
-                            }
-
-                            @Override
-                            public boolean canSwipeLeft(int position) {
-                                return true;
-                            }
-
-                            @Override
-                            public boolean canSwipeRight(int position) {
-                                return true;
-                            }
-
-                            @Override
-                            public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
-                                for (int position : reverseSortedPositions) {
-                                    int id = catList.get(position).getId();
-
-                                    mHelper.deleteCatByID(id);
-                                    catList.remove(position);
-                                    mAdapter.notifyItemRemoved(position);
-                                }
-                                mAdapter.notifyDataSetChanged();
-                            }
-
-                            @Override
-                            public void onDismissedBySwipeRight(RecyclerView recyclerView, int[] reverseSortedPositions) {
-                                for (int position : reverseSortedPositions) {
-                                    int id = catList.get(position).getId();
-
-                                    mHelper.deleteCatByID(id);
-                                    catList.remove(position);
-                                    mAdapter.notifyItemRemoved(position);
-                                }
-                                mAdapter.notifyDataSetChanged();
-                                if (catList.isEmpty()){
-                                    instructions.setVisibility(View.VISIBLE);
-                                }
-                            }
-                        });
-
-        mRecyclerView.addOnItemTouchListener(swipeTouchListener);
     }
 
     private void loadCatsList(){
@@ -331,7 +337,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
 
