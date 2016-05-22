@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
 
                 requestCameraPermissions();
+
             }
         });
 
@@ -189,16 +190,18 @@ public class MainActivity extends AppCompatActivity
 
     private void requestStoragePermissions() {
 
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(MainActivity.this, storagePerms, storageRequestCode);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(storagePerms, storageRequestCode);
         }
     }
 
     private void requestCameraPermissions() {
 
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(cameraPerms, cameraRequestCode);
+        } else if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
@@ -207,7 +210,9 @@ public class MainActivity extends AppCompatActivity
 
     private void requestLocationPermissions() {
 
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(locationPerms, locationRequestCode);
+        } else if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -243,8 +248,7 @@ public class MainActivity extends AppCompatActivity
             case storageRequestCode:
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length == 1
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                }
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
                 break;
             default:
                 super.onRequestPermissionsResult(permsRequestCode, permissions, grantResults);
@@ -262,9 +266,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         if (id == R.id.menu_map) {
+
+
             ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
@@ -274,7 +283,6 @@ public class MainActivity extends AppCompatActivity
                 Toast.makeText(MainActivity.this, "Cat Map unavailable without an internet connection.", Toast.LENGTH_SHORT).show();
             }
         }
-
         return super.onOptionsItemSelected(item);
     }
 
