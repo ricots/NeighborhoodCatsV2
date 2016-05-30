@@ -200,11 +200,13 @@ public class MainActivity extends AppCompatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(cameraPerms, cameraRequestCode);
         } else if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
+
+        } else {
+            Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
+            startActivity(newCatIntent);
         }
     }
 
@@ -218,6 +220,9 @@ public class MainActivity extends AppCompatActivity
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(MainActivity.this, locationPerms, locationRequestCode);
+        } else {
+            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+            startActivity(mapIntent);
         }
     }
 
