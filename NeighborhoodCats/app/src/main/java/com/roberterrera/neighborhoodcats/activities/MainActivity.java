@@ -24,6 +24,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,6 +59,19 @@ public class MainActivity extends AppCompatActivity
     private TextView instructions;
     private Tracker mTracker;
 
+    //Save the FAB's active status
+    //false -> fab = close
+    //true -> fab = open
+    private boolean FAB_Status = false;
+    private FloatingActionButton fab_fromStorage;
+    private FloatingActionButton fab_fromCamera;
+
+    //Animations
+    private Animation show_fab_fromStorage;
+    private Animation hide_fab_fromStorage;
+    private Animation show_fab_fromCamera;
+    private Animation hide_fab_fromCamera;
+
     public Cursor mCursor;
     private CatsSQLiteOpenHelper mHelper;
 
@@ -76,6 +92,17 @@ public class MainActivity extends AppCompatActivity
 
         catList = new ArrayList<>();
         instructions = (TextView)findViewById(R.id.textview_instructions);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab_fromStorage = (FloatingActionButton) findViewById(R.id.fab_fromStorage);
+        fab_fromCamera = (FloatingActionButton) findViewById(R.id.fab_fromCamera);
+
+        //Animations
+        show_fab_fromStorage = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromstorage_show);
+        hide_fab_fromStorage = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromstorage_hide);
+        show_fab_fromCamera = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromcamera_show);
+        hide_fab_fromCamera = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromcamera_hide);
+
 
         // Set up a linear layout manager
         RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
@@ -153,16 +180,79 @@ public class MainActivity extends AppCompatActivity
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                requestCameraPermissions();
-
+                if (FAB_Status == false) {
+                    //Display FAB menu
+                    expandFAB();
+                    FAB_Status = true;
+                } else {
+                    //Close FAB menu
+                    hideFAB();
+                    FAB_Status = false;
+                }
             }
         });
+
+        fab_fromStorage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplication(), "Button will launch storage intent and callback to NewCatActivity.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        fab_fromCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestCameraPermissions();
+                Toast.makeText(getApplication(), "Button will launch camera intent and callback to NewCatActivity.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void expandFAB() {
+
+        // Floating Action Button 1
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) fab_fromStorage.getLayoutParams();
+        layoutParams.rightMargin += (int) (fab_fromCamera.getWidth() * 1.5);
+        layoutParams.bottomMargin += (int) (fab_fromCamera.getHeight() * 1.5);
+        fab_fromStorage.setLayoutParams(layoutParams);
+        fab_fromStorage.startAnimation(show_fab_fromStorage);
+        fab_fromStorage.setClickable(true);
+
+        // Floating Action Button 2
+        FrameLayout.LayoutParams layoutParams2 = (FrameLayout.LayoutParams) fab_fromCamera.getLayoutParams();
+        layoutParams2.rightMargin += (int) (fab_fromCamera.getWidth() * 1.7);
+        layoutParams2.bottomMargin += (int) (fab_fromCamera.getHeight() * 0.25);
+        fab_fromCamera.setLayoutParams(layoutParams2);
+        fab_fromCamera.startAnimation(show_fab_fromCamera);
+        fab_fromCamera.setClickable(true);
+
+
+    }
+
+    private void hideFAB() {
+
+        // Floating Action Button 1
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) fab_fromStorage.getLayoutParams();
+        layoutParams.rightMargin -= (int) (fab_fromCamera.getWidth() * 1.5);
+        layoutParams.bottomMargin -= (int) (fab_fromCamera.getHeight() * 1.5);
+        fab_fromStorage.setLayoutParams(layoutParams);
+        fab_fromStorage.startAnimation(hide_fab_fromStorage);
+        fab_fromStorage.setClickable(false);
+
+        // Floating Action Button 2
+        FrameLayout.LayoutParams layoutParams2 = (FrameLayout.LayoutParams) fab_fromCamera.getLayoutParams();
+        layoutParams2.rightMargin -= (int) (fab_fromCamera.getWidth() * 1.7);
+        layoutParams2.bottomMargin -= (int) (fab_fromCamera.getHeight() * 0.25);
+        fab_fromCamera.setLayoutParams(layoutParams2);
+        fab_fromCamera.startAnimation(hide_fab_fromCamera);
+        fab_fromCamera.setClickable(false);
+
+
     }
 
     private void loadCatsList(){
