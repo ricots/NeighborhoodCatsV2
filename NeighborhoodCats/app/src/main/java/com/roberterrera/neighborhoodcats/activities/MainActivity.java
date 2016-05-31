@@ -9,8 +9,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private String[] cameraPerms = {"android.permission.CAMERA"};
     private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
+    private String mCurrentPhotoPath;
     private final int locationRequestCode = 200;
     private final int cameraRequestCode = 201;
     private final int storageRequestCode = 202;
@@ -185,6 +188,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
 
+                // Determine if the buttons are visible or hidden. Do the opposite of the current state.
                 if (FAB_Status == false) {
                     //Display FAB menu
                     expandFAB();
@@ -200,7 +204,13 @@ public class MainActivity extends AppCompatActivity
         fab_fromStorage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplication(), "Button will launch storage intent and callback to NewCatActivity.", Toast.LENGTH_SHORT).show();
+                // Create intent to Open Image applications like Gallery, Google Photos
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                setResult(RESULT_OK, galleryIntent);
+
+                // Start the Intent
+                startActivityForResult(galleryIntent, 2);
             }
         });
 
@@ -208,9 +218,43 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 requestCameraPermissions();
-                Toast.makeText(getApplication(), "Button will launch camera intent and callback to NewCatActivity.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        // When an Image is picked
+        if (requestCode == 2 && resultCode == RESULT_OK
+                && intent != null) {
+
+            // Note: If image is an older image being selected via Google Photos, the image will not
+            // be loaded because it has to be downloaded first.
+
+            Uri selectedImageUri = null;
+            selectedImageUri = intent.getData();
+            mCurrentPhotoPath = getPath(selectedImageUri);
+
+            Intent newCatIntent =  new Intent (this, NewCatActivity.class);
+            newCatIntent.putExtra("ImagePath", mCurrentPhotoPath);
+            startActivity(newCatIntent);
+        }
+    }
+
+    private String getPath(Uri uri) {
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContentResolver().query(uri,
+                projection, null, null, null);
+        if (cursor != null) {
+            //HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
+            //THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
+            int column_index = cursor
+                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } else return null;
     }
 
     private void expandFAB() {
@@ -230,8 +274,6 @@ public class MainActivity extends AppCompatActivity
         fab_fromCamera.setLayoutParams(layoutParams2);
         fab_fromCamera.startAnimation(show_fab_fromCamera);
         fab_fromCamera.setClickable(true);
-
-
     }
 
     private void hideFAB() {
@@ -251,8 +293,6 @@ public class MainActivity extends AppCompatActivity
         fab_fromCamera.setLayoutParams(layoutParams2);
         fab_fromCamera.startAnimation(hide_fab_fromCamera);
         fab_fromCamera.setClickable(false);
-
-
     }
 
     private void loadCatsList(){
@@ -301,6 +341,7 @@ public class MainActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
 
         } else {
+            requestLocationPermissions();
             Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
             startActivity(newCatIntent);
         }
@@ -316,9 +357,9 @@ public class MainActivity extends AppCompatActivity
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(MainActivity.this, locationPerms, locationRequestCode);
-        } else {
-            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
-            startActivity(mapIntent);
+//        } else {
+//            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+//            startActivity(mapIntent);
         }
     }
 
@@ -331,8 +372,8 @@ public class MainActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
-                    Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
-                    startActivity(mapIntent);
+//                    Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+//                    startActivity(mapIntent);
                 }
                 break;
 
@@ -380,6 +421,8 @@ public class MainActivity extends AppCompatActivity
 
             if (networkInfo != null && networkInfo.isConnected()) {
                 requestLocationPermissions();
+                Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+                startActivity(mapIntent);
             } else {
                 Toast.makeText(MainActivity.this, "Cat Map unavailable without an internet connection.", Toast.LENGTH_SHORT).show();
             }
