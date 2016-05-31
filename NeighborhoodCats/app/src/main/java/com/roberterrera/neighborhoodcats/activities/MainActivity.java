@@ -421,8 +421,8 @@ public class MainActivity extends AppCompatActivity
 
             if (networkInfo != null && networkInfo.isConnected()) {
                 requestLocationPermissions();
-                Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
+//                Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+//                startActivity(mapIntent);
             } else {
                 Toast.makeText(MainActivity.this, "Cat Map unavailable without an internet connection.", Toast.LENGTH_SHORT).show();
             }
