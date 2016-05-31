@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.location.Address;
@@ -19,7 +18,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -30,7 +28,6 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -64,8 +61,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private static final String TAG = "NewCatActivity";
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private final int locationRequestCode = 200;
-    private static final int RESULT_TAKE_PHOTO = 1;
-    private static final int RESULT_LOAD_IMG = 2;
     private double latitude, longitude;
 
     private EditText mEditCatName, mEditCatDesc;
@@ -114,35 +109,22 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         // Set up camera intent when activity loads
         setupCameraIntentHelper();
 
-        // Take a photo if you tap on the imageview
-        mPhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                requestLocationPermissions();
-                getUserLocation();
-                if (mCameraIntentHelper != null) {
-                    mCameraIntentHelper.startCameraIntent();
-                }
-            }
-        });
+        // Receive photo path from gallery intent via MainActivity.
+        String fromGalleryIntent = getIntent().getStringExtra("ImagePath");
+        if (fromGalleryIntent != null) {
+            mCurrentPhotoPath = fromGalleryIntent;
 
-        // Load a previously saved image from device.
-        mPhoto.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
+            // Get the location from the photo and display it.
+            getLatLon(mCurrentPhotoPath);
 
-                requestLocationPermissions();
+            Picasso.with(NewCatActivity.this)
+                    .load("file:" + mCurrentPhotoPath)
+                    .placeholder(R.drawable.ic_pets_black_24dp)
+                    .into(mPhoto);
 
-                // Create intent to Open Image applications like Gallery, Google Photos
-                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                setResult(RESULT_OK, galleryIntent);
-
-                // Start the Intent
-                startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
-                return true;
-            }
-        });
+        } else if (mCameraIntentHelper != null) {
+            mCameraIntentHelper.startCameraIntent();
+        }
     }
 
     private void setupCameraIntentHelper() {
@@ -204,30 +186,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
-        // When an Image is picked
-        if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
-                && intent != null) {
-
-            // Note: If image is an older image being selected via Google Photos, the image will not
-            // be loaded because it has to be downloaded first.
-
-            Uri selectedImageUri = null;
-            selectedImageUri = intent.getData();
-            mCurrentPhotoPath = getPath(selectedImageUri);
-
-            Picasso.with(NewCatActivity.this)
-                    .load("file:" + mCurrentPhotoPath)
-                    .placeholder(R.drawable.ic_pets_black_24dp)
-                    .into(mPhoto);
-
-            getLatLon(mCurrentPhotoPath);
-
-        } else {
-            mCameraIntentHelper.onActivityResult(requestCode, resultCode, intent);
-
-
-
-        }
+        mCameraIntentHelper.onActivityResult(requestCode, resultCode, intent);
     }
 
     // Get lat & lon from a previously saved photo and display address
@@ -312,17 +271,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         }
     }
 
-    private void requestLocationPermissions() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, locationPerms, locationRequestCode);
-
-        }
-    }
-
     // Check permissions
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -345,20 +293,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-    }
-
-    private String getPath(Uri uri) {
-        String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContentResolver().query(uri,
-                projection, null, null, null);
-        if (cursor != null) {
-            //HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
-            //THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
-            int column_index = cursor
-                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        } else return null;
     }
 
     public boolean hasPermissionInManifest(Context context, String permissionName) {
@@ -514,6 +448,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             } else {
                 mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                         mGoogleApiClient);
+                getUserLocation();
             }
         }
     }
@@ -524,8 +459,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     protected void onStart() {
-        super.onStart();
         mGoogleApiClient.connect();
+        super.onStart();
+
     }
 
     protected void onStop() {

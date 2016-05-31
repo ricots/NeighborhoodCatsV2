@@ -9,8 +9,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +26,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +53,7 @@ public class MainActivity extends AppCompatActivity
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private String[] cameraPerms = {"android.permission.CAMERA"};
     private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
+    private String mCurrentPhotoPath;
     private final int locationRequestCode = 200;
     private final int cameraRequestCode = 201;
     private final int storageRequestCode = 202;
@@ -55,6 +61,19 @@ public class MainActivity extends AppCompatActivity
     private List<Cat> catList;
     private TextView instructions;
     private Tracker mTracker;
+
+    //Save the FAB's active status
+    //false -> fab = close
+    //true -> fab = open
+    private boolean FAB_Status = false;
+    private FloatingActionButton fab_fromStorage;
+    private FloatingActionButton fab_fromCamera;
+
+    //Animations
+    private Animation show_fab_fromStorage;
+    private Animation hide_fab_fromStorage;
+    private Animation show_fab_fromCamera;
+    private Animation hide_fab_fromCamera;
 
     public Cursor mCursor;
     private CatsSQLiteOpenHelper mHelper;
@@ -76,6 +95,17 @@ public class MainActivity extends AppCompatActivity
 
         catList = new ArrayList<>();
         instructions = (TextView)findViewById(R.id.textview_instructions);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab_fromStorage = (FloatingActionButton) findViewById(R.id.fab_fromStorage);
+        fab_fromCamera = (FloatingActionButton) findViewById(R.id.fab_fromCamera);
+
+        //Animations
+        show_fab_fromStorage = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromstorage_show);
+        hide_fab_fromStorage = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromstorage_hide);
+        show_fab_fromCamera = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromcamera_show);
+        hide_fab_fromCamera = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromcamera_hide);
+
 
         // Set up a linear layout manager
         RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
@@ -153,16 +183,116 @@ public class MainActivity extends AppCompatActivity
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                requestCameraPermissions();
-
+                // Determine if the buttons are visible or hidden. Do the opposite of the current state.
+                if (FAB_Status == false) {
+                    //Display FAB menu
+                    expandFAB();
+                    FAB_Status = true;
+                } else {
+                    //Close FAB menu
+                    hideFAB();
+                    FAB_Status = false;
+                }
             }
         });
+
+        fab_fromStorage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Create intent to Open Image applications like Gallery, Google Photos
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                setResult(RESULT_OK, galleryIntent);
+
+                // Start the Intent
+                startActivityForResult(galleryIntent, 2);
+            }
+        });
+
+        fab_fromCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestCameraPermissions();
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        // When an Image is picked
+        if (requestCode == 2 && resultCode == RESULT_OK
+                && intent != null) {
+
+            // Note: If image is an older image being selected via Google Photos, the image will not
+            // be loaded because it has to be downloaded first.
+
+            Uri selectedImageUri = null;
+            selectedImageUri = intent.getData();
+            mCurrentPhotoPath = getPath(selectedImageUri);
+
+            Intent newCatIntent =  new Intent (this, NewCatActivity.class);
+            newCatIntent.putExtra("ImagePath", mCurrentPhotoPath);
+            startActivity(newCatIntent);
+        }
+    }
+
+    private String getPath(Uri uri) {
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContentResolver().query(uri,
+                projection, null, null, null);
+        if (cursor != null) {
+            //HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
+            //THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
+            int column_index = cursor
+                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } else return null;
+    }
+
+    private void expandFAB() {
+
+        // Floating Action Button 1
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) fab_fromStorage.getLayoutParams();
+        layoutParams.rightMargin += (int) (fab_fromCamera.getWidth() * 1.5);
+        layoutParams.bottomMargin += (int) (fab_fromCamera.getHeight() * 1.5);
+        fab_fromStorage.setLayoutParams(layoutParams);
+        fab_fromStorage.startAnimation(show_fab_fromStorage);
+        fab_fromStorage.setClickable(true);
+
+        // Floating Action Button 2
+        FrameLayout.LayoutParams layoutParams2 = (FrameLayout.LayoutParams) fab_fromCamera.getLayoutParams();
+        layoutParams2.rightMargin += (int) (fab_fromCamera.getWidth() * 1.7);
+        layoutParams2.bottomMargin += (int) (fab_fromCamera.getHeight() * 0.25);
+        fab_fromCamera.setLayoutParams(layoutParams2);
+        fab_fromCamera.startAnimation(show_fab_fromCamera);
+        fab_fromCamera.setClickable(true);
+    }
+
+    private void hideFAB() {
+
+        // Floating Action Button 1
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) fab_fromStorage.getLayoutParams();
+        layoutParams.rightMargin -= (int) (fab_fromCamera.getWidth() * 1.5);
+        layoutParams.bottomMargin -= (int) (fab_fromCamera.getHeight() * 1.5);
+        fab_fromStorage.setLayoutParams(layoutParams);
+        fab_fromStorage.startAnimation(hide_fab_fromStorage);
+        fab_fromStorage.setClickable(false);
+
+        // Floating Action Button 2
+        FrameLayout.LayoutParams layoutParams2 = (FrameLayout.LayoutParams) fab_fromCamera.getLayoutParams();
+        layoutParams2.rightMargin -= (int) (fab_fromCamera.getWidth() * 1.7);
+        layoutParams2.bottomMargin -= (int) (fab_fromCamera.getHeight() * 0.25);
+        fab_fromCamera.setLayoutParams(layoutParams2);
+        fab_fromCamera.startAnimation(hide_fab_fromCamera);
+        fab_fromCamera.setClickable(false);
     }
 
     private void loadCatsList(){
@@ -211,6 +341,7 @@ public class MainActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
 
         } else {
+//            requestLocationPermissions();
             Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
             startActivity(newCatIntent);
         }
@@ -290,6 +421,8 @@ public class MainActivity extends AppCompatActivity
 
             if (networkInfo != null && networkInfo.isConnected()) {
                 requestLocationPermissions();
+//                Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+//                startActivity(mapIntent);
             } else {
                 Toast.makeText(MainActivity.this, "Cat Map unavailable without an internet connection.", Toast.LENGTH_SHORT).show();
             }
