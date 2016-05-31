@@ -5,17 +5,16 @@
     <!-- Rotate -->
     <rotate
         android:duration="250"
-        android:fromDegrees="30"
+        android:fromDegrees="10"
         android:interpolator="@android:anim/linear_interpolator"
-        android:pivotX="50%"
-        android:pivotY="50%"
+        android:pivotY="10%"
         android:repeatCount="2"
         android:repeatMode="reverse"
         android:toDegrees="0" />
 
     <!--Move-->
     <translate
-        android:duration="500"
+        android:duration="300"
         android:fromXDelta="170%"
         android:fromYDelta="25%"
         android:interpolator="@android:anim/linear_interpolator"
@@ -24,7 +23,7 @@
 
     <!--Fade In-->
     <alpha
-        android:duration="2000"
+        android:duration="1000"
         android:fromAlpha="0.0"
         android:interpolator="@android:anim/decelerate_interpolator"
         android:toAlpha="1.0" />
