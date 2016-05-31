@@ -341,7 +341,7 @@ public class MainActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
 
         } else {
-            requestLocationPermissions();
+//            requestLocationPermissions();
             Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
             startActivity(newCatIntent);
         }
@@ -357,9 +357,9 @@ public class MainActivity extends AppCompatActivity
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(MainActivity.this, locationPerms, locationRequestCode);
-//        } else {
-//            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
-//            startActivity(mapIntent);
+        } else {
+            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+            startActivity(mapIntent);
         }
     }
 
@@ -372,8 +372,8 @@ public class MainActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
-//                    Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
-//                    startActivity(mapIntent);
+                    Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+                    startActivity(mapIntent);
                 }
                 break;
 
