@@ -41,7 +41,7 @@ import com.google.android.gms.location.LocationServices;
 import com.roberterrera.neighborhoodcats.camera.BitmapHelper;
 import com.roberterrera.neighborhoodcats.camera.CameraIntentHelper;
 import com.roberterrera.neighborhoodcats.camera.CameraIntentHelperCallback;
-import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
+import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
@@ -160,7 +160,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
             @Override
             public void onCanceled() {
-                Toast.makeText(getApplicationContext(), getString(R.string.warning_camera_intent_canceled), Toast.LENGTH_LONG).show();
+                // If camera is canceled, return to MainActivity (cat list).
+                Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
+                startActivity(backToMainIntent);
             }
 
             @Override
@@ -498,6 +500,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     "There was a problem saving your cat data :(",
                     Toast.LENGTH_SHORT).show();
         }
+
         Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
         startActivity(backToMainIntent);
         helper.close();
