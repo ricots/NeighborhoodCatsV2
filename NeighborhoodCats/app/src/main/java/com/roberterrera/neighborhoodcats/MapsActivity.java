@@ -38,6 +38,7 @@ import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.petfinderclasses.Petfinder;
 import com.roberterrera.neighborhoodcats.models.petfinderclasses.Shelter;
+import com.roberterrera.neighborhoodcats.models.petfinderclasses.Shelter_;
 import com.roberterrera.neighborhoodcats.service.PetfinderAPI;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 
@@ -136,7 +137,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         helper = new CatsSQLiteOpenHelper(MapsActivity.this);
         helper.getReadableDatabase();
         cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
-
         String locationProvider = LocationManager.NETWORK_PROVIDER;
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -198,31 +198,33 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         // Build a Retrofit object that calls the PetfinderItem API.
         String format = "json";
         getZipcode(mLatitude, mLongitude); // Returns "location" variable
-//        String key = "@values/petfinder_key";
-        String key = "e8736f4c0a4c61832d001b9d357055f4";
-            Log.d("MAPSACTIVITY", "loadNearbyShelters, getZipcode: " + location);
+        String key = "@values/petfinder_key";
 
         PetfinderAPI.Factory.getInstance().loadShelters(format, location, key).enqueue(new Callback<Shelter>() {
             @Override
             public void onResponse(Call<Shelter> call, Response<Shelter> response) {
                 Petfinder petfinder = response.body().getPetfinder();
 
-                List<Petfinder> results = new ArrayList<>();
+                List<Shelter_> results = new ArrayList<>();
 
                 // Loop through the results and add their locations to the map.
                 for (int j = 0; j <= results.size(); j++) {
-
                     double shelterLat = Double.parseDouble(petfinder.getShelters().getShelter().get(j).getLatitude().get$t());
                     double shelterLong = Double.parseDouble(petfinder.getShelters().getShelter().get(j).getLongitude().get$t());
 
                     LatLng shelterLatLing = new LatLng(shelterLat, shelterLong);
 
                     // Show shelter markers on map.
-                    Marker shelterMap = mMap.addMarker(new MarkerOptions()
+                    Marker shelterItem = mMap.addMarker(new MarkerOptions()
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_domain))
                             .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
                             .position(shelterLatLing)
-                            .title(String.valueOf(petfinder.getShelters().getShelter().get(j).getName().get$t()) ));
+                            .title(String.valueOf(petfinder.getShelters().getShelter().get(j).getName().get$t()))
+                            .snippet("Phone: "+String.valueOf(petfinder.getShelters().getShelter().get(j).getPhone().get$t())
+                                    +"\n"+"Email: "+String.valueOf(petfinder.getShelters().getShelter().get(j).getEmail().get$t())
+                            )
+                    );
+                    shelterItem.showInfoWindow();
                 }
             }
 
@@ -232,30 +234,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 Log.d("ONFAILURE", String.valueOf(t));
             }
         });
-    }
-
-    private Double convertToDegree(String location) {
-        Double result = null;
-        String[] DMS = location.split(",", 3);
-
-        String[] stringD = DMS[0].split("/", 2);
-        Double D0 = Double.valueOf(stringD[0]);
-        Double D1 = Double.valueOf(stringD[1]);
-        Double FloatD = D0 / D1;
-
-        String[] stringM = DMS[1].split("/", 2);
-        Double M0 = Double.valueOf(stringM[0]);
-        Double M1 = Double.valueOf(stringM[1]);
-        Double FloatM = M0 / M1;
-
-        String[] stringS = DMS[2].split("/", 2);
-        Double S0 = Double.valueOf(stringS[0]);
-        Double S1 = Double.valueOf(stringS[1]);
-        Double FloatS = S0 / S1;
-
-        result = FloatD + (FloatM / 60) + (FloatS / 3600);
-
-        return result;
     }
 
     public void getZipcode(double latitude, double longitude) {
