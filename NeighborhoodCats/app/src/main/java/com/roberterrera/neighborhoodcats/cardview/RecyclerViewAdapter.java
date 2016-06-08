@@ -3,7 +3,9 @@ package com.roberterrera.neighborhoodcats.cardview;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Point;
 import android.support.v7.widget.RecyclerView;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,9 +51,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
 
         holder.vName.setText(catList.get(position).getName());
         holder.vDesc.setText(catList.get(position).getDesc());
+
         Picasso.with(mContext)
                 .load("file:"+catList.get(position).getPhoto())
                 .resize(120, 120)
+                .centerCrop()
                 .placeholder(R.drawable.ic_pets_black_24dp)
                 .into(holder.vThumbnail);
 
