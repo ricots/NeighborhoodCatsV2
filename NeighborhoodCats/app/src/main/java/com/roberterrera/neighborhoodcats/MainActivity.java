@@ -22,7 +22,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,7 +37,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.roberterrera.neighborhoodcats.cardview.RecyclerViewAdapter;
 import com.roberterrera.neighborhoodcats.cardview.SwipeableRecyclerViewTouchListener;
-import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
+import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 
@@ -435,7 +434,6 @@ public class MainActivity extends AppCompatActivity
         mTracker.setScreenName("Cat List");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
         mAdapter.notifyDataSetChanged();
-        Log.d("onResume", "Cat list refreshed");
     }
 
     @Override

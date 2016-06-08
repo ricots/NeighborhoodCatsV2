@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.models;
+package com.roberterrera.neighborhoodcats.models.analytics;
 
 /*
  * Copyright Google Inc. All Rights Reserved.
@@ -20,12 +20,6 @@ import android.app.Application;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
-
-import android.app.Application;
-
-import com.google.android.gms.analytics.GoogleAnalytics;
-import com.google.android.gms.analytics.Tracker;
-import com.roberterrera.neighborhoodcats.R;
 
 /**
  * This is a subclass of {@link Application} used to provide shared objects for this app, such as

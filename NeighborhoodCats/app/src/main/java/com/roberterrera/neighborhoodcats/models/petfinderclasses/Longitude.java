@@ -1,12 +1,12 @@
 
-package com.roberterrera.neighborhoodcats.models;
+package com.roberterrera.neighborhoodcats.models.petfinderclasses;
 
 import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 @Generated("org.jsonschema2pojo")
-public class Id {
+public class Longitude {
 
     @SerializedName("$t")
     @Expose

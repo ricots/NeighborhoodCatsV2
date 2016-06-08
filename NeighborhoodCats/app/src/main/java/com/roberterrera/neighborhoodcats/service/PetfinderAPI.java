@@ -1,8 +1,14 @@
 package com.roberterrera.neighborhoodcats.service;
 
 import com.google.gson.Gson;
-import com.roberterrera.neighborhoodcats.models.Shelter;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import com.roberterrera.neighborhoodcats.models.petfinderclasses.Shelter;
 
+import java.io.StringReader;
+
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -24,12 +30,24 @@ public interface PetfinderAPI {
         private static PetfinderAPI service;
         public static PetfinderAPI getInstance(){
             if (service == null){
+
+                Gson gson = new GsonBuilder()
+                        .setLenient()
+                        .create();
+
+                HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+                interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+                OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+
                 Retrofit retrofit = new Retrofit.Builder()
                         .baseUrl("http://api.petfinder.com")
-                        .addConverterFactory(GsonConverterFactory.create(new Gson()))
+                        .client(client)
+                        .addConverterFactory(GsonConverterFactory.create(gson))
                         .build();
+
 //                JsonReader reader = new JsonReader(new StringReader(String.valueOf(retrofit)));
 //                reader.setLenient(true);
+
                 service = retrofit.create(PetfinderAPI.class);
                 return service;
             } else {

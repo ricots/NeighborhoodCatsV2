@@ -1,5 +1,5 @@
 
-package com.roberterrera.neighborhoodcats.models;
+package com.roberterrera.neighborhoodcats.models.petfinderclasses;
 
 import java.util.ArrayList;
 import java.util.List;
