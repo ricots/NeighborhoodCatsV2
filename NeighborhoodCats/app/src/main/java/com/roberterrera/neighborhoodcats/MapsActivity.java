@@ -5,10 +5,14 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.location.Address;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -30,28 +34,42 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
+import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
+import com.roberterrera.neighborhoodcats.models.petfinderclasses.Petfinder;
+import com.roberterrera.neighborhoodcats.models.petfinderclasses.Shelter;
+import com.roberterrera.neighborhoodcats.service.PetfinderAPI;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
 
+    private double mLatitude, mLongitude;
+    private int id;
     private String provider;
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
-    private int id;
-
-    private double mLatitude, mLongitude;
-
+    private String location; // This is the zipcode query for PetfinderItem API
     private ArrayList<Cat> mCatArrayList;
+
+    // Database
     private Cursor cursor;
     private CatsSQLiteOpenHelper helper;
 
+    // Analytics
+    private Tracker mTracker;
+
+    // Map and location
     private GoogleMap mMap;
     private Location mLastLocation;
-    private Tracker mTracker;
     private GoogleApiClient mGoogleApiClient;
     private LocationManager locationManager;
 
@@ -60,7 +78,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        setTitle("Map Your Cats!");
+        setTitle("Your Cat Map");
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -88,7 +106,11 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
+            mGoogleApiClient = new GoogleApiClient
+                    .Builder(this)
+//                    .addApi(Places.GEO_DATA_API)
+//                    .addApi(Places.PLACE_DETECTION_API)
+//                    .enableAutoManage(this, this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
@@ -99,7 +121,8 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
         mTracker = application.getDefaultTracker();
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        mTracker.send(new HitBuilders
+                .EventBuilder()
                 .setCategory("Action")
                 .setAction("Map")
                 .setLabel("Map my location")
@@ -140,6 +163,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         // Display cat markers on the map using the lat and lon saved to the items' database columns.
         loadCatsList();
+        loadNearbyShelters();
     }
 
     private void loadCatsList() {
@@ -169,6 +193,94 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         cursor.close();
     }
 
+    private void loadNearbyShelters() {
+
+        // Build a Retrofit object that calls the PetfinderItem API.
+        String format = "json";
+        getZipcode(mLatitude, mLongitude); // Returns "location" variable
+//        String key = "@values/petfinder_key";
+        String key = "e8736f4c0a4c61832d001b9d357055f4";
+            Log.d("MAPSACTIVITY", "loadNearbyShelters, getZipcode: " + location);
+
+        PetfinderAPI.Factory.getInstance().loadShelters(format, location, key).enqueue(new Callback<Shelter>() {
+            @Override
+            public void onResponse(Call<Shelter> call, Response<Shelter> response) {
+                Petfinder petfinder = response.body().getPetfinder();
+
+                List<Petfinder> results = new ArrayList<>();
+
+                // Loop through the results and add their locations to the map.
+                for (int j = 0; j <= results.size(); j++) {
+
+                    double shelterLat = Double.parseDouble(petfinder.getShelters().getShelter().get(j).getLatitude().get$t());
+                    double shelterLong = Double.parseDouble(petfinder.getShelters().getShelter().get(j).getLongitude().get$t());
+
+                    LatLng shelterLatLing = new LatLng(shelterLat, shelterLong);
+
+                    // Show shelter markers on map.
+                    Marker shelterMap = mMap.addMarker(new MarkerOptions()
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_domain))
+                            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+                            .position(shelterLatLing)
+                            .title(String.valueOf(petfinder.getShelters().getShelter().get(j).getName().get$t()) ));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Shelter> call, Throwable t) {
+                Toast.makeText(MapsActivity.this, "Unable to load shelters.", Toast.LENGTH_SHORT).show();
+                Log.d("ONFAILURE", String.valueOf(t));
+            }
+        });
+    }
+
+    private Double convertToDegree(String location) {
+        Double result = null;
+        String[] DMS = location.split(",", 3);
+
+        String[] stringD = DMS[0].split("/", 2);
+        Double D0 = Double.valueOf(stringD[0]);
+        Double D1 = Double.valueOf(stringD[1]);
+        Double FloatD = D0 / D1;
+
+        String[] stringM = DMS[1].split("/", 2);
+        Double M0 = Double.valueOf(stringM[0]);
+        Double M1 = Double.valueOf(stringM[1]);
+        Double FloatM = M0 / M1;
+
+        String[] stringS = DMS[2].split("/", 2);
+        Double S0 = Double.valueOf(stringS[0]);
+        Double S1 = Double.valueOf(stringS[1]);
+        Double FloatS = S0 / S1;
+
+        result = FloatD + (FloatM / 60) + (FloatS / 3600);
+
+        return result;
+    }
+
+    public void getZipcode(double latitude, double longitude) {
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        List<Address> addresses = new ArrayList<>();
+
+        try {
+            addresses = geocoder.getFromLocation(latitude, longitude, 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (networkInfo != null && networkInfo.isConnected()) {
+            String postalCode = addresses.get(0).getPostalCode();
+            location = postalCode;
+        } else {
+            location = "";
+            Toast.makeText(MapsActivity.this,
+                    "Cannot show nearby shelters without an internet connection.",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     public void onConnected(Bundle bundle) {
