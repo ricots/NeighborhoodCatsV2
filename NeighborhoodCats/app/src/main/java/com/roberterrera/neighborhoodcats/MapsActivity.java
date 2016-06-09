@@ -204,14 +204,15 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
             @Override
             public void onResponse(Call<Shelter> call, Response<Shelter> response) {
                 Petfinder petfinder = response.body().getPetfinder();
-
-                List<Shelter_> results = new ArrayList<>();
+                List<Shelter_> results = petfinder.getShelters().getShelter();
 
                 // Loop through the results and add their locations to the map.
-                for (int j = 0; j <= results.size(); j++) {
+                for (int j = 0; j <= results.size()-1; j++) {
                     double shelterLat = Double.parseDouble(petfinder.getShelters().getShelter().get(j).getLatitude().get$t());
                     double shelterLong = Double.parseDouble(petfinder.getShelters().getShelter().get(j).getLongitude().get$t());
-
+                    String title = String.valueOf(petfinder.getShelters().getShelter().get(j).getName().get$t());
+                    String phone = String.valueOf(petfinder.getShelters().getShelter().get(j).getPhone().get$t());
+                    String email = String.valueOf(petfinder.getShelters().getShelter().get(j).getEmail().get$t());
                     LatLng shelterLatLing = new LatLng(shelterLat, shelterLong);
 
                     // Show shelter markers on map.
@@ -219,10 +220,8 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_domain))
                             .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
                             .position(shelterLatLing)
-                            .title(String.valueOf(petfinder.getShelters().getShelter().get(j).getName().get$t()))
-                            .snippet("Phone: "+String.valueOf(petfinder.getShelters().getShelter().get(j).getPhone().get$t())
-                                    +"\n"+"Email: "+String.valueOf(petfinder.getShelters().getShelter().get(j).getEmail().get$t())
-                            )
+                            .title(title)
+                            .snippet("Phone: "+phone+"\n"+"Email: "+email)
                     );
                     shelterItem.showInfoWindow();
                 }
@@ -252,6 +251,10 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         if (networkInfo != null && networkInfo.isConnected()) {
             String postalCode = addresses.get(0).getPostalCode();
             location = postalCode;
+//            String locality = addresses.get(0).getLocality();
+//            location = locality;
+//            Log.d("LOCALITY", locality);
+
         } else {
             location = "";
             Toast.makeText(MapsActivity.this,
