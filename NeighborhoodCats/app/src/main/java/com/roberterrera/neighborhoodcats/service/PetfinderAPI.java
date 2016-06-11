@@ -2,10 +2,7 @@ package com.roberterrera.neighborhoodcats.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
 import com.roberterrera.neighborhoodcats.models.petfinderclasses.Shelter;
-
-import java.io.StringReader;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -44,9 +41,6 @@ public interface PetfinderAPI {
                         .client(client)
                         .addConverterFactory(GsonConverterFactory.create(gson))
                         .build();
-
-//                JsonReader reader = new JsonReader(new StringReader(String.valueOf(retrofit)));
-//                reader.setLenient(true);
 
                 service = retrofit.create(PetfinderAPI.class);
                 return service;

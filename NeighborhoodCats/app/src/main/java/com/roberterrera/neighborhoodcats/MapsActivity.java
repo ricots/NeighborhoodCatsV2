@@ -55,7 +55,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
 
     private double mLatitude, mLongitude;
-    private int id;
     private String provider;
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private String location; // This is the zipcode query for PetfinderItem API
@@ -198,7 +197,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         // Build a Retrofit object that calls the PetfinderItem API.
         String format = "json";
         getZipcode(mLatitude, mLongitude); // Returns "location" variable
-        String key = "@values/petfinder_key";
+        String key = "@values/petfinder_key"; // For debug use
 
         PetfinderAPI.Factory.getInstance().loadShelters(format, location, key).enqueue(new Callback<Shelter>() {
             @Override
@@ -213,7 +212,22 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                     String title = String.valueOf(petfinder.getShelters().getShelter().get(j).getName().get$t());
                     String phone = String.valueOf(petfinder.getShelters().getShelter().get(j).getPhone().get$t());
                     String email = String.valueOf(petfinder.getShelters().getShelter().get(j).getEmail().get$t());
+                    String address1 = String.valueOf(petfinder.getShelters().getShelter().get(j).getAddress1().get$t());
+                    String address2 = String.valueOf(petfinder.getShelters().getShelter().get(j).getAddress2());
                     LatLng shelterLatLing = new LatLng(shelterLat, shelterLong);
+
+                    if (phone == null){
+                        phone = "N/A";
+                    }
+                    if (email == null){
+                        email = "N/A";
+                    }
+                    if (address1 == null){
+                        address1 = address2;
+                    } else address1 = "N/A";
+                    if (address2 == null){
+                        address2 = "N/A";
+                    }
 
                     // Show shelter markers on map.
                     Marker shelterItem = mMap.addMarker(new MarkerOptions()
@@ -222,6 +236,8 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                             .position(shelterLatLing)
                             .title(title)
                             .snippet("Phone: "+phone+"\n"+"Email: "+email)
+                            //TODO: Finish building info window and handle when a line is null.
+                            // https://developers.google.com/maps/documentation/android-api/infowindows#showhide_an_info_window
                     );
                     shelterItem.showInfoWindow();
                 }
@@ -251,10 +267,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         if (networkInfo != null && networkInfo.isConnected()) {
             String postalCode = addresses.get(0).getPostalCode();
             location = postalCode;
-//            String locality = addresses.get(0).getLocality();
-//            location = locality;
-//            Log.d("LOCALITY", locality);
-
         } else {
             location = "";
             Toast.makeText(MapsActivity.this,
