@@ -42,7 +42,7 @@ import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.camera.BitmapHelper;
 import com.roberterrera.neighborhoodcats.camera.CameraIntentHelper;
 import com.roberterrera.neighborhoodcats.camera.CameraIntentHelperCallback;
-import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
+import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
@@ -106,9 +106,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         networkInfo = connMgr.getActiveNetworkInfo();
 
-        // Set up camera intent when activity loads
-        setupCameraIntentHelper();
-
         // Receive photo path from gallery intent via MainActivity.
         String fromGalleryIntent = getIntent().getStringExtra("ImagePath");
         if (fromGalleryIntent != null) {
@@ -123,7 +120,11 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     .into(mPhoto);
 
         } else if (mCameraIntentHelper != null) {
+            // Set up camera intent when activity loads
+            setupCameraIntentHelper();
             mCameraIntentHelper.startCameraIntent();
+            getUserLocation();
+
         }
     }
 
@@ -147,7 +148,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     deletePhotoWithUri(photoUri);
                 }
             }
-
 
             @Override
             public void deletePhotoWithUri(Uri photoUri) {
@@ -199,7 +199,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String LATITUDE = null;
+        String LATITUDE;
         if (exif != null) {
             LATITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
 
@@ -224,16 +224,16 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     longitude = 0 - convertToDegree(LONGITUDE);
                 } showAddress();
 
-            } else {
-                getUserLocation();
-                Toast.makeText(NewCatActivity.this, "No location found in selected photo.", Toast.LENGTH_SHORT).show();
             }
+        } else {
+            getUserLocation();
+            Toast.makeText(NewCatActivity.this, "No location found in selected photo.", Toast.LENGTH_SHORT).show();
         }
 
     }
 
     private Double convertToDegree(String location) {
-        Double result = null;
+        Double result;
         String[] DMS = location.split(",", 3);
 
         String[] stringD = DMS[0].split("/", 2);
@@ -448,7 +448,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             } else {
                 mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                         mGoogleApiClient);
-                getUserLocation();
             }
         }
     }

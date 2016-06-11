@@ -39,7 +39,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.cardview.RecyclerViewAdapter;
 import com.roberterrera.neighborhoodcats.cardview.SwipeableRecyclerViewTouchListener;
-import com.roberterrera.neighborhoodcats.models.AnalyticsApplication;
+import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 

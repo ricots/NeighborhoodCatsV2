@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.models;
+package com.roberterrera.neighborhoodcats.models.analytics;
 
 /*
  * Copyright Google Inc. All Rights Reserved.
@@ -42,7 +42,7 @@ public class AnalyticsApplication extends Application {
         if (mTracker == null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
             // To enable debug logging use: adb shell setprop log.tag.GAv4 DEBUG
-            mTracker = analytics.newTracker("UA-11988782-11");
+            mTracker = analytics.newTracker("");
         }
         return mTracker;
     }
