@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.location.Address;
@@ -18,7 +17,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -48,7 +46,6 @@ import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -117,9 +114,17 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             // Get the location from the photo and display it.
             getLatLon(mCurrentPhotoPath);
 
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+            int height = size.y;
+
             Picasso.with(NewCatActivity.this)
                     .load("file:" + mCurrentPhotoPath)
                     .placeholder(R.drawable.ic_pets_black_24dp)
+                    .resize(width, height)
+                    .centerInside()
                     .into(mPhoto);
 
         } else if (mCameraIntentHelper != null) {
@@ -146,6 +151,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 } else {
                     deletePhotoWithUri(photoUri);
                 }
+
+                getUserLocation();
+
             }
 
 
@@ -316,43 +324,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         return false;
     }
 
-    // Save image to a file in the public pictures dir.
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "CAT_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-
-        Log.d("CREATEIMAGEFILE", mCurrentPhotoPath);
-
-        galleryAddPic(); // Add image to device gallery.
-        return image;
-    }
-
-
-    private void galleryAddPic() {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        File f = new File(mCurrentPhotoPath);
-        Uri contentUri = Uri.fromFile(f);
-        mediaScanIntent.setData(contentUri);
-        this.sendBroadcast(mediaScanIntent);
-    }
-
-    private String locationToString() {
-        return (String.valueOf(latitude)
-                + ", "
-                + String.valueOf(longitude));
-    }
-
     private void showAddress() {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         List<Address> addresses;
@@ -372,10 +343,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 e.printStackTrace();
             }
         }
-    }
-
-    private boolean hasCamera() {
-        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
     }
 
     @Override
@@ -450,7 +417,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             } else {
                 mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                         mGoogleApiClient);
-                getUserLocation();
             }
         }
     }

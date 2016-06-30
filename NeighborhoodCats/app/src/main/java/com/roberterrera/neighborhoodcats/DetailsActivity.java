@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.ConnectivityManager;
@@ -17,6 +18,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -104,9 +106,17 @@ public class DetailsActivity extends AppCompatActivity {
             requestLocationPermissions();
             showAddress();
 
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+            int height = size.y;
+
             Picasso.with(DetailsActivity.this)
                     .load("file:" + photoPath)
                     .placeholder(R.drawable.ic_pets_black_24dp)
+                    .resize(width, height)
+                    .centerInside()
                     .into(mPhoto);
         }
     }
