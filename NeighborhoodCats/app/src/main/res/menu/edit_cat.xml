@@ -8,4 +8,11 @@
         android:icon="@android:drawable/ic_menu_save"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_location"
+        android:orderInCategory="101"
+        android:title="Get photo location"
+        android:icon="@android:drawable/ic_menu_mylocation"
+        app:showAsAction="never"/>
+
 </menu>

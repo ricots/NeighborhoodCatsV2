@@ -6,6 +6,7 @@ import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.ExifInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -180,13 +181,76 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
                 Log.d("LATITUDE", "latitude = "+ String.valueOf(latitude));
                 longitude = addresses.get(0).getLongitude();
                 Log.d("LONGITUDE", "longitude = "+ String.valueOf(longitude));
-            } else {
-                Toast.makeText(EditActivity.this, "No address available.", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    }
+
+    private void getLatLon(String imagePath) {
+
+        ExifInterface exif = null;
+
+        try {
+            exif = new ExifInterface(imagePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String LATITUDE = null;
+        if (exif != null) {
+            LATITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+
+            String LATITUDE_REF = exif
+                    .getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+            String LONGITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+            String LONGITUDE_REF = exif
+                    .getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+
+            if ((LATITUDE != null) && (LATITUDE_REF != null) && (LONGITUDE != null)
+                    && (LONGITUDE_REF != null)) {
+
+                if (LATITUDE_REF.equals("N")) {
+                    latitude = convertToDegree(LATITUDE);
+                } else {
+                    latitude = 0 - convertToDegree(LATITUDE);
+                }
+
+                if (LONGITUDE_REF.equals("E")) {
+                    longitude = convertToDegree(LONGITUDE);
+                } else {
+                    longitude = 0 - convertToDegree(LONGITUDE);
+                } showAddress();
+
+            } else {
+                Toast.makeText(EditActivity.this, "No location found in selected photo.", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+    }
+
+    private Double convertToDegree(String location) {
+        Double result = null;
+        String[] DMS = location.split(",", 3);
+
+        String[] stringD = DMS[0].split("/", 2);
+        Double D0 = Double.valueOf(stringD[0]);
+        Double D1 = Double.valueOf(stringD[1]);
+        Double FloatD = D0 / D1;
+
+        String[] stringM = DMS[1].split("/", 2);
+        Double M0 = Double.valueOf(stringM[0]);
+        Double M1 = Double.valueOf(stringM[1]);
+        Double FloatM = M0 / M1;
+
+        String[] stringS = DMS[2].split("/", 2);
+        Double S0 = Double.valueOf(stringS[0]);
+        Double S1 = Double.valueOf(stringS[1]);
+        Double FloatS = S0 / S1;
+
+        result = FloatD + (FloatM / 60) + (FloatS / 3600);
+
+        return result;
     }
 
     @Override
@@ -211,6 +275,9 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
         if (id == R.id.action_update) {
             update();
             return true;
+        }
+        if (id == R.id.action_location) {
+            getLatLon(photoPath);
         }
 
         return super.onOptionsItemSelected(item);
