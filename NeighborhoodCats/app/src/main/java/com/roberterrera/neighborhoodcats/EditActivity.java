@@ -13,12 +13,12 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.Tracker;
@@ -39,10 +39,11 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private ImageView mPhoto;
-    private EditText mEditCatName, mEditCatDesc;
-    private TextView mCatLocation;
+    private EditText mEditCatName, mEditCatDesc, mCatLocation;
 
     private String mLatLong, photoPath;
+    List<Address> addresses;
+
     private int catId;
     private double latitude, longitude;
 
@@ -64,7 +65,7 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mPhoto = (ImageView) findViewById(R.id.imageView_edit_image);
-        mCatLocation = (TextView) findViewById(R.id.textView_edit_location);
+        mCatLocation = (EditText) findViewById(R.id.editText_edit_location);
         mEditCatDesc = (EditText) findViewById(R.id.editText_edit_desc);
         mEditCatName = (EditText) findViewById(R.id.editText_edit_name);
         catId = getIntent().getIntExtra("id", -2);
@@ -120,22 +121,23 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
             ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-//            if (networkInfo != null && networkInfo.isConnected()) {
-//                showAddress();
-//            } else {
+            if (networkInfo != null && networkInfo.isConnected()) {
+                showAddress();
+            } else {
             mCatLocation.setText(locationToString());
-//            }
+            }
 
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
             display.getSize(size);
             int width = size.x;
             int height = size.y;
+
             Picasso.with(EditActivity.this)
                     .load("file:" + photoPath)
-//                      .resize(width, height)
+                    .resize(width, height)
+                    .centerInside()
                     .placeholder(R.drawable.ic_pets_black_24dp)
-//                      .centerCrop()
                     .into(mPhoto);
         }
     }
@@ -148,7 +150,6 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public void showAddress(){
         Geocoder geocoder;
-        List<Address> addresses;
         geocoder = new Geocoder(this, Locale.getDefault());
 
         addresses = new ArrayList<>();
@@ -165,6 +166,26 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
         String postalCode = addresses.get(0).getPostalCode();
 
         mCatLocation.setText(address+", "+city+", "+state+" "+postalCode);
+
+    }
+
+    public void getLatLongFromPlace(String place) {
+        try {
+            Geocoder selected_place_geocoder = new Geocoder(EditActivity.this);
+
+            addresses = selected_place_geocoder.getFromLocationName(place, 1);
+
+            if (addresses != null && addresses.size() > 0) {
+                latitude = addresses.get(0).getLatitude();
+                Log.d("LATITUDE", "latitude = "+ String.valueOf(latitude));
+                longitude = addresses.get(0).getLongitude();
+                Log.d("LONGITUDE", "longitude = "+ String.valueOf(longitude));
+            } else {
+                Toast.makeText(EditActivity.this, "No address available.", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -232,6 +253,9 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
             // Update name and description in the database.
             helper.updateDescByID(catId, mEditCatDesc.getText().toString());
             helper.updateNameByID(catId, mEditCatName.getText().toString());
+
+            getLatLongFromPlace(mCatLocation.getText().toString());
+            helper.updateLocationByID(catId, latitude, longitude);
 
             Toast.makeText(EditActivity.this, "Cat updated.", Toast.LENGTH_SHORT).show();
         } catch (Exception e){
