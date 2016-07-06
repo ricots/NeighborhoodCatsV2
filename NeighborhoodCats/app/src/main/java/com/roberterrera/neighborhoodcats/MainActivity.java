@@ -37,8 +37,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.roberterrera.neighborhoodcats.cardview.RecyclerViewAdapter;
 import com.roberterrera.neighborhoodcats.cardview.SwipeableRecyclerViewTouchListener;
-import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
+import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 
 import java.util.ArrayList;
@@ -50,11 +50,11 @@ public class MainActivity extends AppCompatActivity
 
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private String[] cameraPerms = {"android.permission.CAMERA"};
-    private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
-    private String mCurrentPhotoPath;
-    private final int locationRequestCode = 200;
+    private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.READ_EXTERNAL_STORAGE"};
     private final int cameraRequestCode = 201;
     private final int storageRequestCode = 202;
+    private final int locationRequestCode = 200;
+
 
     private List<Cat> catList;
     private TextView instructions;
@@ -202,6 +202,8 @@ public class MainActivity extends AppCompatActivity
         fab_fromStorage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                requestStoragePermission();
+
                 // Create intent to Open Image applications like Gallery, Google Photos
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -233,7 +235,7 @@ public class MainActivity extends AppCompatActivity
 
             Uri selectedImageUri = null;
             selectedImageUri = intent.getData();
-            mCurrentPhotoPath = getPath(selectedImageUri);
+            String mCurrentPhotoPath = getPath(selectedImageUri);
 
             Intent newCatIntent =  new Intent (this, NewCatActivity.class);
             newCatIntent.putExtra("ImagePath", mCurrentPhotoPath);
@@ -246,8 +248,6 @@ public class MainActivity extends AppCompatActivity
         Cursor cursor = getContentResolver().query(uri,
                 projection, null, null, null);
         if (cursor != null) {
-            //HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
-            //THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
             int column_index = cursor
                     .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
@@ -298,8 +298,6 @@ public class MainActivity extends AppCompatActivity
         mHelper.getWritableDatabase();
         mCursor = CatsSQLiteOpenHelper.getInstance(this).getCatsList();
 
-        requestStoragePermissions();
-
         // Loop through arraylist and add database items to it.
         if (mCursor != null) {
 
@@ -322,18 +320,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void requestStoragePermissions() {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(storagePerms, storageRequestCode);
-        }
-    }
-
     private void requestCameraPermissions() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(cameraPerms, cameraRequestCode);
-        } else if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
@@ -361,6 +350,16 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void requestStoragePermission(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this, storagePerms, storageRequestCode);
+        }
+    }
+
     // Check permissions
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -382,13 +381,12 @@ public class MainActivity extends AppCompatActivity
 
                     Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
                     startActivity(newCatIntent);
-
                 }
                 break;
             case storageRequestCode:
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length == 1
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
+                if (grantResults.length > 0
+                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                }
                 break;
             default:
                 super.onRequestPermissionsResult(permsRequestCode, permissions, grantResults);
