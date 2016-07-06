@@ -2,9 +2,10 @@ package com.roberterrera.neighborhoodcats;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -41,6 +42,8 @@ import com.roberterrera.neighborhoodcats.models.petfinderclasses.Shelter;
 import com.roberterrera.neighborhoodcats.models.petfinderclasses.Shelter_;
 import com.roberterrera.neighborhoodcats.service.PetfinderAPI;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,6 +75,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     private Location mLastLocation;
     private GoogleApiClient mGoogleApiClient;
     private LocationManager locationManager;
+    private PicassoMarker target;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,9 +112,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient
                     .Builder(this)
-//                    .addApi(Places.GEO_DATA_API)
-//                    .addApi(Places.PLACE_DETECTION_API)
-//                    .enableAutoManage(this, this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
@@ -133,9 +134,11 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mCatArrayList = new ArrayList<>();
+
         helper = new CatsSQLiteOpenHelper(MapsActivity.this);
         helper.getReadableDatabase();
         cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
+
         String locationProvider = LocationManager.NETWORK_PROVIDER;
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -180,11 +183,21 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
             mCatArrayList.add(cat);
 
             LatLng catLatLing = new LatLng(latitude, longitude);
-            Marker catMap = mMap.addMarker(new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pets_black_24dp))
-                    .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+
+            int height = 100;
+            int width = 100;
+
+            MarkerOptions markerOne = new MarkerOptions()
+                    .anchor(0.0f, 1.0f)
                     .position(catLatLing)
-                    .title(name));
+                    .title(name);
+
+            target = new PicassoMarker(mMap.addMarker(markerOne));
+            Picasso.with(MapsActivity.this)
+                    .load("file:"+imagePath)
+                    .resize(width, height)
+                    .into(target);
+
             Log.d("getCatLocations", String.valueOf(catLatLing));
             Log.d("mCatArrayList", "mCatArrayList size: " + mCatArrayList.size());
 
@@ -192,12 +205,55 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         cursor.close();
     }
 
+    public class PicassoMarker implements Target {
+
+        Marker mMarker;
+
+        PicassoMarker(Marker marker) {
+            Log.d("test: ", "init marker");
+
+            mMarker = marker;
+
+        }
+
+        @Override
+        public int hashCode() {
+            return mMarker.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o instanceof PicassoMarker) {
+                Marker marker = ((PicassoMarker) o).mMarker;
+                return mMarker.equals(marker);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            Log.d("test: ", "bitmap loaded");
+            mMarker.setIcon(BitmapDescriptorFactory.fromBitmap(bitmap));
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+            Log.d("test: ", "bitmap fail");
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            Log.d("test: ", "bitmap preload");
+        }
+    }
+
     private void loadNearbyShelters() {
 
         // Build a Retrofit object that calls the PetfinderItem API.
         String format = "json";
         getZipcode(mLatitude, mLongitude); // Returns "location" variable
-        String key = "@values/petfinder_key"; // For debug use
+        int key = R.string.petfinder_key; // For debug use
 
         PetfinderAPI.Factory.getInstance().loadShelters(format, location, key).enqueue(new Callback<Shelter>() {
             @Override
@@ -310,25 +366,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 permissionAccepted = grantResults[1]== PackageManager.PERMISSION_GRANTED;
                 break;
         }
-    }
-
-    public boolean hasPermissionInManifest(Context context, String permissionName) {
-        final String packageName = context.getPackageName();
-        try {
-            final PackageInfo packageInfo = context.getPackageManager()
-                    .getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
-            final String[] declaredPermissisons = packageInfo.requestedPermissions;
-            if (declaredPermissisons != null && declaredPermissisons.length > 0) {
-                for (String p : declaredPermissisons) {
-                    if (p.equals(permissionName)) {
-                        return true;
-                    }
-                }
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.d("HAS_PERMISSION", "Catch: "+String.valueOf(e));
-        }
-        return false;
     }
 
     @Override
