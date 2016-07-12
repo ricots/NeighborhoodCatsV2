@@ -55,7 +55,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
+        GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener, GoogleMap.OnInfoWindowClickListener {
 
     private double mLatitude, mLongitude;
     private String provider;
@@ -128,6 +128,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 .setAction("Map")
                 .setLabel("Map my location")
                 .build());
+
     }
 
     @Override
@@ -163,46 +164,46 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
+//        // Setting a custom info window adapter for the google map
+//        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+//            @Override
+//            public View getInfoWindow(Marker marker) {
+//                return null;
+//            }
+//
+//            @Override
+//            public View getInfoContents(Marker marker) {
+//
+//                View v = getLayoutInflater().inflate(R.layout.info_window_layout, null);
+//
+//                TextView mapTitle = (TextView) v.findViewById(R.id.textview_maptitle);
+//                TextView mapAddress = (TextView) v.findViewById(R.id.textview_mapaddress);
+//                TextView mapPhone = (TextView) v.findViewById(R.id.textview_mapphone);
+//                TextView mapEmail = (TextView) v.findViewById(R.id.textview_mapemail);
+//
+//                mapTitle.setText(title);
+//                Log.d("INFOWINADAPTER", "title = "+title);
+//                mapAddress.setText(address1);
+//                Log.d("INFOWINADAPTER", "address1 = "+address1);
+//                mapPhone.setText(phone);
+//                Log.d("INFOWINADAPTER", "phone = "+phone);
+//                mapEmail.setText(email);
+//                Log.d("INFOWINADAPTER", "email = "+email);
+//
+//                return v;
+//
+//            }
+//        });
+
         // Display cat markers on the map using the lat and lon saved to the items' database columns.
         loadCatsList();
         loadNearbyShelters();
+//        mMap.setOnInfoWindowClickListener(this);
+
     }
 
-    private void loadCatsList() {
-
-        // Loop through arraylist and add database items to it.
-        while (cursor.moveToNext()) {
-            int id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-            String name = helper.getCatNameByID(id);
-            String desc = helper.getCatDescByID(id);
-            double latitude = helper.getCatLatByID(id);
-            double longitude = helper.getCatLongByID(id);
-            String imagePath = helper.getCatPhotoByID(id);
-
-            Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
-            mCatArrayList.add(cat);
-
-            LatLng catLatLing = new LatLng(latitude, longitude);
-
-            int height = 100;
-            int width = 100;
-
-            MarkerOptions markerOne = new MarkerOptions()
-                    .anchor(0.0f, 1.0f)
-                    .position(catLatLing)
-                    .title(name);
-
-            target = new PicassoMarker(mMap.addMarker(markerOne));
-            Picasso.with(MapsActivity.this)
-                    .load("file:"+imagePath)
-                    .resize(width, height)
-                    .into(target);
-
-            Log.d("getCatLocations", String.valueOf(catLatLing));
-            Log.d("mCatArrayList", "mCatArrayList size: " + mCatArrayList.size());
-
-        }
-        cursor.close();
+    @Override
+    public void onInfoWindowClick(Marker marker) {
     }
 
     public class PicassoMarker implements Target {
@@ -210,10 +211,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         Marker mMarker;
 
         PicassoMarker(Marker marker) {
-            Log.d("test: ", "init marker");
-
             mMarker = marker;
-
         }
 
         @Override
@@ -233,44 +231,74 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            Log.d("test: ", "bitmap loaded");
             mMarker.setIcon(BitmapDescriptorFactory.fromBitmap(bitmap));
         }
 
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
-            Log.d("test: ", "bitmap fail");
         }
 
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
-            Log.d("test: ", "bitmap preload");
         }
+    }
+
+    private void loadCatsList() {
+
+        while (cursor.moveToNext()) {
+            int id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+            String name = helper.getCatNameByID(id);
+            String desc = helper.getCatDescByID(id);
+            double latitude = helper.getCatLatByID(id);
+            double longitude = helper.getCatLongByID(id);
+            String imagePath = helper.getCatPhotoByID(id);
+
+            Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
+            mCatArrayList.add(cat);
+
+            LatLng catLatLing = new LatLng(latitude, longitude);
+
+            int height = 125;
+            int width = 125;
+
+            MarkerOptions markerOne = new MarkerOptions()
+                    .anchor(0.0f, 1.0f)
+                    .position(catLatLing)
+                    .title(name);
+
+            target = new PicassoMarker(mMap.addMarker(markerOne));
+            Picasso.with(MapsActivity.this)
+                    .load("file:"+imagePath)
+                    .resize(width, height)
+                    .into(target);
+        }
+        cursor.close();
     }
 
     private void loadNearbyShelters() {
 
+
         // Build a Retrofit object that calls the PetfinderItem API.
         String format = "json";
         getZipcode(mLatitude, mLongitude); // Returns "location" variable
-        int key = R.string.petfinder_key; // For debug use
-
+        String key = getResources().getString(R.string.petfinder_key);
         PetfinderAPI.Factory.getInstance().loadShelters(format, location, key).enqueue(new Callback<Shelter>() {
             @Override
             public void onResponse(Call<Shelter> call, Response<Shelter> response) {
-                Petfinder petfinder = response.body().getPetfinder();
+                final Petfinder petfinder = response.body().getPetfinder();
                 List<Shelter_> results = petfinder.getShelters().getShelter();
 
-                // Loop through the results and add their locations to the map.
                 for (int j = 0; j <= results.size()-1; j++) {
+                    //TODO: Figure out why only a singular result is populating each map item. It's something to do with the info window adapter.
+
                     double shelterLat = Double.parseDouble(petfinder.getShelters().getShelter().get(j).getLatitude().get$t());
-                    double shelterLong = Double.parseDouble(petfinder.getShelters().getShelter().get(j).getLongitude().get$t());
+                    double shelterLng = Double.parseDouble(petfinder.getShelters().getShelter().get(j).getLongitude().get$t());
                     String title = String.valueOf(petfinder.getShelters().getShelter().get(j).getName().get$t());
                     String phone = String.valueOf(petfinder.getShelters().getShelter().get(j).getPhone().get$t());
                     String email = String.valueOf(petfinder.getShelters().getShelter().get(j).getEmail().get$t());
                     String address1 = String.valueOf(petfinder.getShelters().getShelter().get(j).getAddress1().get$t());
                     String address2 = String.valueOf(petfinder.getShelters().getShelter().get(j).getAddress2());
-                    LatLng shelterLatLing = new LatLng(shelterLat, shelterLong);
+                    LatLng shelterLatLng = new LatLng(shelterLat, shelterLng);
 
                     if (phone == null){
                         phone = "N/A";
@@ -285,17 +313,27 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                         address2 = "N/A";
                     }
 
-                    // Show shelter markers on map.
                     Marker shelterItem = mMap.addMarker(new MarkerOptions()
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_domain))
                             .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-                            .position(shelterLatLing)
+                            .position(shelterLatLng)
                             .title(title)
-                            .snippet("Phone: "+phone+"\n"+"Email: "+email)
-                            //TODO: Finish building info window and handle when a line is null.
-                            // https://developers.google.com/maps/documentation/android-api/infowindows#showhide_an_info_window
+                            .snippet("Phone: "+phone)
                     );
-                    shelterItem.showInfoWindow();
+
+                    mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                        @Override
+                        public void onInfoWindowClick(Marker marker) {
+
+                            //TODO: "Title" needs to be accessed without setting it as final.
+
+//                            Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+//                            intent.putExtra(SearchManager.QUERY, title);
+//                            if (intent.resolveActivity(getPackageManager()) != null) {
+//                                startActivity(intent);
+//                            }
+                        }
+                    });
                 }
             }
 
@@ -321,8 +359,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         }
 
         if (networkInfo != null && networkInfo.isConnected()) {
-            String postalCode = addresses.get(0).getPostalCode();
-            location = postalCode;
+            location = addresses.get(0).getPostalCode();
         } else {
             location = "";
             Toast.makeText(MapsActivity.this,
