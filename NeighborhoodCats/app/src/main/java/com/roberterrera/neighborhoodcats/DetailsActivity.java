@@ -21,7 +21,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,11 +33,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.ButterKnife;
+
 public class DetailsActivity extends AppCompatActivity {
 
-    private TextView mCatName, mCatLocation, mFullCatDesc;
+    private TextView mCatLocation, mFullCatDesc;
     private ImageView mPhoto;
-    private EditText mEditCatName;
 
     private double latitude, longitude;
     private int catId;
@@ -51,16 +51,16 @@ public class DetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        ButterKnife.bind(this);
+
+        Toolbar toolbar = ButterKnife.findById(this, R.id.toolbar);
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        TextView mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
-        TextView mFoundAt = (TextView) findViewById(R.id.textView_details_found);
-        mCatLocation = (TextView) findViewById(R.id.textView_details_newlocation);
-        mPhoto = (ImageView) findViewById(R.id.imageView_details_newimage);
-        mFullCatDesc = (TextView) findViewById(R.id.editText_details_newdesc);
+        mCatLocation = ButterKnife.findById(this, R.id.textView_details_newlocation);
+        mPhoto = ButterKnife.findById(this, R.id.imageView_details_newimage);
+        mFullCatDesc = ButterKnife.findById(this, R.id.editText_details_newdesc);
 
         LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
         loadCatAsyncTask.execute();

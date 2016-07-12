@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.ButterKnife;
+
 public class EditActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -59,16 +61,17 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
+        ButterKnife.bind(this);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = ButterKnife.findById(this, R.id.toolbar);
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mPhoto = (ImageView) findViewById(R.id.imageView_edit_image);
-        mCatLocation = (EditText) findViewById(R.id.editText_edit_location);
-        mEditCatDesc = (EditText) findViewById(R.id.editText_edit_desc);
-        mEditCatName = (EditText) findViewById(R.id.editText_edit_name);
+        mPhoto = ButterKnife.findById(this, R.id.imageView_edit_image);
+        mCatLocation = ButterKnife.findById(this, R.id.editText_edit_location);
+        mEditCatDesc = ButterKnife.findById(this, R.id.editText_edit_desc);
+        mEditCatName = ButterKnife.findById(this, R.id.editText_edit_name);
         catId = getIntent().getIntExtra("id", -2);
 
 

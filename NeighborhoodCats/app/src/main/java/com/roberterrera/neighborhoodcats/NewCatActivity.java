@@ -49,6 +49,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.ButterKnife;
+
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -75,17 +77,18 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_cat);
+        ButterKnife.bind(this);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = ButterKnife.findById(this, R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("New Cat!");
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mPhoto = (ImageView) findViewById(R.id.imageView_newimage);
-        mCatLocation = (TextView) findViewById(R.id.textView_newlocation);
-        mEditCatDesc = (EditText) findViewById(R.id.editText_newdesc);
-        mEditCatName = (EditText) findViewById(R.id.editText_newname);
+        mPhoto = (ImageView) ButterKnife.findById(this, R.id.imageView_newimage);
+        mCatLocation = ButterKnife.findById(this, R.id.textView_newlocation);
+        mEditCatDesc = ButterKnife.findById(this, R.id.editText_newdesc);
+        mEditCatName = ButterKnife.findById(this, R.id.editText_newname);
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {

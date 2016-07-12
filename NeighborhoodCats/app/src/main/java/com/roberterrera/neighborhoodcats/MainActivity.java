@@ -44,6 +44,8 @@ import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -55,23 +57,20 @@ public class MainActivity extends AppCompatActivity
     private final int storageRequestCode = 202;
     private final int locationRequestCode = 200;
 
-
     private List<Cat> catList;
     private TextView instructions;
     private Tracker mTracker;
 
-    //Save the FAB's active status
-    //false -> fab = close
-    //true -> fab = open
-    private boolean FAB_Status = false;
-    private FloatingActionButton fab_fromStorage;
-    private FloatingActionButton fab_fromCamera;
-
-    //Animations
+    // Animations
     private Animation show_fab_fromStorage;
     private Animation hide_fab_fromStorage;
     private Animation show_fab_fromCamera;
     private Animation hide_fab_fromCamera;
+    /* Save the FAB's active status
+    false -> fab = close, true -> fab = open */
+    private boolean FAB_Status = false;
+    private FloatingActionButton fab_fromStorage;
+    private FloatingActionButton fab_fromCamera;
 
     public Cursor mCursor;
     private CatsSQLiteOpenHelper mHelper;
@@ -82,8 +81,9 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = ButterKnife.findById(this, R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.mainactivity_title));
 
@@ -92,11 +92,11 @@ public class MainActivity extends AppCompatActivity
         mTracker = application.getDefaultTracker();
 
         catList = new ArrayList<>();
-        instructions = (TextView)findViewById(R.id.textview_instructions);
+        instructions = ButterKnife.findById(this, R.id.textview_instructions);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab_fromStorage = (FloatingActionButton) findViewById(R.id.fab_fromStorage);
-        fab_fromCamera = (FloatingActionButton) findViewById(R.id.fab_fromCamera);
+        FloatingActionButton fab = ButterKnife.findById(this, R.id.fab);
+        fab_fromStorage = ButterKnife.findById(this, R.id.fab_fromStorage);
+        fab_fromCamera = ButterKnife.findById(this, R.id.fab_fromCamera);
 
         //Animations
         show_fab_fromStorage = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromstorage_show);
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity
 
 
         // Set up a linear layout manager
-        RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
+        RecyclerView mRecyclerView = ButterKnife.findById(this, R.id.cardList);
         if (mRecyclerView != null) {
             mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         }
@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity
             mRecyclerView.addOnItemTouchListener(swipeTouchListener);
         }
 
-        DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout mDrawerLayout = ButterKnife.findById(this, R.id.drawer_layout);
         if (mDrawerLayout != null) {
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         }
