@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -55,7 +54,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
 
     private String mCurrentPhotoPath;
-    private static final String TAG = "NewCatActivity";
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private final int locationRequestCode = 200;
     private double latitude, longitude;
@@ -70,6 +68,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     private NetworkInfo networkInfo;
     private Location mLastLocation;
+
 
 
     @Override
@@ -209,7 +208,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String LATITUDE = null;
+        String LATITUDE;
         if (exif != null) {
             LATITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
 
@@ -243,7 +242,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     private Double convertToDegree(String location) {
-        Double result = null;
+        Double result;
         String[] DMS = location.split(",", 3);
 
         String[] stringD = DMS[0].split("/", 2);
@@ -276,7 +275,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 latitude = 0.0;
                 longitude = 0.0;
                 Toast.makeText(NewCatActivity.this, "Location unavailable.", Toast.LENGTH_SHORT).show();
-                mCatLocation.setText("Location unavailable");
+                mCatLocation.setText(R.string.location_unavailable);
             }
         }
     }
@@ -305,25 +304,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         super.onConfigurationChanged(newConfig);
     }
 
-    public boolean hasPermissionInManifest(Context context, String permissionName) {
-        final String packageName = context.getPackageName();
-        try {
-            final PackageInfo packageInfo = context.getPackageManager()
-                    .getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
-            final String[] declaredPermissisons = packageInfo.requestedPermissions;
-            if (declaredPermissisons != null && declaredPermissisons.length > 0) {
-                for (String p : declaredPermissisons) {
-                    if (p.equals(permissionName)) {
-                        return true;
-                    }
-                }
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.d("HAS_PERMISSION", "Catch: " + String.valueOf(e));
-        }
-        return false;
-    }
-
     private void showAddress() {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         List<Address> addresses;
@@ -336,8 +316,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     String city = addresses.get(0).getLocality();
                     String state = addresses.get(0).getAdminArea();
                     String postalCode = addresses.get(0).getPostalCode();
+                    String catAddress = address + ", " + city + ", " + state + " " + postalCode;
 
-                    mCatLocation.setText(address + ", " + city + ", " + state + " " + postalCode);
+                    mCatLocation.setText(catAddress);
                 }
             } catch (IOException e) {
                 e.printStackTrace();

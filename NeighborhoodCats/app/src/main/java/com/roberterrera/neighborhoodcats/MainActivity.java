@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity
 
                                 @Override
                                 public boolean canSwipeLeft(int position) {
-                                    return true;
+                                    return false;
                                 }
 
                                 @Override
@@ -187,7 +187,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
 
                 // Determine if the buttons are visible or hidden. Do the opposite of the current state.
-                if (FAB_Status == false) {
+                if (!FAB_Status) {
                     //Display FAB menu
                     expandFAB();
                     FAB_Status = true;
@@ -225,7 +225,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-
         // When an Image is picked
         if (requestCode == 2 && resultCode == RESULT_OK
                 && intent != null) {
@@ -233,7 +232,7 @@ public class MainActivity extends AppCompatActivity
             // Note: If image is an older image being selected via Google Photos, the image will not
             // be loaded because it has to be downloaded first.
 
-            Uri selectedImageUri = null;
+            Uri selectedImageUri;
             selectedImageUri = intent.getData();
             String mCurrentPhotoPath = getPath(selectedImageUri);
 

@@ -11,13 +11,13 @@
     <string name="sample_catname">Summit Cat</string>
     <string name="title_activity_details">DetailsActivity</string>
     <string name="title_activity_new_cat">NewCatActivity</string>
-    <string name="edittext_sample_desc">Bond Cat always waits by the window...</string>
+    <string name="edittext_sample_desc">Bond Cat always waits by the window…</string>
     <string name="edittext_sample_name">Bond Cat</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_scrolling">ScrollingActivity</string>
     <string name="cat_notes_details">Cat Notes</string>
     <string name="cat_name_details">Cat\'s Name</string>
-    <string name="sample_address">Cat location updating...</string>
+    <string name="sample_address">Cat location updating…</string>
     <string name="accessibility_list_photo">Photo of cat</string>
     <string name="sample_desc_cardview">This is a sample description of a cat that you may have spotted while going about your day. Maybe it was a calico. Maybe it was a plain old gray. Maybe it wanted to play!</string>
     <string name="menu_map">Map Your Cats</string>
@@ -43,5 +43,6 @@
         \n\n(There are more features to come, which will add more interactivity within your community. Please be patient, and happy cat sighting!)
     </string>
     <string name="locationPermission">Location permission needed to map your cats.</string>
+    <string name="location_unavailable">Location unavailable</string>
 
 </resources>
