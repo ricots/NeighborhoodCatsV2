@@ -10,6 +10,7 @@ import android.location.LocationListener;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -126,7 +127,8 @@ public class MainActivity extends AppCompatActivity
             mRecyclerView.setAdapter(mAdapter);
 
             // Load the user's list.
-            loadCatsList();
+            LoadCatsList loadCatsList = new LoadCatsList();
+            loadCatsList.execute();
 
             // Enable swipe-to-delete on cards.
             SwipeableRecyclerViewTouchListener swipeTouchListener =
@@ -295,32 +297,44 @@ public class MainActivity extends AppCompatActivity
         fab_fromCamera.setClickable(false);
     }
 
-    private void loadCatsList(){
-        mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
-        mHelper.getWritableDatabase();
-        mCursor = CatsSQLiteOpenHelper.getInstance(this).getCatsList();
+    private class LoadCatsList extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
+            mHelper.getReadableDatabase();
+            mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
 
-        requestStoragePermissions();
+            // Loop through arraylist and add database items to it.
+            if (mCursor.moveToFirst()) {
+                do {
+                    int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+                    String name = mHelper.getCatNameByID(id);
+                    String desc = mHelper.getCatDescByID(id);
+                    double latitude = mHelper.getCatLatByID(id);
+                    double longitude = mHelper.getCatLongByID(id);
+                    String imagePath = mHelper.getCatPhotoByID(id);
 
-        // Loop through arraylist and add database items to it.
-        if (mCursor != null) {
-
-            while (mCursor.moveToNext()) {
-                int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-                String name = mHelper.getCatNameByID(id);
-                String desc = mHelper.getCatDescByID(id);
-                double latitude = mHelper.getCatLatByID(id);
-                double longitude = mHelper.getCatLongByID(id);
-                String imagePath = mHelper.getCatPhotoByID(id);
-
-                Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
-                catList.add(cat);
-                if (!catList.isEmpty()){
-                    instructions.setVisibility(View.GONE);
-                }
+                    Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
+                    catList.add(cat);
+                } while (mCursor.moveToNext());
             }
-            mCursor.close();
             mHelper.close();
+            mCursor.close();
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            requestStoragePermissions();
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (!catList.isEmpty())
+                instructions.setVisibility(View.GONE);
+            mAdapter.notifyDataSetChanged();
+            super.onPostExecute(aVoid);
         }
     }
 
@@ -341,7 +355,6 @@ public class MainActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
 
         } else {
-//            requestLocationPermissions();
             Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
             startActivity(newCatIntent);
         }
