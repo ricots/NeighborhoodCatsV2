@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity
             mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
             mRecyclerView.setAdapter(mAdapter);
 
-            // Load the user's list asynchronously.
+//            // Load the user's list asynchronously.
             LoadCatsList loadCatsList = new LoadCatsList();
             loadCatsList.execute();
 
@@ -294,17 +294,16 @@ public class MainActivity extends AppCompatActivity
         fab_fromCamera.setClickable(false);
     }
 
-    private class LoadCatsList extends AsyncTask<Void, Void, Void>{
-
+    private class LoadCatsList extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
             mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
-            mHelper.getWritableDatabase();
+            mHelper.getReadableDatabase();
             mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
 
             // Loop through arraylist and add database items to it.
-            if (mCursor != null) {
-                while (mCursor.moveToNext()) {
+            if (mCursor.moveToFirst()) {
+                do {
                     int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
                     String name = mHelper.getCatNameByID(id);
                     String desc = mHelper.getCatDescByID(id);
@@ -314,17 +313,24 @@ public class MainActivity extends AppCompatActivity
 
                     Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
                     catList.add(cat);
-                }
-                mCursor.close();
-                mHelper.close();
+                } while (mCursor.moveToNext());
             }
+            mHelper.close();
+            mCursor.close();
             return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            requestStoragePermission();
+            super.onPreExecute();
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             if (!catList.isEmpty())
                 instructions.setVisibility(View.GONE);
+            mAdapter.notifyDataSetChanged();
             super.onPostExecute(aVoid);
         }
     }
@@ -338,7 +344,6 @@ public class MainActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
 
         } else {
-//            requestLocationPermissions();
             Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
             startActivity(newCatIntent);
         }
