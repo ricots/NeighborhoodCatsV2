@@ -45,11 +45,18 @@ import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
+
+    @BindView(R.id.toolbar) Toolbar toolbar;
+    @BindView(R.id.cardList) RecyclerView mRecyclerView;
+    @BindView(R.id.fab) FloatingActionButton fab;
+    @BindView(R.id.fab_fromStorage) FloatingActionButton fab_fromStorage;
+    @BindView(R.id.fab_fromCamera) FloatingActionButton fab_fromCamera;
 
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private String[] cameraPerms = {"android.permission.CAMERA"};
@@ -70,8 +77,6 @@ public class MainActivity extends AppCompatActivity
     /* Save the FAB's active status
     false -> fab = close, true -> fab = open */
     private boolean FAB_Status = false;
-    private FloatingActionButton fab_fromStorage;
-    private FloatingActionButton fab_fromCamera;
 
     public Cursor mCursor;
     private CatsSQLiteOpenHelper mHelper;
@@ -84,7 +89,6 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        Toolbar toolbar = ButterKnife.findById(this, R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.mainactivity_title));
 
@@ -95,10 +99,6 @@ public class MainActivity extends AppCompatActivity
         catList = new ArrayList<>();
         instructions = ButterKnife.findById(this, R.id.textview_instructions);
 
-        FloatingActionButton fab = ButterKnife.findById(this, R.id.fab);
-        fab_fromStorage = ButterKnife.findById(this, R.id.fab_fromStorage);
-        fab_fromCamera = ButterKnife.findById(this, R.id.fab_fromCamera);
-
         //Animations
         show_fab_fromStorage = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromstorage_show);
         hide_fab_fromStorage = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromstorage_hide);
@@ -107,7 +107,6 @@ public class MainActivity extends AppCompatActivity
 
 
         // Set up a linear layout manager
-        RecyclerView mRecyclerView = ButterKnife.findById(this, R.id.cardList);
         if (mRecyclerView != null) {
             mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         }
@@ -314,9 +313,9 @@ public class MainActivity extends AppCompatActivity
                     Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
                     catList.add(cat);
                 } while (mCursor.moveToNext());
+                mHelper.close();
+                mCursor.close();
             }
-            mHelper.close();
-            mCursor.close();
             return null;
         }
 
