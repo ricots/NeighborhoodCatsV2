@@ -21,6 +21,12 @@ import android.app.Application;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
 
+import android.app.Application;
+
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.Tracker;
+import com.roberterrera.neighborhoodcats.R;
+
 /**
  * This is a subclass of {@link Application} used to provide shared objects for this app, such as
  * the {@link Tracker}.
@@ -36,7 +42,7 @@ public class AnalyticsApplication extends Application {
         if (mTracker == null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
             // To enable debug logging use: adb shell setprop log.tag.GAv4 DEBUG
-            mTracker = analytics.newTracker("UA-11988782-11");
+            mTracker = analytics.newTracker("");
         }
         return mTracker;
     }
