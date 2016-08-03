@@ -168,9 +168,9 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
         String city = addresses.get(0).getLocality();
         String state = addresses.get(0).getAdminArea();
         String postalCode = addresses.get(0).getPostalCode();
+        String catAddress = address+", "+city+", "+state+" "+postalCode;
 
-        mCatLocation.setText(address+", "+city+", "+state+" "+postalCode);
-
+        mCatLocation.setText(catAddress);
     }
 
     public void getLatLongFromPlace(String place) {

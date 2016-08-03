@@ -49,20 +49,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
+    @BindView(R.id.imageView_newimage) ImageView mPhoto;
+    @BindView(R.id.textView_newlocation) TextView mCatLocation;
+    @BindView(R.id.editText_newdesc) EditText mEditCatDesc;
+    @BindView(R.id.editText_newname) EditText mEditCatName;
 
     private String mCurrentPhotoPath;
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private final int locationRequestCode = 200;
     private double latitude, longitude;
 
-    private EditText mEditCatName, mEditCatDesc;
-    private TextView mCatLocation;
-    private ImageView mPhoto;
     private Bitmap photo;
     private CameraIntentHelper mCameraIntentHelper;
 
@@ -70,8 +72,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
     private NetworkInfo networkInfo;
     private Location mLastLocation;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,11 +84,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         setTitle("New Cat!");
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        mPhoto = (ImageView) ButterKnife.findById(this, R.id.imageView_newimage);
-        mCatLocation = ButterKnife.findById(this, R.id.textView_newlocation);
-        mEditCatDesc = ButterKnife.findById(this, R.id.editText_newdesc);
-        mEditCatName = ButterKnife.findById(this, R.id.editText_newname);
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {

@@ -64,9 +64,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
                 CatsSQLiteOpenHelper mHelper = new CatsSQLiteOpenHelper(mContext);
                 mHelper.getWritableDatabase();
                 mCursor = CatsSQLiteOpenHelper.getInstance(mContext).getCatsList();
+                int id = catList.get(pos).getId();
 
                 Intent intent = new Intent(mContext, DetailsActivity.class);
-                intent.putExtra("id", catList.get(pos).getId());
+                intent.putExtra("id", id);
                 mContext.startActivity(intent);
             }
         });
