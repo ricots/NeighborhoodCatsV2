@@ -9,9 +9,15 @@ android {
     defaultConfig {
         applicationId "com.roberterrera.neighborhoodcats"
         minSdkVersion 16
+<<<<<<< HEAD
         targetSdkVersion 24
         versionCode 12
         versionName "1.2"
+=======
+        targetSdkVersion 23
+        versionCode 11
+        versionName "1.1.1"
+>>>>>>> develop
     }
     buildTypes {
         release {
@@ -27,6 +33,7 @@ dependencies {
     // Robolectric
     testCompile "org.robolectric:robolectric:3.0"
 
+<<<<<<< HEAD
     compile 'com.android.support:appcompat-v7:24.1.1'
     compile 'com.android.support:design:24.1.1'
     compile 'com.android.support:cardview-v7:24.1.1'
@@ -34,6 +41,12 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:9.2.1'
     compile 'com.google.android.gms:play-services-identity:9.2.1'
     compile 'com.google.android.gms:play-services-analytics:9.2.1'
+=======
+    compile 'com.google.android.gms:play-services-location:9.0.2'
+    compile 'com.google.android.gms:play-services-maps:9.0.2'
+    compile 'com.google.android.gms:play-services-identity:9.0.2'
+    compile 'com.google.android.gms:play-services-analytics:9.0.2'
+>>>>>>> develop
 
     // Views
     compile 'com.jakewharton:butterknife:8.2.1'
