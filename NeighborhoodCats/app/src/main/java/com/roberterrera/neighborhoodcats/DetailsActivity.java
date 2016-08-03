@@ -1,11 +1,10 @@
-package com.roberterrera.neighborhoodcats.activities;
+package com.roberterrera.neighborhoodcats;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
@@ -19,30 +18,27 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.ButterKnife;
+
 public class DetailsActivity extends AppCompatActivity {
 
-    private TextView mCatName, mCatLocation, mFullCatDesc;
+    private TextView mCatLocation, mFullCatDesc;
     private ImageView mPhoto;
-    private EditText mEditCatName;
 
     private double latitude, longitude;
     private int catId;
@@ -53,18 +49,18 @@ public class DetailsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-      super.onCreate(savedInstanceState);
-      setContentView(R.layout.activity_details);
-      Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-      setSupportActionBar(toolbar);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_details);
+        ButterKnife.bind(this);
 
-      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Toolbar toolbar = ButterKnife.findById(this, R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        TextView mCatDesc = (TextView) findViewById(R.id.textView_details_newdesc);
-        TextView mFoundAt = (TextView) findViewById(R.id.textView_details_found);
-        mCatLocation = (TextView) findViewById(R.id.textView_details_newlocation);
-        mPhoto = (ImageView) findViewById(R.id.imageView_details_newimage);
-        mFullCatDesc = (TextView) findViewById(R.id.editText_details_newdesc);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        mCatLocation = ButterKnife.findById(this, R.id.textView_details_newlocation);
+        mPhoto = ButterKnife.findById(this, R.id.imageView_details_newimage);
+        mFullCatDesc = ButterKnife.findById(this, R.id.editText_details_newdesc);
 
         LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
         loadCatAsyncTask.execute();
@@ -72,49 +68,57 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     private class LoadCatAsyncTask extends AsyncTask<Void, Void, Void>{
-      @Override
-      protected Void doInBackground(Void... params) {
-        // Get intent from MainActivity list via the cat's id.
-          catId = getIntent().getIntExtra("id", -1);
+        @Override
+        protected Void doInBackground(Void... params) {
+            // Get intent from MainActivity list via the cat's id.
+            catId = getIntent().getIntExtra("id", -1);
 
-          CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
-          helper.getReadableDatabase();
-          helper.close();
+            CatsSQLiteOpenHelper helper = CatsSQLiteOpenHelper.getInstance(DetailsActivity.this);
+            helper.getReadableDatabase();
+            helper.close();
 
-          name = helper.getCatNameByID(catId);
-          desc = helper.getCatDescByID(catId);
-          photoPath = helper.getCatPhotoByID(catId);
-          latitude = helper.getCatLatByID(catId);
-          longitude = helper.getCatLongByID(catId);
-          mLatLong = locationToString();
+            name = helper.getCatNameByID(catId);
+            desc = helper.getCatDescByID(catId);
+            photoPath = helper.getCatPhotoByID(catId);
+            latitude = helper.getCatLatByID(catId);
+            longitude = helper.getCatLongByID(catId);
+            mLatLong = locationToString();
 
-        return null;
-      }
+            return null;
+        }
 
-      @Override
-      protected void onPostExecute(Void aVoid) {
-          super.onPostExecute(aVoid);
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
 
-          // Set activity title
-          if (name != null) {
-              setTitle(name);
-          } else {
-              setTitle("Cat Details");
-          }
+            // Set activity title
+            if (name != null) {
+                setTitle(name);
+            } else {
+                setTitle("Cat Details");
+            }
 
-          mFullCatDesc.setText(desc);
+            mFullCatDesc.setText(desc);
 
-          ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-          final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            final NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-          requestLocationPermissions();
-          showAddress();
+            requestLocationPermissions();
+            showAddress();
 
-          Picasso.with(DetailsActivity.this)
-              .load("file:" + photoPath)
-              .placeholder(R.drawable.ic_pets_black_24dp)
-              .into(mPhoto);
-      }
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+            int height = size.y;
+
+            Picasso.with(DetailsActivity.this)
+                    .load("file:" + photoPath)
+                    .placeholder(R.drawable.ic_pets_black_24dp)
+                    .resize(width, height)
+                    .centerInside()
+                    .into(mPhoto);
+        }
     }
 
     public void showAddress(){
@@ -202,7 +206,7 @@ public class DetailsActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
-                        showAddress();
+                    showAddress();
                 }
                 break;
             default:

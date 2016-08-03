@@ -1,10 +1,9 @@
-package com.roberterrera.neighborhoodcats.activities;
+package com.roberterrera.neighborhoodcats;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -17,7 +16,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -38,7 +36,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
-import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.camera.BitmapHelper;
 import com.roberterrera.neighborhoodcats.camera.CameraIntentHelper;
 import com.roberterrera.neighborhoodcats.camera.CameraIntentHelperCallback;
@@ -48,24 +45,26 @@ import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class NewCatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
+    @BindView(R.id.imageView_newimage) ImageView mPhoto;
+    @BindView(R.id.textView_newlocation) TextView mCatLocation;
+    @BindView(R.id.editText_newdesc) EditText mEditCatDesc;
+    @BindView(R.id.editText_newname) EditText mEditCatName;
 
     private String mCurrentPhotoPath;
-    private static final String TAG = "NewCatActivity";
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private final int locationRequestCode = 200;
     private double latitude, longitude;
 
-    private EditText mEditCatName, mEditCatDesc;
-    private TextView mCatLocation;
-    private ImageView mPhoto;
     private Bitmap photo;
     private CameraIntentHelper mCameraIntentHelper;
 
@@ -74,22 +73,17 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
     private NetworkInfo networkInfo;
     private Location mLastLocation;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_cat);
+        ButterKnife.bind(this);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = ButterKnife.findById(this, R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("New Cat!");
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        mPhoto = (ImageView) findViewById(R.id.imageView_newimage);
-        mCatLocation = (TextView) findViewById(R.id.textView_newlocation);
-        mEditCatDesc = (EditText) findViewById(R.id.editText_newdesc);
-        mEditCatName = (EditText) findViewById(R.id.editText_newname);
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
@@ -114,9 +108,17 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
             // Get the location from the photo and display it.
             getLatLon(mCurrentPhotoPath);
 
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+            int height = size.y;
+
             Picasso.with(NewCatActivity.this)
                     .load("file:" + mCurrentPhotoPath)
                     .placeholder(R.drawable.ic_pets_black_24dp)
+                    .resize(width, height)
+                    .centerInside()
                     .into(mPhoto);
 
         } else if (mCameraIntentHelper != null) {
@@ -147,6 +149,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 } else {
                     deletePhotoWithUri(photoUri);
                 }
+
+                getUserLocation();
+
             }
 
             @Override
@@ -161,7 +166,9 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
 
             @Override
             public void onCanceled() {
-                Toast.makeText(getApplicationContext(), getString(R.string.warning_camera_intent_canceled), Toast.LENGTH_LONG).show();
+                // If camera is canceled, return to MainActivity (cat list).
+                Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
+                startActivity(backToMainIntent);
             }
 
             @Override
@@ -266,7 +273,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                 latitude = 0.0;
                 longitude = 0.0;
                 Toast.makeText(NewCatActivity.this, "Location unavailable.", Toast.LENGTH_SHORT).show();
-                mCatLocation.setText("Location unavailable");
+                mCatLocation.setText(R.string.location_unavailable);
             }
         }
     }
@@ -295,62 +302,6 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
         super.onConfigurationChanged(newConfig);
     }
 
-    public boolean hasPermissionInManifest(Context context, String permissionName) {
-        final String packageName = context.getPackageName();
-        try {
-            final PackageInfo packageInfo = context.getPackageManager()
-                    .getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
-            final String[] declaredPermissisons = packageInfo.requestedPermissions;
-            if (declaredPermissisons != null && declaredPermissisons.length > 0) {
-                for (String p : declaredPermissisons) {
-                    if (p.equals(permissionName)) {
-                        return true;
-                    }
-                }
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.d("HAS_PERMISSION", "Catch: " + String.valueOf(e));
-        }
-        return false;
-    }
-
-    // Save image to a file in the public pictures dir.
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "CAT_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-
-        Log.d("CREATEIMAGEFILE", mCurrentPhotoPath);
-
-        galleryAddPic(); // Add image to device gallery.
-        return image;
-    }
-
-
-    private void galleryAddPic() {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        File f = new File(mCurrentPhotoPath);
-        Uri contentUri = Uri.fromFile(f);
-        mediaScanIntent.setData(contentUri);
-        this.sendBroadcast(mediaScanIntent);
-    }
-
-    private String locationToString() {
-        return (String.valueOf(latitude)
-                + ", "
-                + String.valueOf(longitude));
-    }
-
     private void showAddress() {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         List<Address> addresses;
@@ -363,17 +314,14 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     String city = addresses.get(0).getLocality();
                     String state = addresses.get(0).getAdminArea();
                     String postalCode = addresses.get(0).getPostalCode();
+                    String catAddress = address + ", " + city + ", " + state + " " + postalCode;
 
-                    mCatLocation.setText(address + ", " + city + ", " + state + " " + postalCode);
+                    mCatLocation.setText(catAddress);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    private boolean hasCamera() {
-        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
     }
 
     @Override
@@ -498,6 +446,7 @@ public class NewCatActivity extends AppCompatActivity implements GoogleApiClient
                     "There was a problem saving your cat data :(",
                     Toast.LENGTH_SHORT).show();
         }
+
         Intent backToMainIntent = new Intent(NewCatActivity.this, MainActivity.class);
         startActivity(backToMainIntent);
         helper.close();

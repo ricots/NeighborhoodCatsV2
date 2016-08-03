@@ -1,10 +1,11 @@
-package com.roberterrera.neighborhoodcats.activities;
+package com.roberterrera.neighborhoodcats;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -30,38 +31,49 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.util.ArrayList;
 
-public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener {
+import butterknife.ButterKnife;
 
-    private String provider;
-    private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
-    private int id;
+public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, LocationListener, GoogleMap.OnInfoWindowClickListener {
 
     private double mLatitude, mLongitude;
-
+    private String provider;
+    private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
+    private String location; // This is the zipcode query for PetfinderItem API
     private ArrayList<Cat> mCatArrayList;
+
+    // Database
     private Cursor cursor;
     private CatsSQLiteOpenHelper helper;
+    int id;
 
+
+    // Analytics
+    private Tracker mTracker;
+
+    // Map and location
     private GoogleMap mMap;
     private Location mLastLocation;
-    private Tracker mTracker;
     private GoogleApiClient mGoogleApiClient;
     private LocationManager locationManager;
+    private PicassoMarker target;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        ButterKnife.bind(this);
 
-        setTitle("Map Your Cats!");
+        setTitle("Your Cat Map");
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -71,12 +83,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         provider = locationManager.getBestProvider(new Criteria(), true);
         Location location = locationManager.getLastKnownLocation(provider);
-
-        if (location != null) {
-            Log.i("Location Info", "Location achieved!");
-        } else {
-            Log.i("Location Info", "No location :(");
-        }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
@@ -89,18 +95,19 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
+            mGoogleApiClient = new GoogleApiClient
+                    .Builder(this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
         }
 
-
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
         mTracker = application.getDefaultTracker();
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        mTracker.send(new HitBuilders
+                .EventBuilder()
                 .setCategory("Action")
                 .setAction("Map")
                 .setLabel("Map my location")
@@ -111,9 +118,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mCatArrayList = new ArrayList<>();
-        helper = new CatsSQLiteOpenHelper(MapsActivity.this);
-        helper.getReadableDatabase();
-        cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
 
         String locationProvider = LocationManager.NETWORK_PROVIDER;
 
@@ -127,7 +131,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         mLatitude = lastKnownLocation.getLatitude();
         mLongitude = lastKnownLocation.getLongitude();
         LatLng lastLocation = new LatLng(mLatitude, mLongitude);
-        Log.d("onMapReady", mLatitude + ", " + mLongitude);
 
         mMap.setMyLocationEnabled(true);
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
@@ -139,37 +142,90 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
-        // Display cat markers on the map using the lat and lon saved to the items' database columns.
         loadCatsList();
     }
 
-    private void loadCatsList() {
+    @Override
+    public void onInfoWindowClick(Marker marker) {}
 
-        // Loop through arraylist and add database items to it.
-        while (cursor.moveToNext()) {
-            int id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-            String name = helper.getCatNameByID(id);
-            String desc = helper.getCatDescByID(id);
-            double latitude = helper.getCatLatByID(id);
-            double longitude = helper.getCatLongByID(id);
-            String imagePath = helper.getCatPhotoByID(id);
+    public class PicassoMarker implements Target {
+        Marker mMarker;
 
-            Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
-            mCatArrayList.add(cat);
-
-            LatLng catLatLing = new LatLng(latitude, longitude);
-            Marker catMap = mMap.addMarker(new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pets_black_24dp))
-                    .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-                    .position(catLatLing)
-                    .title(name));
-            Log.d("getCatLocations", String.valueOf(catLatLing));
-            Log.d("mCatArrayList", "mCatArrayList size: " + mCatArrayList.size());
-
+        PicassoMarker(Marker marker) {
+            mMarker = marker;
         }
-        cursor.close();
+
+        @Override
+        public int hashCode() {
+            return mMarker.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if (object instanceof PicassoMarker) {
+                Marker marker = ((PicassoMarker) object).mMarker;
+                return mMarker.equals(marker);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            mMarker.setIcon(BitmapDescriptorFactory.fromBitmap(bitmap));
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+        }
     }
 
+
+    private void loadCatsList() {
+        LatLng catLatLing;
+        String name;
+        String imagePath;
+
+        helper = new CatsSQLiteOpenHelper(MapsActivity.this);
+        helper.getReadableDatabase();
+        cursor = CatsSQLiteOpenHelper.getInstance(MapsActivity.this).getCatsList();
+
+        if (cursor.moveToFirst()) {
+            do {
+                id = cursor.getInt(cursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+                name = helper.getCatNameByID(id);
+                String desc = helper.getCatDescByID(id);
+                double latitude = helper.getCatLatByID(id);
+                double longitude = helper.getCatLongByID(id);
+                imagePath = helper.getCatPhotoByID(id);
+
+                Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
+                mCatArrayList.add(cat);
+
+                catLatLing = new LatLng(latitude, longitude);
+
+                int height = 130;
+                int width = 130;
+
+                MarkerOptions markerOne = new MarkerOptions()
+                        .anchor(0.0f, 1.0f)
+                        .position(catLatLing)
+                        .title(name);
+
+                target = new PicassoMarker(mMap.addMarker(markerOne));
+                Picasso.with(MapsActivity.this)
+                        .load("file:" + imagePath)
+                        .resize(width, height)
+                        .into(target);
+            } while (cursor.moveToNext());
+            cursor.close();
+            helper.close();
+        }
+    }
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -208,33 +264,12 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    public boolean hasPermissionInManifest(Context context, String permissionName) {
-        final String packageName = context.getPackageName();
-        try {
-            final PackageInfo packageInfo = context.getPackageManager()
-                    .getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
-            final String[] declaredPermissisons = packageInfo.requestedPermissions;
-            if (declaredPermissisons != null && declaredPermissisons.length > 0) {
-                for (String p : declaredPermissisons) {
-                    if (p.equals(permissionName)) {
-                        return true;
-                    }
-                }
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.d("HAS_PERMISSION", "Catch: "+String.valueOf(e));
-        }
-        return false;
-    }
-
     @Override
     public void onConnectionSuspended(int i) {
-
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
     }
 
     @Override
@@ -278,27 +313,21 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
             return;
         }
         locationManager.removeUpdates(this);
-
     }
 
     @Override
     public void onLocationChanged(Location location) {
     }
 
-
-
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-
     }
 }

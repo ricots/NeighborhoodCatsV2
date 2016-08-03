@@ -3,16 +3,13 @@ package com.roberterrera.neighborhoodcats.cardview;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Point;
 import android.support.v7.widget.RecyclerView;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
+import com.roberterrera.neighborhoodcats.DetailsActivity;
 import com.roberterrera.neighborhoodcats.R;
-import com.roberterrera.neighborhoodcats.activities.DetailsActivity;
 import com.roberterrera.neighborhoodcats.models.Cat;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
@@ -43,8 +40,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
                 inflate(R.layout.list_card_layout, parent, false);
 
         // Initialize the view holder.
-        ViewHolder holder = new ViewHolder(v);
-        return holder;
+        return new ViewHolder(v);
     }
 
     // Bind the view to the data.
@@ -56,7 +52,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
 
         Picasso.with(mContext)
                 .load("file:"+catList.get(position).getPhoto())
-                .resize(120, 120)
+                .resize(125, 125)
                 .centerCrop()
                 .placeholder(R.drawable.ic_pets_black_24dp)
                 .into(holder.vThumbnail);
@@ -68,9 +64,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> implem
                 CatsSQLiteOpenHelper mHelper = new CatsSQLiteOpenHelper(mContext);
                 mHelper.getWritableDatabase();
                 mCursor = CatsSQLiteOpenHelper.getInstance(mContext).getCatsList();
+                int id = catList.get(pos).getId();
 
                 Intent intent = new Intent(mContext, DetailsActivity.class);
-                intent.putExtra("id", catList.get(pos).getId());
+                intent.putExtra("id", id);
                 mContext.startActivity(intent);
             }
         });

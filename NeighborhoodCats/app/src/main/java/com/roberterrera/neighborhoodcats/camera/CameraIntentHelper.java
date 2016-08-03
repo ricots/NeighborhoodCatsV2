@@ -10,11 +10,11 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-
-import com.roberterrera.neighborhoodcats.activities.NewCatActivity;
+import android.util.Log;
 
 import java.io.File;
 import java.util.Date;
@@ -27,9 +27,9 @@ import java.util.Locale;
  * @author Ralf Gehrer <ralf@ecotastic.de>
  */
 public class CameraIntentHelper {
-    private static final String DATE_CAMERA_INTENT_STARTED_STATE = "com.roberterrera.neighborhoodcats.activities.NewCatActivity.dateCameraIntentStarted";
-    private static final String CAMERA_PIC_URI_STATE = "com.roberterrera.neighborhoodcats.activities.NewCatActivity.CAMERA_PIC_URI_STATE";
-    private static final String PHOTO_URI_STATE = "com.roberterrera.neighborhoodcats.activities.NewCatActivity.PHOTO_URI_STATE";
+    private static final String DATE_CAMERA_INTENT_STARTED_STATE = "com.roberterrera.neighborhoodcats.NewCatActivity.dateCameraIntentStarted";
+    private static final String CAMERA_PIC_URI_STATE = "com.roberterrera.neighborhoodcats.NewCatActivity.CAMERA_PIC_URI_STATE";
+    private static final String PHOTO_URI_STATE = "com.roberterrera.neighborhoodcats.NewCatActivity.PHOTO_URI_STATE";
     private static final String ROTATE_X_DEGREES_STATE = "com.roberterrera.neighborhoodcats.activities..NewCatActivity.ROTATE_X_DEGREES_STATE";
 
     /**
@@ -292,6 +292,7 @@ public class CameraIntentHelper {
                 try {
                     photoUri = intent.getData();
                 } catch (Exception e) {
+                    Log.d("CAMERAINTENTHELPER", String.valueOf(e));
                 }
             }
 
@@ -307,7 +308,9 @@ public class CameraIntentHelper {
                         preDefinedCameraUri = tempUri;
                     }
                 }
-            } catch (Exception e) { }
+            } catch (Exception e) {
+                Log.d("CAMERAINTENTHELPER", String.valueOf(e));
+            }
 
             photoUri = getFileUriFromContentUri(photoUri);
             preDefinedCameraUri = getFileUriFromContentUri(preDefinedCameraUri);
@@ -319,7 +322,9 @@ public class CameraIntentHelper {
                         photoUriIn3rdLocation = getFileUriFromContentUri(photoUriIn3rdLocation);
                     }
                 }
-            } catch (Exception e) { }
+            } catch (Exception e) {
+                Log.d("CAMERAINTENTHELPER", String.valueOf(e));
+            }
 
             if (photoUri != null) {
                 onPhotoUriFound();

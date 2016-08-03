@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.activities;
+package com.roberterrera.neighborhoodcats;
 
 import android.Manifest;
 import android.content.Context;
@@ -10,6 +10,7 @@ import android.location.LocationListener;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -22,7 +23,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,7 +36,6 @@ import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.cardview.RecyclerViewAdapter;
 import com.roberterrera.neighborhoodcats.cardview.SwipeableRecyclerViewTouchListener;
 import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
@@ -46,34 +45,38 @@ import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
+    @BindView(R.id.toolbar) Toolbar toolbar;
+    @BindView(R.id.cardList) RecyclerView mRecyclerView;
+    @BindView(R.id.fab) FloatingActionButton fab;
+    @BindView(R.id.fab_fromStorage) FloatingActionButton fab_fromStorage;
+    @BindView(R.id.fab_fromCamera) FloatingActionButton fab_fromCamera;
+
     private String[] locationPerms = {"android.permission.ACCESS_COURSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"};
     private String[] cameraPerms = {"android.permission.CAMERA"};
-    private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
-    private String mCurrentPhotoPath;
-    private final int locationRequestCode = 200;
+    private String[] storagePerms = {"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.READ_EXTERNAL_STORAGE"};
     private final int cameraRequestCode = 201;
     private final int storageRequestCode = 202;
+    private final int locationRequestCode = 200;
 
     private List<Cat> catList;
     private TextView instructions;
     private Tracker mTracker;
 
-    //Save the FAB's active status
-    //false -> fab = close
-    //true -> fab = open
-    private boolean FAB_Status = false;
-    private FloatingActionButton fab_fromStorage;
-    private FloatingActionButton fab_fromCamera;
-
-    //Animations
+    // Animations
     private Animation show_fab_fromStorage;
     private Animation hide_fab_fromStorage;
     private Animation show_fab_fromCamera;
     private Animation hide_fab_fromCamera;
+    /* Save the FAB's active status
+    false -> fab = close, true -> fab = open */
+    private boolean FAB_Status = false;
 
     public Cursor mCursor;
     private CatsSQLiteOpenHelper mHelper;
@@ -84,8 +87,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.mainactivity_title));
 
@@ -94,11 +97,7 @@ public class MainActivity extends AppCompatActivity
         mTracker = application.getDefaultTracker();
 
         catList = new ArrayList<>();
-        instructions = (TextView)findViewById(R.id.textview_instructions);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab_fromStorage = (FloatingActionButton) findViewById(R.id.fab_fromStorage);
-        fab_fromCamera = (FloatingActionButton) findViewById(R.id.fab_fromCamera);
+        instructions = ButterKnife.findById(this, R.id.textview_instructions);
 
         //Animations
         show_fab_fromStorage = AnimationUtils.loadAnimation(getApplication(), R.anim.fab_fromstorage_show);
@@ -108,7 +107,6 @@ public class MainActivity extends AppCompatActivity
 
 
         // Set up a linear layout manager
-        RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.cardList);
         if (mRecyclerView != null) {
             mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         }
@@ -125,8 +123,9 @@ public class MainActivity extends AppCompatActivity
             mAdapter = new RecyclerViewAdapter(catList, MainActivity.this);
             mRecyclerView.setAdapter(mAdapter);
 
-            // Load the user's list.
-            loadCatsList();
+//            // Load the user's list asynchronously.
+            LoadCatsList loadCatsList = new LoadCatsList();
+            loadCatsList.execute();
 
             // Enable swipe-to-delete on cards.
             SwipeableRecyclerViewTouchListener swipeTouchListener =
@@ -139,7 +138,7 @@ public class MainActivity extends AppCompatActivity
 
                                 @Override
                                 public boolean canSwipeLeft(int position) {
-                                    return true;
+                                    return false;
                                 }
 
                                 @Override
@@ -178,7 +177,7 @@ public class MainActivity extends AppCompatActivity
             mRecyclerView.addOnItemTouchListener(swipeTouchListener);
         }
 
-        DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout mDrawerLayout = ButterKnife.findById(this, R.id.drawer_layout);
         if (mDrawerLayout != null) {
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         }
@@ -189,7 +188,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
 
                 // Determine if the buttons are visible or hidden. Do the opposite of the current state.
-                if (FAB_Status == false) {
+                if (!FAB_Status) {
                     //Display FAB menu
                     expandFAB();
                     FAB_Status = true;
@@ -204,6 +203,8 @@ public class MainActivity extends AppCompatActivity
         fab_fromStorage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                requestStoragePermission();
+
                 // Create intent to Open Image applications like Gallery, Google Photos
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -225,7 +226,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-
         // When an Image is picked
         if (requestCode == 2 && resultCode == RESULT_OK
                 && intent != null) {
@@ -233,9 +233,9 @@ public class MainActivity extends AppCompatActivity
             // Note: If image is an older image being selected via Google Photos, the image will not
             // be loaded because it has to be downloaded first.
 
-            Uri selectedImageUri = null;
+            Uri selectedImageUri;
             selectedImageUri = intent.getData();
-            mCurrentPhotoPath = getPath(selectedImageUri);
+            String mCurrentPhotoPath = getPath(selectedImageUri);
 
             Intent newCatIntent =  new Intent (this, NewCatActivity.class);
             newCatIntent.putExtra("ImagePath", mCurrentPhotoPath);
@@ -248,8 +248,6 @@ public class MainActivity extends AppCompatActivity
         Cursor cursor = getContentResolver().query(uri,
                 projection, null, null, null);
         if (cursor != null) {
-            //HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
-            //THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
             int column_index = cursor
                     .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
@@ -295,53 +293,56 @@ public class MainActivity extends AppCompatActivity
         fab_fromCamera.setClickable(false);
     }
 
-    private void loadCatsList(){
-        mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
-        mHelper.getWritableDatabase();
-        mCursor = CatsSQLiteOpenHelper.getInstance(this).getCatsList();
+    private class LoadCatsList extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            mHelper = new CatsSQLiteOpenHelper(MainActivity.this);
+            mHelper.getReadableDatabase();
+            mCursor = CatsSQLiteOpenHelper.getInstance(MainActivity.this).getCatsList();
 
-        requestStoragePermissions();
+            // Loop through arraylist and add database items to it.
+            if (mCursor.moveToFirst()) {
+                do {
+                    int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
+                    String name = mHelper.getCatNameByID(id);
+                    String desc = mHelper.getCatDescByID(id);
+                    double latitude = mHelper.getCatLatByID(id);
+                    double longitude = mHelper.getCatLongByID(id);
+                    String imagePath = mHelper.getCatPhotoByID(id);
 
-        // Loop through arraylist and add database items to it.
-        if (mCursor != null) {
-
-            while (mCursor.moveToNext()) {
-                int id = mCursor.getInt(mCursor.getColumnIndex(CatsSQLiteOpenHelper.CAT_ID));
-                String name = mHelper.getCatNameByID(id);
-                String desc = mHelper.getCatDescByID(id);
-                double latitude = mHelper.getCatLatByID(id);
-                double longitude = mHelper.getCatLongByID(id);
-                String imagePath = mHelper.getCatPhotoByID(id);
-
-                Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
-                catList.add(cat);
-                if (!catList.isEmpty()){
-                    instructions.setVisibility(View.GONE);
-                }
+                    Cat cat = new Cat(id, name, desc, latitude, longitude, imagePath);
+                    catList.add(cat);
+                } while (mCursor.moveToNext());
+                mHelper.close();
+                mCursor.close();
             }
-            mCursor.close();
-            mHelper.close();
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            requestStoragePermission();
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (!catList.isEmpty())
+                instructions.setVisibility(View.GONE);
+            mAdapter.notifyDataSetChanged();
+            super.onPostExecute(aVoid);
         }
     }
 
-    private void requestStoragePermissions() {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(storagePerms, storageRequestCode);
-        }
-    }
 
     private void requestCameraPermissions() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(cameraPerms, cameraRequestCode);
-        } else if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(MainActivity.this, cameraPerms, cameraRequestCode);
 
         } else {
-//            requestLocationPermissions();
             Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
             startActivity(newCatIntent);
         }
@@ -360,6 +361,16 @@ public class MainActivity extends AppCompatActivity
         } else {
             Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
             startActivity(mapIntent);
+        }
+    }
+
+    private void requestStoragePermission(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this, storagePerms, storageRequestCode);
         }
     }
 
@@ -384,13 +395,12 @@ public class MainActivity extends AppCompatActivity
 
                     Intent newCatIntent = new Intent(MainActivity.this, NewCatActivity.class);
                     startActivity(newCatIntent);
-
                 }
                 break;
             case storageRequestCode:
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length == 1
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
+                if (grantResults.length > 0
+                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                }
                 break;
             default:
                 super.onRequestPermissionsResult(permsRequestCode, permissions, grantResults);
@@ -436,7 +446,6 @@ public class MainActivity extends AppCompatActivity
         mTracker.setScreenName("Cat List");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
         mAdapter.notifyDataSetChanged();
-        Log.d("onResume", "Cat list refreshed");
     }
 
     @Override

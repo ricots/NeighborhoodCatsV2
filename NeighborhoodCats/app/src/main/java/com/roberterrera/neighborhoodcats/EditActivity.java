@@ -1,4 +1,4 @@
-package com.roberterrera.neighborhoodcats.activities;
+package com.roberterrera.neighborhoodcats;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,6 +6,7 @@ import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.ExifInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -18,7 +19,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.Tracker;
@@ -26,7 +26,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
-import com.roberterrera.neighborhoodcats.R;
 import com.roberterrera.neighborhoodcats.models.analytics.AnalyticsApplication;
 import com.roberterrera.neighborhoodcats.sqldatabase.CatsSQLiteOpenHelper;
 import com.squareup.picasso.Picasso;
@@ -36,14 +35,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.ButterKnife;
+
 public class EditActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private ImageView mPhoto;
-    private EditText mEditCatName, mEditCatDesc;
-    private TextView mCatLocation;
+    private EditText mEditCatName, mEditCatDesc, mCatLocation;
 
     private String mLatLong, photoPath;
+    List<Address> addresses;
+
     private int catId;
     private double latitude, longitude;
 
@@ -58,33 +60,34 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
+        ButterKnife.bind(this);
 
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
+        Toolbar toolbar = ButterKnife.findById(this, R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-            mPhoto = (ImageView) findViewById(R.id.imageView_edit_image);
-            mCatLocation = (TextView) findViewById(R.id.textView_edit_location);
-            mEditCatDesc = (EditText) findViewById(R.id.editText_edit_desc);
-            mEditCatName = (EditText) findViewById(R.id.editText_edit_name);
-            catId = getIntent().getIntExtra("id", -2);
+        mPhoto = ButterKnife.findById(this, R.id.imageView_edit_image);
+        mCatLocation = ButterKnife.findById(this, R.id.editText_edit_location);
+        mEditCatDesc = ButterKnife.findById(this, R.id.editText_edit_desc);
+        mEditCatName = ButterKnife.findById(this, R.id.editText_edit_name);
+        catId = getIntent().getIntExtra("id", -2);
 
 
         // Create an instance of GoogleAPIClient.
-            if (mGoogleApiClient == null) {
-                mGoogleApiClient = new GoogleApiClient.Builder(this)
-                        .addConnectionCallbacks(this)
-                        .addOnConnectionFailedListener(this)
-                        .addApi(LocationServices.API)
-                        .build();
-            }
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
 
-            AnalyticsApplication application = (AnalyticsApplication) getApplication();
-            mTracker = application.getDefaultTracker();
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
 
-            LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
-            loadCatAsyncTask.execute();
+        LoadCatAsyncTask loadCatAsyncTask = new LoadCatAsyncTask();
+        loadCatAsyncTask.execute();
 
     }
 
@@ -121,22 +124,23 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
             ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-//            if (networkInfo != null && networkInfo.isConnected()) {
-//                showAddress();
-//            } else {
-                mCatLocation.setText(locationToString());
-//            }
+            if (networkInfo != null && networkInfo.isConnected()) {
+                showAddress();
+            } else {
+            mCatLocation.setText(locationToString());
+            }
 
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
             display.getSize(size);
             int width = size.x;
             int height = size.y;
+
             Picasso.with(EditActivity.this)
                     .load("file:" + photoPath)
-//                      .resize(width, height)
+                    .resize(width, height)
+                    .centerInside()
                     .placeholder(R.drawable.ic_pets_black_24dp)
-//                      .centerCrop()
                     .into(mPhoto);
         }
     }
@@ -149,7 +153,6 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public void showAddress(){
         Geocoder geocoder;
-        List<Address> addresses;
         geocoder = new Geocoder(this, Locale.getDefault());
 
         addresses = new ArrayList<>();
@@ -164,9 +167,92 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
         String city = addresses.get(0).getLocality();
         String state = addresses.get(0).getAdminArea();
         String postalCode = addresses.get(0).getPostalCode();
+        String catAddress = address+", "+city+", "+state+" "+postalCode;
 
-        mCatLocation.setText(address+", "+city+", "+state+" "+postalCode);
+        mCatLocation.setText(catAddress);
+    }
 
+    public void getLatLongFromPlace(String place) {
+        try {
+            Geocoder selected_place_geocoder = new Geocoder(EditActivity.this);
+
+            addresses = selected_place_geocoder.getFromLocationName(place, 1);
+
+            if (addresses != null && addresses.size() > 0) {
+                latitude = addresses.get(0).getLatitude();
+                Log.d("LATITUDE", "latitude = "+ String.valueOf(latitude));
+                longitude = addresses.get(0).getLongitude();
+                Log.d("LONGITUDE", "longitude = "+ String.valueOf(longitude));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void getLatLon(String imagePath) {
+
+        ExifInterface exif = null;
+
+        try {
+            exif = new ExifInterface(imagePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String LATITUDE = null;
+        if (exif != null) {
+            LATITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+
+            String LATITUDE_REF = exif
+                    .getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+            String LONGITUDE = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+            String LONGITUDE_REF = exif
+                    .getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+
+            if ((LATITUDE != null) && (LATITUDE_REF != null) && (LONGITUDE != null)
+                    && (LONGITUDE_REF != null)) {
+
+                if (LATITUDE_REF.equals("N")) {
+                    latitude = convertToDegree(LATITUDE);
+                } else {
+                    latitude = 0 - convertToDegree(LATITUDE);
+                }
+
+                if (LONGITUDE_REF.equals("E")) {
+                    longitude = convertToDegree(LONGITUDE);
+                } else {
+                    longitude = 0 - convertToDegree(LONGITUDE);
+                } showAddress();
+
+            } else {
+                Toast.makeText(EditActivity.this, "No location found in selected photo.", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+    }
+
+    private Double convertToDegree(String location) {
+        Double result = null;
+        String[] DMS = location.split(",", 3);
+
+        String[] stringD = DMS[0].split("/", 2);
+        Double D0 = Double.valueOf(stringD[0]);
+        Double D1 = Double.valueOf(stringD[1]);
+        Double FloatD = D0 / D1;
+
+        String[] stringM = DMS[1].split("/", 2);
+        Double M0 = Double.valueOf(stringM[0]);
+        Double M1 = Double.valueOf(stringM[1]);
+        Double FloatM = M0 / M1;
+
+        String[] stringS = DMS[2].split("/", 2);
+        Double S0 = Double.valueOf(stringS[0]);
+        Double S1 = Double.valueOf(stringS[1]);
+        Double FloatS = S0 / S1;
+
+        result = FloatD + (FloatM / 60) + (FloatS / 3600);
+
+        return result;
     }
 
     @Override
@@ -191,6 +277,9 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
         if (id == R.id.action_update) {
             update();
             return true;
+        }
+        if (id == R.id.action_location) {
+            getLatLon(photoPath);
         }
 
         return super.onOptionsItemSelected(item);
@@ -233,6 +322,9 @@ public class EditActivity extends AppCompatActivity implements GoogleApiClient.C
             // Update name and description in the database.
             helper.updateDescByID(catId, mEditCatDesc.getText().toString());
             helper.updateNameByID(catId, mEditCatName.getText().toString());
+
+            getLatLongFromPlace(mCatLocation.getText().toString());
+            helper.updateLocationByID(catId, latitude, longitude);
 
             Toast.makeText(EditActivity.this, "Cat updated.", Toast.LENGTH_SHORT).show();
         } catch (Exception e){

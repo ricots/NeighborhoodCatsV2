@@ -1,0 +1,940 @@
+{
+    "@encoding": "iso-8859-1",
+    "@version": "1.0",
+    "petfinder": {
+        "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "lastOffset": {
+            "$t": "25"
+        },
+        "shelters": {
+            "shelter": [
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.9247"
+                    },
+                    "name": {
+                        "$t": "Hopeful Tails Registered Rescue (at Dapper Dog)"
+                    },
+                    "phone": {
+                        "$t": "845-353-3599"
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "nyackdapperdog@yahoo.com"
+                    },
+                    "city": {
+                        "$t": "Nyack"
+                    },
+                    "zip": {
+                        "$t": "10960"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0931"
+                    },
+                    "id": {
+                        "$t": "NY831"
+                    },
+                    "address1": {
+                        "$t": "37A Route 59"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.946"
+                    },
+                    "name": {
+                        "$t": "Tiny Treasures Rescue"
+                    },
+                    "phone": {
+                        "$t": "914-965-3725"
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "kathy@tinytreasuresrescue.com"
+                    },
+                    "city": {
+                        "$t": "Valley Cottage"
+                    },
+                    "zip": {
+                        "$t": "10989"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.1234"
+                    },
+                    "id": {
+                        "$t": "NY580"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-74.009"
+                    },
+                    "name": {
+                        "$t": "Northstar Placement"
+                    },
+                    "phone": {
+                        "$t": "Please email us !  "
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "2ndchancepets@gmail.com"
+                    },
+                    "city": {
+                        "$t": "Nanuet"
+                    },
+                    "zip": {
+                        "$t": "10954"
+                    },
+                    "fax": {
+                        "$t": "845-623-2328"
+                    },
+                    "latitude": {
+                        "$t": "41.0979"
+                    },
+                    "id": {
+                        "$t": "NY352"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-74.009"
+                    },
+                    "name": {
+                        "$t": "K9 Safehouse Rescue"
+                    },
+                    "phone": {},
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "Barbara@k9safehouse.org"
+                    },
+                    "city": {
+                        "$t": "Bardonia"
+                    },
+                    "zip": {
+                        "$t": "10954"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0979"
+                    },
+                    "id": {
+                        "$t": "NY1088"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.9936"
+                    },
+                    "name": {
+                        "$t": "C.A.T.S. dba Cats for Adoption"
+                    },
+                    "phone": {
+                        "$t": "845-634-0345"
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "katenunez22@verizon.net"
+                    },
+                    "city": {
+                        "$t": "New City"
+                    },
+                    "zip": {
+                        "$t": "10956"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.1491"
+                    },
+                    "id": {
+                        "$t": "NY481"
+                    },
+                    "address1": {
+                        "$t": "PO Box 523"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.9936"
+                    },
+                    "name": {
+                        "$t": "Heaven Can Wait Rescue"
+                    },
+                    "phone": {
+                        "$t": "718-809-7628"
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "ruth0826@yahoo.com"
+                    },
+                    "city": {
+                        "$t": "New City"
+                    },
+                    "zip": {
+                        "$t": "10956"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.1491"
+                    },
+                    "id": {
+                        "$t": "NY836"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.8342"
+                    },
+                    "name": {
+                        "$t": "SPCA of Westchester"
+                    },
+                    "phone": {
+                        "$t": "914-941-2896 "
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "shelter@spca914.org"
+                    },
+                    "city": {
+                        "$t": "Briarcliff Manor"
+                    },
+                    "zip": {
+                        "$t": "10510"
+                    },
+                    "fax": {
+                        "$t": "914-762-8312"
+                    },
+                    "latitude": {
+                        "$t": "41.1465"
+                    },
+                    "id": {
+                        "$t": "NY282"
+                    },
+                    "address1": {
+                        "$t": "590 North State Road"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.8156"
+                    },
+                    "name": {
+                        "$t": "Paws Crossed Animal Rescue Inc."
+                    },
+                    "phone": {},
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "adoptions@pawscrossedny.org"
+                    },
+                    "city": {
+                        "$t": "Elmsford"
+                    },
+                    "zip": {
+                        "$t": "10523"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0556"
+                    },
+                    "id": {
+                        "$t": "NY1303"
+                    },
+                    "address1": {
+                        "$t": "P.O. Box 970"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.8156"
+                    },
+                    "name": {
+                        "$t": "Liza's Friends"
+                    },
+                    "phone": {
+                        "$t": "914 393-2313"
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "lizasfriends@gmail.com"
+                    },
+                    "city": {
+                        "$t": "Elmsford"
+                    },
+                    "zip": {
+                        "$t": "10523"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0556"
+                    },
+                    "id": {
+                        "$t": "NY1314"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.85"
+                    },
+                    "name": {
+                        "$t": "An-Other Chance for Cats"
+                    },
+                    "phone": {
+                        "$t": "914 762 0804"
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "morgnecramer@yahoo.com"
+                    },
+                    "city": {
+                        "$t": "Ossining"
+                    },
+                    "zip": {
+                        "$t": "10562"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.1712"
+                    },
+                    "id": {
+                        "$t": "NY1208"
+                    },
+                    "address1": {
+                        "$t": "20 CampWoods Grounds"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.8428"
+                    },
+                    "name": {
+                        "$t": "Cat Assistance Inc."
+                    },
+                    "phone": {
+                        "$t": "914-667-7877/419-2574   "
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "catassistanceny@gmail.com"
+                    },
+                    "city": {
+                        "$t": "Ardsley"
+                    },
+                    "zip": {
+                        "$t": "10502"
+                    },
+                    "fax": {
+                        "$t": "914-328-1609"
+                    },
+                    "latitude": {
+                        "$t": "41.0126"
+                    },
+                    "id": {
+                        "$t": "NY24"
+                    },
+                    "address1": {
+                        "$t": "PO Box 539"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.8428"
+                    },
+                    "name": {
+                        "$t": "FurBridge, Inc."
+                    },
+                    "phone": {
+                        "$t": "914-295-2652"
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "help@furbridge.org"
+                    },
+                    "city": {
+                        "$t": "Ardsley"
+                    },
+                    "zip": {
+                        "$t": "10502"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0126"
+                    },
+                    "id": {
+                        "$t": "NY1287"
+                    },
+                    "address1": {
+                        "$t": "PO Box 95"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-74.0429"
+                    },
+                    "name": {
+                        "$t": "Halfway Hounds"
+                    },
+                    "phone": {
+                        "$t": "201-497-4DOG  (4364)  "
+                    },
+                    "state": {
+                        "$t": "NJ"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "adopt@halfwayhounds.org"
+                    },
+                    "city": {
+                        "$t": "Park Ridge"
+                    },
+                    "zip": {
+                        "$t": "07656"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0322"
+                    },
+                    "id": {
+                        "$t": "NJ613"
+                    },
+                    "address1": {
+                        "$t": "P.O. Box 132"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.7755"
+                    },
+                    "name": {
+                        "$t": "Forgotten Felines, Inc."
+                    },
+                    "phone": {
+                        "$t": "914-428-7969  "
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "forgottenfelinesny@gmail.com"
+                    },
+                    "city": {
+                        "$t": "Valhalla"
+                    },
+                    "zip": {
+                        "$t": "10595"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0837"
+                    },
+                    "id": {
+                        "$t": "NY35"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-74.0274"
+                    },
+                    "name": {
+                        "$t": "Caring About The Strays (C.A.T.S.) Inc."
+                    },
+                    "phone": {
+                        "$t": "(201) 666-5444"
+                    },
+                    "state": {
+                        "$t": "NJ"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "care4strays@optonline.net"
+                    },
+                    "city": {
+                        "$t": "Westwood"
+                    },
+                    "zip": {
+                        "$t": "07675"
+                    },
+                    "fax": {
+                        "$t": "(201) 666-5444"
+                    },
+                    "latitude": {
+                        "$t": "41.0042"
+                    },
+                    "id": {
+                        "$t": "NJ371"
+                    },
+                    "address1": {
+                        "$t": "80 Kinderkamack Road"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-74.0274"
+                    },
+                    "name": {
+                        "$t": "Peace4Paws Inc."
+                    },
+                    "phone": {
+                        "$t": "2012808696"
+                    },
+                    "state": {
+                        "$t": "NJ"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "peace4pawspresident@gmail.com"
+                    },
+                    "city": {
+                        "$t": "Westwood"
+                    },
+                    "zip": {
+                        "$t": "07675"
+                    },
+                    "fax": {
+                        "$t": "2016645963"
+                    },
+                    "latitude": {
+                        "$t": "41.0042"
+                    },
+                    "id": {
+                        "$t": "NJ779"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.8887"
+                    },
+                    "name": {
+                        "$t": "Italian Greyhound Place"
+                    },
+                    "phone": {},
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "igs@bestweb.net"
+                    },
+                    "city": {
+                        "$t": "Croton "
+                    },
+                    "zip": {
+                        "$t": "10520"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.2085"
+                    },
+                    "id": {
+                        "$t": "NY977"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.7746"
+                    },
+                    "name": {
+                        "$t": "Angels Wings Rescue"
+                    },
+                    "phone": {},
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "AngelsWingsRESQ@aol.com"
+                    },
+                    "city": {
+                        "$t": "White Plains"
+                    },
+                    "zip": {
+                        "$t": "10603"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0525"
+                    },
+                    "id": {
+                        "$t": "NY911"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.7746"
+                    },
+                    "name": {
+                        "$t": "FURRR 911"
+                    },
+                    "phone": {
+                        "$t": "9147616735  "
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "furrr911@gmail.com"
+                    },
+                    "city": {
+                        "$t": "White Plains"
+                    },
+                    "zip": {
+                        "$t": "10603"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0525"
+                    },
+                    "id": {
+                        "$t": "NY1276"
+                    },
+                    "address1": {}
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.9598"
+                    },
+                    "name": {
+                        "$t": "CLAWS"
+                    },
+                    "phone": {
+                        "$t": "201-768-0200  "
+                    },
+                    "state": {
+                        "$t": "NJ"
+                    },
+                    "address2": {
+                        "$t": "A Volunteer Animal Rescue Group"
+                    },
+                    "email": {
+                        "$t": "clawsadopt@yahoo.com"
+                    },
+                    "city": {
+                        "$t": "Closter"
+                    },
+                    "zip": {
+                        "$t": "07624"
+                    },
+                    "fax": {
+                        "$t": "201-750-9200"
+                    },
+                    "latitude": {
+                        "$t": "40.9709"
+                    },
+                    "id": {
+                        "$t": "NJ279"
+                    },
+                    "address1": {
+                        "$t": "Bergen & Hudson County"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-74.0441"
+                    },
+                    "name": {
+                        "$t": "Pekingese Rescue Network Inc."
+                    },
+                    "phone": {},
+                    "state": {
+                        "$t": "NJ"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "CoDoAn@aol.com"
+                    },
+                    "city": {
+                        "$t": "Hillsdale"
+                    },
+                    "zip": {
+                        "$t": "07642"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0037"
+                    },
+                    "id": {
+                        "$t": "NJ403"
+                    },
+                    "address1": {
+                        "$t": "P.O. Box 468"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-74.0429"
+                    },
+                    "name": {
+                        "$t": "Hi-Tor Animal Care Center"
+                    },
+                    "phone": {
+                        "$t": "845-354-7900"
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "info@hitor.org"
+                    },
+                    "city": {
+                        "$t": "Pomona"
+                    },
+                    "zip": {
+                        "$t": "10970"
+                    },
+                    "fax": {
+                        "$t": "845-354-6308"
+                    },
+                    "latitude": {
+                        "$t": "41.1854"
+                    },
+                    "id": {
+                        "$t": "NY380"
+                    },
+                    "address1": {
+                        "$t": "65 Firemen's Memorial Drive"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.7633"
+                    },
+                    "name": {
+                        "$t": "Animal Welfare League of Westchester County, Inc."
+                    },
+                    "phone": {
+                        "$t": "(914) 320-5991  "
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {},
+                    "city": {
+                        "$t": "White Plains"
+                    },
+                    "zip": {
+                        "$t": "10602"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0339"
+                    },
+                    "id": {
+                        "$t": "NY1004"
+                    },
+                    "address1": {
+                        "$t": "P.O. Box 276"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-73.7633"
+                    },
+                    "name": {
+                        "$t": "SNARR Northeast"
+                    },
+                    "phone": {
+                        "$t": "9144946456"
+                    },
+                    "state": {
+                        "$t": "NY"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "courtney@snarrnortheast.org"
+                    },
+                    "city": {
+                        "$t": "White Plains"
+                    },
+                    "zip": {
+                        "$t": "10602"
+                    },
+                    "fax": {},
+                    "latitude": {
+                        "$t": "41.0339"
+                    },
+                    "id": {
+                        "$t": "NY1298"
+                    },
+                    "address1": {
+                        "$t": "PO Box 307"
+                    }
+                },
+                {
+                    "country": {
+                        "$t": "US"
+                    },
+                    "longitude": {
+                        "$t": "-74.0976"
+                    },
+                    "name": {
+                        "$t": "The National Foundation for Animal Rescue"
+                    },
+                    "phone": {
+                        "$t": "877 554-8787"
+                    },
+                    "state": {
+                        "$t": "NJ"
+                    },
+                    "address2": {},
+                    "email": {
+                        "$t": "contact@nffar.org"
+                    },
+                    "city": {
+                        "$t": "Saddle River"
+                    },
+                    "zip": {
+                        "$t": "07458"
+                    },
+                    "fax": {
+                        "$t": "201 236-0570"
+                    },
+                    "latitude": {
+                        "$t": "41.0501"
+                    },
+                    "id": {
+                        "$t": "NJ466"
+                    },
+                    "address1": {
+                        "$t": "P.O. Box 565"
+                    }
+                }
+            ]
+        },
+        "header": {
+            "timestamp": {
+                "$t": "2016-05-09T14:32:06Z"
+            },
+            "status": {
+                "message": {},
+                "code": {
+                    "$t": "100"
+                }
+            },
+            "version": {
+                "$t": "0.1"
+            }
+        },
+        "@xsi:noNamespaceSchemaLocation": "http://api.petfinder.com/schemas/0.9/petfinder.xsd"
+    }
+}
